@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم — شيف هاشم</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#100e0c">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="admin">
+
+<!-- ============ بوابة الدخول ============ -->
+<div class="gate" id="gate">
+  <form class="gate__box" id="gateForm">
+    <img src="assets/img/logo.svg" alt="">
+    <h1>لوحة تحكم القائمة</h1>
+    <p>أدخل رمز الدخول لتعديل الأصناف والأسعار.</p>
+
+    <div class="field">
+      <label class="sr-only" for="passcode">رمز الدخول</label>
+      <input type="password" id="passcode" autocomplete="current-password" placeholder="رمز الدخول">
+    </div>
+    <button class="btn btn--primary btn--block" type="submit">دخول</button>
+    <p class="gate__error" id="gateError" role="alert"></p>
+
+    <p class="gate__note">
+      هذه البوابة تمنع الفتح العابر فقط، وليست حماية حقيقية: الصفحة تعمل في متصفح الزائر،
+      ومن يفتح ملفات الموقع يستطيع قراءة محتواها. لا تضع هنا أي بيانات حسّاسة.
+    </p>
+  </form>
+</div>
+
+<!-- ============ التطبيق ============ -->
+<div class="admin-app" id="app" hidden>
+
+  <header class="admin-bar">
+    <div class="container admin-bar__inner">
+      <div class="admin-bar__brand">
+        <img src="assets/img/logo.svg" alt="">
+        <div>
+          <strong>لوحة التحكم</strong>
+          <span id="brandName">شيف هاشم</span>
+        </div>
+      </div>
+
+      <div class="admin-bar__actions">
+        <span class="save-state" id="saveState">لا تغييرات</span>
+        <button class="btn btn--primary btn--sm" id="saveBtn" type="button">حفظ</button>
+        <button class="btn btn--ghost btn--sm" id="downloadBtn" type="button">تنزيل menu.js</button>
+        <button class="btn btn--ghost btn--sm" id="importBtn" type="button">استيراد</button>
+        <a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">معاينة الموقع</a>
+        <button class="btn btn--ghost btn--sm" id="resetBtn" type="button">استعادة الأصل</button>
+        <button class="btn btn--ghost btn--sm" id="lockBtn" type="button">قفل</button>
+        <input type="file" id="importFile" accept=".js,.json,application/json,text/javascript" hidden>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="admin-tabs" role="tablist" aria-label="أقسام لوحة التحكم">
+      <button class="chip is-active" type="button" role="tab" aria-selected="true"  aria-controls="tab-items"      id="tabbtn-items">الأصناف</button>
+      <button class="chip" type="button" role="tab" aria-selected="false" aria-controls="tab-categories" id="tabbtn-categories">الأقسام</button>
+      <button class="chip" type="button" role="tab" aria-selected="false" aria-controls="tab-info"       id="tabbtn-info">معلومات المطعم</button>
+    </nav>
+
+    <!-- ---- الأصناف ---- -->
+    <section class="admin-panel" id="tab-items" role="tabpanel" aria-labelledby="tabbtn-items">
+      <div class="panel-head">
+        <h2>أصناف القائمة</h2>
+        <p>أضف صنفاً أو عدّل سعره ووصفه. الترتيب هنا هو نفس ترتيب العرض في الموقع.</p>
+      </div>
+
+      <div class="toolbar-row">
+        <div class="search">
+          <svg class="search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+          </svg>
+          <label class="sr-only" for="adminSearch">ابحث في الأصناف</label>
+          <input type="search" id="adminSearch" placeholder="ابحث بالاسم أو القسم…" autocomplete="off">
+        </div>
+        <button class="btn btn--primary" id="addItemBtn" type="button">+ صنف جديد</button>
+      </div>
+
+      <ul class="row-list" id="itemRows"></ul>
+      <p class="empty-note" id="itemsEmpty" hidden>لا توجد أصناف مطابقة.</p>
+    </section>
+
+    <!-- ---- الأقسام ---- -->
+    <section class="admin-panel" id="tab-categories" role="tabpanel" aria-labelledby="tabbtn-categories" hidden>
+      <div class="panel-head">
+        <h2>أقسام القائمة</h2>
+        <p>الأقسام هي أزرار التصفية في الموقع. لا يمكن حذف قسم يحتوي على أصناف.</p>
+      </div>
+
+      <div class="form-card">
+        <h3>إضافة قسم</h3>
+        <div class="field">
+          <label for="newCatName">اسم القسم</label>
+          <input type="text" id="newCatName" placeholder="مثلاً: المقبلات">
+          <p class="field__error" id="newCatError"></p>
+        </div>
+        <button class="btn btn--primary" id="addCatBtn" type="button">إضافة</button>
+      </div>
+
+      <ul class="row-list" id="catRows"></ul>
+    </section>
+
+    <!-- ---- معلومات المطعم ---- -->
+    <section class="admin-panel" id="tab-info" role="tabpanel" aria-labelledby="tabbtn-info" hidden>
+      <div class="panel-head">
+        <h2>معلومات المطعم</h2>
+        <p>تظهر هذه البيانات في الترويسة والتذييل وصفحة التواصل وأزرار الاتصال وواتساب.</p>
+      </div>
+
+      <div class="form-card">
+        <div class="field">
+          <label for="infoName">اسم المطعم</label>
+          <input type="text" id="infoName" data-info="name">
+        </div>
+        <div class="field">
+          <label for="infoTagline">الوصف المختصر <span class="hint">(تحت الاسم في الترويسة)</span></label>
+          <input type="text" id="infoTagline" data-info="tagline">
+        </div>
+        <div class="field">
+          <label for="infoPhone">رقم الهاتف <span class="hint">(بصيغة دولية، مثال: ‎+966551234567)</span></label>
+          <input type="text" id="infoPhone" data-info="phone" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoPhoneDisplay">الهاتف كما يُعرض</label>
+          <input type="text" id="infoPhoneDisplay" data-info="phoneDisplay" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoWhatsapp">رقم واتساب <span class="hint">(أرقام فقط بدون + أو مسافات)</span></label>
+          <input type="text" id="infoWhatsapp" data-info="whatsapp" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoEmail">البريد الإلكتروني</label>
+          <input type="email" id="infoEmail" data-info="email" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoAddress1">العنوان — السطر الأول</label>
+          <input type="text" id="infoAddress1" data-info="addressLine1">
+        </div>
+        <div class="field">
+          <label for="infoAddress2">العنوان — السطر الثاني</label>
+          <input type="text" id="infoAddress2" data-info="addressLine2">
+        </div>
+        <div class="field">
+          <label for="infoMap">رابط الخريطة</label>
+          <input type="url" id="infoMap" data-info="mapUrl" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoCurrency">رمز العملة</label>
+          <input type="text" id="infoCurrency" data-info="currency">
+        </div>
+        <div class="field">
+          <label for="infoWaMsg">نص رسالة واتساب الجاهزة <span class="hint">({name} تُستبدل باسم المطعم)</span></label>
+          <input type="text" id="infoWaMsg" data-info="whatsappMessage">
+        </div>
+        <div class="field">
+          <label for="infoInstagram">إنستغرام</label>
+          <input type="text" id="infoInstagram" data-info="instagram" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoTiktok">تيك توك</label>
+          <input type="text" id="infoTiktok" data-info="tiktok" dir="ltr">
+        </div>
+        <div class="field">
+          <label for="infoX">إكس</label>
+          <input type="text" id="infoX" data-info="x" dir="ltr">
+        </div>
+      </div>
+
+      <div class="form-card" style="margin-block-start:1rem">
+        <h3>مواعيد العمل</h3>
+        <div class="hours-editor" id="hoursEditor"></div>
+        <button class="btn btn--ghost btn--sm" id="addHourBtn" type="button" style="margin-block-start:.75rem">+ إضافة سطر</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ============ نافذة تعديل الصنف ============ -->
+<div class="modal" id="itemModal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <form class="modal__box" id="itemForm">
+    <div class="modal__head">
+      <h2 id="modalTitle">تعديل الصنف</h2>
+      <button class="icon-btn" type="button" id="modalClose" aria-label="إغلاق">&times;</button>
+    </div>
+
+    <div class="field">
+      <label for="fName">اسم الصنف</label>
+      <input type="text" id="fName" required>
+      <p class="field__error" id="fNameError"></p>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="fCategory">القسم</label>
+        <select id="fCategory"></select>
+      </div>
+      <div class="field">
+        <label for="fPrice">السعر</label>
+        <input type="number" id="fPrice" min="0" step="0.5" required>
+        <p class="field__error" id="fPriceError"></p>
+      </div>
+      <div class="field">
+        <label for="fImage">الصورة</label>
+        <select id="fImage"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="fImageCustom">مسار صورة مخصّص <span class="hint">(اختياري — يتجاوز الاختيار أعلاه)</span></label>
+      <input type="text" id="fImageCustom" dir="ltr" placeholder="assets/img/photo.jpg">
+    </div>
+
+    <div class="field">
+      <label for="fDesc">الوصف</label>
+      <textarea id="fDesc" rows="3"></textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="fBadge">الشارة <span class="hint">(اختياري)</span></label>
+        <input type="text" id="fBadge" placeholder="الأكثر مبيعاً">
+      </div>
+      <div class="field">
+        <label for="fBadgeStyle">لون الشارة</label>
+        <select id="fBadgeStyle">
+          <option value="hot">أحمر</option>
+          <option value="veg">أخضر (نباتي)</option>
+          <option value="new">ذهبي (جديد)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fTags">الوسوم <span class="hint">(افصل بفاصلة)</span></label>
+        <input type="text" id="fTags" placeholder="حار، مزدوج">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="check"><input type="checkbox" id="fFeatured"> ضمن «الأكثر طلباً» في الصفحة الرئيسية</label>
+    </div>
+
+    <div class="modal__actions">
+      <button class="btn btn--primary" type="submit">حفظ الصنف</button>
+      <button class="btn btn--ghost" type="button" id="modalCancel">إلغاء</button>
+    </div>
+  </form>
+</div>
+
+<p class="toast" id="toast" hidden></p>
+
+<script src="assets/data/menu.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>

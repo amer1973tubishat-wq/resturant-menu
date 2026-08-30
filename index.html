@@ -3,20 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>برجر الجمر — برجر مشوي على الفحم | القائمة والأسعار</title>
+<title>شيف هاشم — قائمة البرجر المشوي على الفحم</title>
 
-<meta name="description" content="مطعم برجر الجمر: لحم بقري طازج يُفرم يومياً ويُشوى على الفحم المفتوح، بطاطس مقطّعة يدوياً، وميلك شيك. تصفّح القائمة الكاملة بالأسعار ومواعيد العمل والحجز.">
-<meta name="theme-color" content="#141210">
+<meta name="description" content="قائمة مطعم شيف هاشم: برجر مشوي على الفحم، لحم طازج يُفرم يومياً، بطاطس مقطّعة يدوياً، وميلك شيك. تصفّح القائمة الكاملة بالأسعار ومواعيد العمل.">
+<meta name="theme-color" content="#100e0c">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://example.com/">
-<link rel="alternate" hreflang="ar" href="index.html">
-<link rel="alternate" hreflang="en" href="index-en.html">
 
-<!-- Open Graph / social -->
 <meta property="og:type" content="restaurant">
 <meta property="og:locale" content="ar_SA">
-<meta property="og:title" content="برجر الجمر — برجر مشوي على الفحم">
-<meta property="og:description" content="لحم طازج يومياً، فحم مفتوح، وبطاطس مقطّعة يدوياً. مفتوح كل يوم.">
+<meta property="og:title" content="شيف هاشم — قائمة البرجر المشوي على الفحم">
+<meta property="og:description" content="لحم طازج يومياً، فحم مفتوح، وبطاطس مقطّعة يدوياً.">
 <meta property="og:image" content="assets/img/burger-hero.svg">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -25,39 +22,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
 
-<!-- بيانات منظّمة لمحركات البحث — استبدلها ببيانات المطعم الحقيقية -->
-<script type="application/ld+json">
+<!-- بيانات منظّمة لمحركات البحث — تُحدَّث تلقائياً من ملف البيانات -->
+<script type="application/ld+json" id="ldJson">
 {
   "@context": "https://schema.org",
   "@type": "Restaurant",
-  "name": "برجر الجمر",
-  "alternateName": "Ember & Bun",
+  "name": "شيف هاشم",
   "inLanguage": "ar",
   "servesCuisine": "برجر",
   "priceRange": "$$",
-  "currenciesAccepted": "SAR",
-  "telephone": "+966551234567",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "شارع الأمير سلطان، حي العليا",
-    "addressLocality": "الرياض",
-    "addressCountry": "SA"
-  },
-  "openingHours": ["Su-Th 12:00-01:00", "Fr 13:00-02:00", "Sa 12:00-02:00"]
+  "currenciesAccepted": "SAR"
 }
 </script>
 </head>
-<body>
+<body data-title-template="{name} — قائمة البرجر المشوي على الفحم">
 <a class="skip-link" href="#menu">تخطَّ إلى القائمة</a>
 
 <!-- ============ الشريط العلوي ============ -->
 <div class="topbar">
   <div class="container topbar__inner">
-    <p class="topbar__item"><span aria-hidden="true">🔥</span> المطبخ مفتوح اليوم حتى <strong>12:30 منتصف الليل</strong></p>
+    <p class="topbar__item"><span aria-hidden="true">🔥</span> مشويّ على الفحم · لحم طازج يومياً</p>
     <p class="topbar__item topbar__item--right">
-      <a href="tel:+966551234567" class="ltr">+966 55 123 4567</a>
+      <a data-bind="phoneDisplay" data-bind-href="tel" class="ltr" href="tel:+966551234567">+966 55 123 4567</a>
       <span class="topbar__sep" aria-hidden="true">•</span>
-      <a href="#visit">شارع الأمير سلطان، الرياض</a>
+      <a href="#visit" data-bind="addressLine1">شارع الأمير سلطان، حي العليا</a>
     </p>
   </div>
 </div>
@@ -65,11 +53,11 @@
 <!-- ============ الترويسة ============ -->
 <header class="header" id="top">
   <div class="container header__inner">
-    <a class="brand" href="#top" aria-label="برجر الجمر، الصفحة الرئيسية">
-      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="40" height="40">
+    <a class="brand" href="#top" aria-label="شيف هاشم، الصفحة الرئيسية">
+      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
       <span class="brand__text">
-        <span class="brand__name">برجر الجمر</span>
-        <span class="brand__tag">مشويّ على الفحم · منذ 2014</span>
+        <span class="brand__name" data-bind="name">شيف هاشم</span>
+        <span class="brand__tag" data-bind="tagline">برجر مشوي على الفحم · منذ 2014</span>
       </span>
     </a>
 
@@ -81,13 +69,15 @@
     <nav class="nav" id="primaryNav" aria-label="التنقل الرئيسي">
       <ul class="nav__list">
         <li><a class="nav__link" href="#menu">القائمة</a></li>
-        <li><a class="nav__link" href="#deal">العروض</a></li>
+        <li><a class="nav__link" href="#deal">العرض</a></li>
         <li><a class="nav__link" href="#story">قصتنا</a></li>
         <li><a class="nav__link" href="#gallery">الصور</a></li>
-        <li><a class="nav__link" href="#visit">زورونا</a></li>
+        <li><a class="nav__link" href="#visit">تواصل معنا</a></li>
       </ul>
-      <a class="lang-switch" href="index-en.html" lang="en" dir="ltr">English</a>
-      <a class="btn btn--primary nav__cta" href="#reserve">احجز طاولة</a>
+      <a class="btn btn--primary nav__cta" data-bind-href="whatsapp" href="#visit">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
+        اطلب عبر واتساب
+      </a>
     </nav>
   </div>
 </header>
@@ -96,28 +86,26 @@
   <!-- ============ الواجهة ============ -->
   <section class="hero">
     <div class="container hero__inner">
+      <div class="hero__art">
+        <img src="assets/img/burger-hero.svg" alt="رسم توضيحي لبرجر مزدوج بالجبن" width="520" height="520">
+        <span class="hero__badge"><span class="hero__badge-inner">اختيار<br>الشيف</span></span>
+      </div>
       <div class="hero__copy">
         <p class="eyebrow">مشويّ على الفحم · لحم طازج يومياً</p>
         <h1 class="hero__title">برجر يستحق<br><em>كل قضمة.</em></h1>
         <p class="hero__lede">
           لحم بقري طازج يُفرم كل صباح، يُشوى على الفحم المفتوح، ويُقدَّم في خبز محمّص بالزبدة.
-          لا ثلاجات تجميد في مطبخنا، ولا شيء ينتظر تحت مصابيح التسخين.
+          لا ثلاجات تجميد في مطبخنا.
         </p>
         <div class="hero__actions">
           <a class="btn btn--primary btn--lg" href="#menu">تصفّح القائمة</a>
-          <a class="btn btn--ghost btn--lg" href="#reserve">احجز طاولة</a>
+          <a class="btn btn--ghost btn--lg" href="#visit">مواعيد العمل والموقع</a>
         </div>
         <ul class="hero__facts">
           <li><strong>100%</strong><span>لحم بقري طازج</span></li>
           <li><strong>28 يوماً</strong><span>تعتيق اللحم</span></li>
           <li><strong>4.9 ★</strong><span>أكثر من 1200 تقييم</span></li>
         </ul>
-      </div>
-      <div class="hero__art">
-        <img src="assets/img/burger-hero.svg" alt="رسم توضيحي لبرجر مزدوج بالجبن" width="520" height="520">
-        <span class="hero__badge">
-          <span class="hero__badge-inner">اختيار<br>الشيف</span>
-        </span>
       </div>
     </div>
   </section>
@@ -138,10 +126,9 @@
   <section class="section">
     <div class="container">
       <header class="section__head reveal">
-        <p class="eyebrow">لماذا برجر الجمر</p>
+        <p class="eyebrow">لماذا شيف هاشم</p>
         <h2 class="section__title">وصفة بسيطة، تُنفَّذ بإتقان</h2>
       </header>
-
       <ul class="features">
         <li class="feature reveal">
           <span class="feature__icon" aria-hidden="true">
@@ -153,7 +140,6 @@
           <h3>شوي على الفحم</h3>
           <p>نشوي على فحم مفتوح لا على صاج كهربائي، فتصل النكهة المدخّنة إلى قلب اللحم.</p>
         </li>
-
         <li class="feature reveal">
           <span class="feature__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -163,7 +149,6 @@
           <h3>يُفرم كل صباح</h3>
           <p>نستلم اللحم يومياً ونفرمه في المطعم. لا تجميد، ولا لحم من أمس.</p>
         </li>
-
         <li class="feature reveal">
           <span class="feature__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -174,7 +159,6 @@
           <h3>توصيل خلال 30 دقيقة</h3>
           <p>نوصّل داخل المدينة في صناديق تحتفظ بحرارة البرجر وقرمشة البطاطس.</p>
         </li>
-
         <li class="feature reveal">
           <span class="feature__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -194,55 +178,9 @@
       <header class="section__head reveal">
         <p class="eyebrow">الأكثر طلباً</p>
         <h2 class="section__title">إن كانت زيارتك الأولى</h2>
-        <p class="section__lede">ثلاثة أطباق يطلبها ضيوفنا أكثر من غيرها — ابدأ منها ولن تخطئ.</p>
+        <p class="section__lede">أطباق يطلبها ضيوفنا أكثر من غيرها — ابدأ منها ولن تخطئ.</p>
       </header>
-
-      <ul class="featured">
-        <li class="feature-card reveal">
-          <div class="feature-card__media">
-            <img src="assets/img/thumb-burger.svg" alt="برجر الجمر المزدوج" loading="lazy">
-            <span class="feature-card__rank" aria-hidden="true">1</span>
-          </div>
-          <div class="feature-card__body">
-            <div class="feature-card__head">
-              <h3>برجر الجمر المزدوج</h3>
-              <p class="card__price">45 <span>ر.س</span></p>
-            </div>
-            <p>قطعتا لحم مشويتان على الفحم، جبن شيدر معتّق، صلصة الجمر، وبصل مخلل.</p>
-            <a class="btn btn--primary btn--sm" href="#menu">أضِف إلى الطلب</a>
-          </div>
-        </li>
-
-        <li class="feature-card reveal">
-          <div class="feature-card__media">
-            <img src="assets/img/thumb-chicken.svg" alt="برجر الدجاج المقرمش" loading="lazy">
-            <span class="feature-card__rank" aria-hidden="true">2</span>
-          </div>
-          <div class="feature-card__body">
-            <div class="feature-card__head">
-              <h3>برجر الدجاج المقرمش</h3>
-              <p class="card__price">36 <span>ر.س</span></p>
-            </div>
-            <p>صدر دجاج متبّل ومقلي حتى القرمشة، مخلل، صلصة الثوم، وخس طازج.</p>
-            <a class="btn btn--primary btn--sm" href="#menu">أضِف إلى الطلب</a>
-          </div>
-        </li>
-
-        <li class="feature-card reveal">
-          <div class="feature-card__media">
-            <img src="assets/img/thumb-combo.svg" alt="وجبة الجمر الكاملة" loading="lazy">
-            <span class="feature-card__rank" aria-hidden="true">3</span>
-          </div>
-          <div class="feature-card__body">
-            <div class="feature-card__head">
-              <h3>وجبة الجمر</h3>
-              <p class="card__price">62 <span>ر.س</span></p>
-            </div>
-            <p>برجر الجمر المزدوج مع بطاطس مقطّعة يدوياً ومشروب — وفّر 12 ريالاً.</p>
-            <a class="btn btn--primary btn--sm" href="#menu">أضِف إلى الطلب</a>
-          </div>
-        </li>
-      </ul>
+      <ul class="featured" id="featuredGrid"></ul>
     </div>
   </section>
 
@@ -264,18 +202,9 @@
           </svg>
           <label class="sr-only" for="menuSearch">ابحث في القائمة</label>
           <input type="search" id="menuSearch" placeholder="ابحث عن طبق… مثلاً: سماش، دجاج، شيك" autocomplete="off">
-          <button type="button" class="search__clear" id="menuSearchClear" aria-label="مسح البحث">×</button>
+          <button type="button" class="search__clear" id="menuSearchClear" aria-label="مسح البحث">&times;</button>
         </div>
-
-        <div class="menu-filters" role="toolbar" aria-label="تصفية القائمة حسب القسم" aria-controls="menuGrid">
-          <button type="button" class="chip is-active" aria-pressed="true"  data-filter="all">الكل</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="beef">برجر اللحم</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="chicken">برجر الدجاج</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="combo">الوجبات</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="sides">الإضافات</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="drinks">المشروبات</button>
-          <button type="button" class="chip" aria-pressed="false" data-filter="sweets">الحلويات</button>
-        </div>
+        <div class="menu-filters" id="menuFilters" role="toolbar" aria-label="تصفية القائمة حسب القسم" aria-controls="menuGrid" data-all-label="الكل"></div>
       </div>
 
       <p class="menu-count" id="menuCount" role="status"
@@ -283,319 +212,19 @@
          data-msg-category="عرض {n} من أطباق «{category}»"
          data-msg-search="{n} نتيجة للبحث عن «{q}»"></p>
 
-      <ul class="menu-grid" id="menuGrid">
-
-        <!-- ---- برجر اللحم ---- -->
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الجمر المزدوج <span class="card__flag">الأكثر مبيعاً</span></h3>
-              <p class="card__price">45 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">قطعتا لحم مشويتان على الفحم، جبن شيدر معتّق، صلصة الجمر الخاصة، بصل مخلل، وخبز محمّص بالزبدة.</p>
-            <ul class="tags"><li class="tag">حار قليلاً</li><li class="tag">مزدوج</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الجبن الأزرق</h3>
-              <p class="card__price">49 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">لحم معتّق 28 يوماً، جبن أزرق ذائب، مربّى البصل، بصل مقرمش، وجرجير طازج.</p>
-            <ul class="tags"><li class="tag">لحم معتّق</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر البريسكِت المدخّن</h3>
-              <p class="card__price">55 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">قرص لحم مشوي فوقه بريسكِت مدخّن 12 ساعة، سلطة كول سلو، وصلصة الباربكيو بالخردل.</p>
-            <ul class="tags"><li class="tag">مدخّن</li><li class="tag">دسم</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">سماش كلاسيك</h3>
-              <p class="card__price">32 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">قرص لحم مسحوق على الصاج بحواف مقرمشة، جبن شيدر، بصل مفروم، مخلل، وصلصة البيت.</p>
-            <ul class="tags"><li class="tag">جاهز خلال 10 دقائق</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">سماش ثلاثي</h3>
-              <p class="card__price">47 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">ثلاثة أقراص لحم بحواف مقرمشة، ثلاث شرائح جبن، بصل مشوي، ومخلل الشبت.</p>
-            <ul class="tags"><li class="tag">ثلاثي</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="beef">
-          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">سماش الهالبينو</h3>
-              <p class="card__price">38 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">سماش مزدوج، جبن بيبر جاك، هالبينو مشوي، صلصة الشيبوتلي، ورقائق التورتيلا.</p>
-            <ul class="tags"><li class="tag">حار جداً</li></ul>
-          </div>
-        </li>
-
-        <!-- ---- برجر الدجاج ---- -->
-        <li class="card" data-category="chicken">
-          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الدجاج المقرمش <span class="card__flag">مفضّل الضيوف</span></h3>
-              <p class="card__price">36 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">صدر دجاج متبّل بالبابريكا ومقلي حتى القرمشة، مخلل، صلصة الثوم، وخس طازج.</p>
-            <ul class="tags"><li class="tag">مقرمش</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="chicken">
-          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الدجاج المشوي</h3>
-              <p class="card__price">34 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">صدر دجاج مشوي على الفحم، أفوكادو، طماطم، وصلصة الزبادي بالأعشاب.</p>
-            <ul class="tags"><li class="tag">خيار خفيف</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="chicken">
-          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الدجاج الحار</h3>
-              <p class="card__price">38 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">دجاج مقرمش مغموس بصلصة بافلو الحارة، جبن ذائب، وصلصة الرانش المبرّدة.</p>
-            <ul class="tags"><li class="tag">حار جداً</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="chicken">
-          <div class="card__media"><img src="assets/img/thumb-salad.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">برجر الخضار <span class="card__flag card__flag--green">نباتي</span></h3>
-              <p class="card__price">30 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">قرص فاصولياء سوداء وشمندر مشوي، صلصة البابريكا المدخّنة، أفوكادو، وطماطم بلدية.</p>
-            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خبز خالٍ من الجلوتين +5 ر.س</li></ul>
-          </div>
-        </li>
-
-        <!-- ---- الوجبات ---- -->
-        <li class="card" data-category="combo">
-          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">وجبة الجمر <span class="card__flag">وفّر 12</span></h3>
-              <p class="card__price">62 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">برجر الجمر المزدوج + بطاطس مقطّعة يدوياً + مشروب غازي أو ليموناضة.</p>
-            <ul class="tags"><li class="tag">وجبة كاملة</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="combo">
-          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">وجبة السماش</h3>
-              <p class="card__price">48 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">سماش كلاسيك + بطاطس مقطّعة يدوياً + مشروب. الخيار الأسرع في القائمة.</p>
-            <ul class="tags"><li class="tag">سريعة</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="combo">
-          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">وجبة العائلة</h3>
-              <p class="card__price">165 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">أربعة برجر من اختيارك + طبقا بطاطس كبيران + حلقات بصل + أربعة مشروبات.</p>
-            <ul class="tags"><li class="tag">تكفي 4 أشخاص</li><li class="tag">للمشاركة</li></ul>
-          </div>
-        </li>
-
-        <!-- ---- الإضافات ---- -->
-        <li class="card" data-category="sides">
-          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">بطاطس مقطّعة يدوياً</h3>
-              <p class="card__price">18 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">بطاطس تُقطّع كل صباح وتُقلى مرتين، ملح بإكليل الجبل، وكاتشب مدخّن جانباً.</p>
-            <ul class="tags"><li class="tag">نباتي</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sides">
-          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">بطاطس الجمر المحمّلة</h3>
-              <p class="card__price">29 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">بطاطس مغطاة بصلصة الجبن، قطع لحم مدخّن، بصل أخضر، وفلفل مخلل.</p>
-            <ul class="tags"><li class="tag">للمشاركة</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sides">
-          <div class="card__media"><img src="assets/img/thumb-rings.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">حلقات البصل</h3>
-              <p class="card__price">22 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">حلقات بصل حلو سميكة بخليط اللبن الرائب، مقلية حتى الذهبية، مع صلصة الرانش.</p>
-            <ul class="tags"><li class="tag">نباتي</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sides">
-          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">ذرة مشوية بالزبدة</h3>
-              <p class="card__price">24 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">أرباع ذرة مشوية على الفحم، زبدة الليمون، جبن مبشور، ورشة فلفل أحمر.</p>
-            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خالٍ من الجلوتين</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sides">
-          <div class="card__media"><img src="assets/img/thumb-salad.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">سلطة جانبية</h3>
-              <p class="card__price">19 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">خس روماني، طماطم كرزية، خيار، بصل أحمر، وصلصة الليمون والزيت.</p>
-            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خفيف</li></ul>
-          </div>
-        </li>
-
-        <!-- ---- المشروبات ---- -->
-        <li class="card" data-category="drinks">
-          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">ميلك شيك بالمالت المملّح</h3>
-              <p class="card__price">26 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">كاسترد مثلج، شعير مالت، ملح البحر، وكريمة مخفوقة. كثيف بحيث تقف الملعقة فيه.</p>
-            <ul class="tags"><li class="tag">كثيف</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="drinks">
-          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">ميلك شيك بالعسل المحروق</h3>
-              <p class="card__price">28 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">عسل مكرمل على النار، كاسترد الفانيلا، وفتات الشوفان المحمّص.</p>
-            <ul class="tags"><li class="tag">موسمي</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="drinks">
-          <div class="card__media"><img src="assets/img/thumb-soda.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">مشروب غازي</h3>
-              <p class="card__price">12 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">تشكيلة مشروبات غازية مثلجة، مع تعبئة مجانية داخل الفرع.</p>
-            <ul class="tags"><li class="tag">تعبئة مجانية</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="drinks">
-          <div class="card__media"><img src="assets/img/thumb-soda.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">ليموناضة بالنعناع</h3>
-              <p class="card__price">16 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">ليمون طازج يُعصر عند الطلب، نعناع مهروس، وثلج مجروش.</p>
-            <ul class="tags"><li class="tag">منعش</li></ul>
-          </div>
-        </li>
-
-        <!-- ---- الحلويات ---- -->
-        <li class="card" data-category="sweets">
-          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">فطيرة التفاح المحمّرة</h3>
-              <p class="card__price">24 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">فطيرة تُحمَّر بالزبدة على الصاج، سكر بالقرفة، وكراميل دافئ.</p>
-            <ul class="tags"><li class="tag">تكفي شخصين</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sweets">
-          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">صنداي الكامب فاير</h3>
-              <p class="card__price">27 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">مارشميلو محروق على النار، طبقة شوكولاتة داكنة، وفتات بسكويت الجراهام.</p>
-            <ul class="tags"><li class="tag">نباتي</li></ul>
-          </div>
-        </li>
-
-        <li class="card" data-category="sweets">
-          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
-          <div class="card__body">
-            <div class="card__head">
-              <h3 class="card__title">كنافة بالجبن</h3>
-              <p class="card__price">29 <span>ر.س</span></p>
-            </div>
-            <p class="card__desc">كنافة طازجة بالجبن تُخبز عند الطلب، قطر بماء الزهر، وفستق حلبي.</p>
-            <ul class="tags"><li class="tag">حلوى شرقية</li></ul>
-          </div>
-        </li>
-      </ul>
+      <ul class="menu-grid" id="menuGrid"></ul>
 
       <div class="menu-empty" id="menuEmpty" hidden>
         <strong>لا توجد أطباق مطابقة</strong>
         جرّب كلمة بحث أخرى، أو اختر «الكل» لعرض القائمة كاملة.
       </div>
+
+      <noscript>
+        <div class="menu-empty">
+          <strong>لعرض القائمة يلزم تفعيل JavaScript</strong>
+          يمكنك الاتصال بنا على <span class="ltr">+966 55 123 4567</span> وسنسعد بمساعدتك.
+        </div>
+      </noscript>
 
       <p class="menu-note">
         <strong>تنبيه الحساسية:</strong> يُرجى إخبار الموظف بأي حساسية لديك — يتعامل مطبخنا مع الجلوتين
@@ -608,19 +237,19 @@
   <section class="deal" id="deal">
     <div class="container deal__inner reveal">
       <div class="deal__copy">
-        <p class="eyebrow eyebrow--dark">من الأحد إلى الخميس · 3–6 عصراً</p>
+        <p class="eyebrow">من الأحد إلى الخميس · 3–6 عصراً</p>
         <h2 class="deal__title">عرض ساعة السعادة</h2>
         <p class="deal__desc">
           أي سماش برجر، مع بطاطس مقطّعة يدوياً ومشروب. داخل الفرع فقط، ولا يشمل أيام العطل الرسمية.
         </p>
         <div class="deal__actions">
-          <a class="btn btn--dark btn--lg" href="#visit">موقع الفرع</a>
-          <a class="btn btn--outline-dark btn--lg" href="tel:+966551234567">اطلب هاتفياً</a>
+          <a class="btn btn--dark btn--lg" data-bind-href="map" href="#visit">موقع الفرع</a>
+          <a class="btn btn--outline-dark btn--lg" data-bind-href="tel" href="tel:+966551234567">اتصل بنا</a>
         </div>
       </div>
       <div class="deal__price">
         <span class="deal__was">62</span>
-        <span class="deal__now">39 <span>ر.س</span></span>
+        <span class="deal__now">39 <span data-bind="currency">ر.س</span></span>
         <span class="deal__label">للشخص الواحد</span>
       </div>
     </div>
@@ -636,13 +265,14 @@
         <p class="eyebrow">قصتنا</p>
         <h2 class="section__title">شوايةٌ واحدة، وشغفٌ واحد</h2>
         <p>
-          بدأ برجر الجمر عام 2014 بشوايةِ فحمٍ واحدة خلف متجرٍ صغير في الحي. فرمنا اللحم بأنفسنا
-          لأن أحداً لم يبِعنا الخلطة التي أردناها، وخبزنا الخبز بأنفسنا لأن لا شيء متوفر كان يحتمل
-          عصارة اللحم.
+          بدأ شيف هاشم عام 2014 بشوايةِ فحم واحدة خلف متجرٍ صغير في الحي. فرمنا اللحم بأنفسنا
+          لأن أحداً لم يبِعنا الخلطة التي أردناها، وخبزنا الخبز بأنفسنا لأن لا شيء متوفر كان
+          يحتمل عصارة اللحم.
         </p>
         <p>
-          بعد أحد عشر عاماً لم تتغيّر الوصفة: اللحم ما زال يُفرم كل صباح، والبطاطس ما زالت تُقطّع
-          يدوياً عند السادسة فجراً، والصلصة ما زالت تُحضَّر في قدرٍ واحد بيد أول من يصل إلى المطبخ.
+          بعد أحد عشر عاماً لم تتغيّر الوصفة: اللحم ما زال يُفرم كل صباح، والبطاطس ما زالت
+          تُقطّع يدوياً عند السادسة فجراً، والصلصة ما زالت تُحضَّر في قدرٍ واحد بيد أول من يصل
+          إلى المطبخ.
         </p>
         <dl class="stats">
           <div><dt>2014</dt><dd>سنة التأسيس</dd></div>
@@ -662,9 +292,9 @@
         <h2 class="section__title">مباشرةً من الشواية</h2>
       </header>
       <ul class="gallery">
-        <li class="gallery__item gallery__item--tall reveal"><img src="assets/img/thumb-burger.svg" alt="برجر مزدوج بالجبن جاهز للتقديم" loading="lazy"><span class="gallery__cap">برجر الجمر المزدوج</span></li>
+        <li class="gallery__item gallery__item--tall reveal"><img src="assets/img/thumb-burger.svg" alt="برجر مزدوج بالجبن جاهز للتقديم" loading="lazy"><span class="gallery__cap">برجر هاشم المزدوج</span></li>
         <li class="gallery__item reveal"><img src="assets/img/thumb-fries.svg" alt="سلة بطاطس مقطّعة يدوياً" loading="lazy"><span class="gallery__cap">بطاطس يدوية</span></li>
-        <li class="gallery__item reveal"><img src="assets/img/thumb-shake.svg" alt="كوب ميلك شيك كثيف" loading="lazy"><span class="gallery__cap">ميلك شيك بالمالت</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/thumb-shake.svg" alt="كوب ميلك شيك كثيف" loading="lazy"><span class="gallery__cap">ميلك شيك</span></li>
         <li class="gallery__item reveal"><img src="assets/img/grill.svg" alt="طاهٍ يعمل على الشواية" loading="lazy"><span class="gallery__cap">الفحم المفتوح</span></li>
         <li class="gallery__item gallery__item--wide reveal"><img src="assets/img/burger-hero.svg" alt="برجر مرصوص بالجبن الذائب" loading="lazy"><span class="gallery__cap">برجر البريسكِت</span></li>
       </ul>
@@ -698,27 +328,24 @@
     </div>
   </section>
 
-  <!-- ============ زورونا ============ -->
+  <!-- ============ تواصل معنا ============ -->
   <section class="section section--tint" id="visit">
     <div class="container visit">
       <div class="visit__info reveal">
         <p class="eyebrow">زورونا</p>
-        <h2 class="section__title">حي العليا، الرياض</h2>
+        <h2 class="section__title">مواعيد العمل والموقع</h2>
 
         <address class="visit__address">
-          شارع الأمير سلطان، حي العليا<br>
-          الرياض، المملكة العربية السعودية<br>
-          <a href="tel:+966551234567" class="ltr">+966 55 123 4567</a> ·
-          <a href="mailto:hello@emberandbun.example" class="ltr">hello@emberandbun.example</a>
+          <span data-bind="addressLine1">شارع الأمير سلطان، حي العليا</span><br>
+          <span data-bind="addressLine2">الرياض، المملكة العربية السعودية</span><br>
+          <a class="ltr" data-bind="phoneDisplay" data-bind-href="tel" href="tel:+966551234567">+966 55 123 4567</a> ·
+          <a class="ltr" data-bind="email" data-bind-href="mail" href="mailto:hello@chefhashem.example">hello@chefhashem.example</a>
         </address>
 
         <table class="hours">
           <caption class="sr-only">مواعيد العمل</caption>
-          <tbody>
+          <tbody id="hoursBody">
             <tr><th scope="row">الأحد – الخميس</th><td>12:00 ظهراً – 1:00 فجراً</td></tr>
-            <tr><th scope="row">الجمعة</th><td>1:00 ظهراً – 2:00 فجراً</td></tr>
-            <tr><th scope="row">السبت</th><td>12:00 ظهراً – 2:00 فجراً</td></tr>
-            <tr><th scope="row">إغلاق المطبخ</th><td>قبل الإغلاق بنصف ساعة</td></tr>
           </tbody>
         </table>
 
@@ -730,60 +357,28 @@
         </ul>
       </div>
 
-      <div class="visit__form reveal" id="reserve">
-        <h3 class="form__title">احجز طاولة</h3>
-        <p class="form__lede">للمجموعات من 8 أشخاص فأكثر، يُرجى الاتصال بنا مباشرة.</p>
-
-        <form class="form" id="reserveForm" novalidate
-              data-msg-required="هذا الحقل مطلوب."
-              data-msg-email="أدخل بريداً إلكترونياً صحيحاً."
-              data-msg-past="اختر تاريخ اليوم أو تاريخاً لاحقاً."
-              data-msg-fix="يُرجى تصحيح الحقول المحدّدة."
-              data-msg-success="شكراً {name}، سنؤكد حجزك لـ {guests} أشخاص عبر البريد الإلكتروني.">
-          <div class="field">
-            <label for="name">الاسم الكامل</label>
-            <input type="text" id="name" name="name" autocomplete="name" required>
-            <p class="field__error" data-error-for="name"></p>
-          </div>
-
-          <div class="field">
-            <label for="email">البريد الإلكتروني</label>
-            <input type="email" id="email" name="email" autocomplete="email" required dir="ltr">
-            <p class="field__error" data-error-for="email"></p>
-          </div>
-
-          <div class="field-row">
-            <div class="field">
-              <label for="date">التاريخ</label>
-              <input type="date" id="date" name="date" required>
-              <p class="field__error" data-error-for="date"></p>
-            </div>
-            <div class="field">
-              <label for="time">الوقت</label>
-              <input type="time" id="time" name="time" value="20:00" required>
-              <p class="field__error" data-error-for="time"></p>
-            </div>
-            <div class="field">
-              <label for="guests">الضيوف</label>
-              <select id="guests" name="guests">
-                <option>1</option><option selected>2</option><option>3</option>
-                <option>4</option><option>5</option><option>6</option><option>7</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="notes">هل من ملاحظة؟ <span class="field__opt">(اختياري)</span></label>
-            <textarea id="notes" name="notes" rows="3" placeholder="حساسية، كرسي أطفال، مناسبة…"></textarea>
-          </div>
-
-          <button class="btn btn--primary btn--block" type="submit">أرسل طلب الحجز</button>
-          <p class="form__status" id="formStatus" role="status"></p>
-          <p class="form__fineprint">
-            هذا القالب لا يرسل البيانات إلى أي جهة. اربط النموذج بنظام الحجز لديك من
-            <code>assets/js/main.js</code>.
-          </p>
-        </form>
+      <div class="contact-card reveal">
+        <h3>اطلب الآن</h3>
+        <p>
+          نستقبل الطلبات عبر واتساب أو هاتفياً مباشرة. أخبرنا باسم الطبق من القائمة،
+          وسنجهّزه للاستلام أو التوصيل.
+        </p>
+        <div class="contact-actions">
+          <a class="btn btn--whatsapp btn--lg btn--block" data-bind-href="whatsapp" href="#">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
+            واتساب
+          </a>
+          <a class="btn btn--primary btn--lg btn--block" data-bind-href="tel" href="tel:+966551234567">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/>
+            </svg>
+            اتصل بنا
+          </a>
+          <a class="btn btn--ghost btn--lg btn--block" data-bind-href="map" href="#" target="_blank" rel="noopener">الموقع على الخريطة</a>
+        </div>
+        <p class="contact-note">
+          هذا الموقع قائمة طعام للعرض فقط — لا يتم إتمام الطلب أو الدفع عبر الموقع.
+        </p>
       </div>
     </div>
   </section>
@@ -794,18 +389,13 @@
   <div class="container footer__inner">
     <div class="footer__brand">
       <img src="assets/img/logo.svg" alt="" width="44" height="44">
-      <p class="footer__name">برجر الجمر</p>
+      <p class="footer__name" data-bind="name">شيف هاشم</p>
       <p class="footer__blurb">مطعم برجر في الحي. فحم مفتوح، بطاطس مقطّعة يدوياً، وبلا ثلاجات تجميد.</p>
     </div>
 
     <nav class="footer__col" aria-label="روابط القائمة">
       <h2 class="footer__heading">القائمة</h2>
-      <ul>
-        <li><a href="#menu">برجر اللحم</a></li>
-        <li><a href="#menu">برجر الدجاج</a></li>
-        <li><a href="#menu">الوجبات والإضافات</a></li>
-        <li><a href="#menu">المشروبات والحلويات</a></li>
-      </ul>
+      <ul id="footerCategories"></ul>
     </nav>
 
     <nav class="footer__col" aria-label="روابط المطعم">
@@ -813,36 +403,49 @@
       <ul>
         <li><a href="#story">قصتنا</a></li>
         <li><a href="#gallery">الصور</a></li>
+        <li><a href="#deal">العرض</a></li>
         <li><a href="#visit">المواعيد والموقع</a></li>
-        <li><a href="#reserve">حجز الطاولات</a></li>
       </ul>
     </nav>
 
     <div class="footer__col">
-      <h2 class="footer__heading">ابقَ على تواصل</h2>
-      <p class="footer__blurb">العروض، والأصناف الجديدة، وميلك شيك مجاني بين حين وآخر.</p>
-      <form class="subscribe" id="subscribeForm"
-            data-msg-email="أدخل بريداً إلكترونياً صحيحاً."
-            data-msg-success="تم تسجيلك في القائمة. نراك قريباً.">
-        <label class="sr-only" for="subEmail">البريد الإلكتروني</label>
-        <input type="email" id="subEmail" name="email" placeholder="you@example.com" required dir="ltr">
-        <button class="btn btn--primary" type="submit">اشترك</button>
-      </form>
-      <p class="form__status" id="subStatus" role="status"></p>
+      <h2 class="footer__heading">تواصل معنا</h2>
+      <ul>
+        <li><a class="ltr" data-bind="phoneDisplay" data-bind-href="tel" href="tel:+966551234567">+966 55 123 4567</a></li>
+        <li><a class="ltr" data-bind="email" data-bind-href="mail" href="mailto:hello@chefhashem.example">hello@chefhashem.example</a></li>
+        <li><a data-bind-href="whatsapp" href="#">الطلب عبر واتساب</a></li>
+      </ul>
       <ul class="social">
-        <li><a href="#" aria-label="إنستغرام">إنستغرام</a></li>
-        <li><a href="#" aria-label="تيك توك">تيك توك</a></li>
-        <li><a href="#" aria-label="إكس">إكس</a></li>
+        <li><a data-bind-href="instagram" href="#">إنستغرام</a></li>
+        <li><a data-bind-href="tiktok" href="#">تيك توك</a></li>
+        <li><a data-bind-href="x" href="#">إكس</a></li>
       </ul>
     </div>
   </div>
 
   <div class="container footer__legal">
-    <p>© <span id="year">2025</span> برجر الجمر. جميع الحقوق محفوظة.</p>
-    <p><a href="#">سياسة الخصوصية</a> · <a href="#">إمكانية الوصول</a> · <a href="#top">العودة للأعلى</a></p>
+    <p>© <span id="year">2025</span> <span data-bind="name">شيف هاشم</span>. جميع الحقوق محفوظة.</p>
+    <p><a href="#top">العودة للأعلى</a></p>
   </div>
 </footer>
 
+<!-- شريط التواصل الثابت (الجوال) -->
+<div class="actionbar">
+  <a class="btn btn--whatsapp" data-bind-href="whatsapp" href="#">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
+    واتساب
+  </a>
+  <a class="btn btn--primary" data-bind-href="tel" href="tel:+966551234567">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8.1 9.6a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/>
+    </svg>
+    اتصل بنا
+  </a>
+</div>
+
+<p class="preview-flag" id="previewFlag" hidden>معاينة محلية من لوحة التحكم</p>
+
+<script src="assets/data/menu.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
