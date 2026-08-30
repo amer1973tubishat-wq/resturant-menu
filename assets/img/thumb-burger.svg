@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Burger">
+  <path d="M18 52c0-20 17-32 42-32s42 12 42 32z" fill="#eaa84f"/>
+  <g fill="#fbe4bd"><ellipse cx="45" cy="34" rx="6" ry="3"/><ellipse cx="66" cy="29" rx="6" ry="3"/><ellipse cx="82" cy="38" rx="6" ry="3"/></g>
+  <path d="M14 56c8-6 14 4 22-1s14 5 22-1 14 5 22-1 14 4 22 0c4 8-2 13-8 13H22c-6 0-11-5-8-10z" fill="#4e9b4e"/>
+  <path d="M20 70h80c5 0 8 4 6 8l-4 7c-3 5-7 2-10-1s-7-1-10 2-8 2-11-2-8-1-11 3-8 2-11-2-7-2-10 2-8 1-10-3l-3-6c-3-4 0-8 5-8z" fill="#ffcc4d"/>
+  <rect x="16" y="80" width="88" height="16" rx="8" fill="#5b3320"/>
+  <path d="M20 96h80c0 12-13 16-40 16s-40-4-40-16z" fill="#d4863a"/>
+</svg>

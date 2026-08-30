@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" width="520" height="520" role="img" aria-label="Double cheeseburger illustration">
+  <defs>
+    <linearGradient id="bunTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2b45c"/><stop offset="1" stop-color="#d4863a"/>
+    </linearGradient>
+    <linearGradient id="bunBot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dd9646"/><stop offset="1" stop-color="#b56f2e"/>
+    </linearGradient>
+    <linearGradient id="pattyG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b3b23"/><stop offset="1" stop-color="#40200f"/>
+    </linearGradient>
+    <linearGradient id="cheeseG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffcc4d"/><stop offset="1" stop-color="#f0a72c"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="260" cy="470" rx="186" ry="26" fill="#000" opacity=".35"/>
+
+  <!-- top bun -->
+  <path d="M74 214c0-96 84-152 186-152s186 56 186 152z" fill="url(#bunTop)"/>
+  <ellipse cx="205" cy="118" rx="82" ry="30" fill="#fff" opacity=".16" transform="rotate(-14 205 118)"/>
+  <g fill="#fbe4bd">
+    <ellipse cx="180" cy="126" rx="12" ry="6" transform="rotate(-18 180 126)"/>
+    <ellipse cx="250" cy="106" rx="12" ry="6" transform="rotate(6 250 106)"/>
+    <ellipse cx="320" cy="126" rx="12" ry="6" transform="rotate(20 320 126)"/>
+    <ellipse cx="146" cy="176" rx="12" ry="6" transform="rotate(-28 146 176)"/>
+    <ellipse cx="216" cy="164" rx="12" ry="6" transform="rotate(-6 216 164)"/>
+    <ellipse cx="292" cy="166" rx="12" ry="6" transform="rotate(10 292 166)"/>
+    <ellipse cx="368" cy="180" rx="12" ry="6" transform="rotate(28 368 180)"/>
+  </g>
+  <rect x="74" y="206" width="372" height="20" rx="10" fill="#c97e33"/>
+
+  <!-- lettuce -->
+  <path d="M62 232c22-14 34 8 56-4s34 10 56-2 36 12 58 0 34 12 56 0 36 10 58-2 32 12 54 4c8 16-4 26-16 26H74c-14 0-20-12-12-22z" fill="#4e9b4e"/>
+  <path d="M62 244h396c0 12-10 18-22 18H84c-12 0-22-6-22-18z" fill="#3d7f3e"/>
+
+  <!-- cheese -->
+  <path d="M80 262h360c10 0 16 8 12 16l-12 24c-6 12-14 6-20-2-8-10-16-4-22 6-6 10-16 8-22-2-8-12-18-6-24 4-6 10-16 8-22-2-8-12-18-4-24 6-6 8-16 8-22-2-8-12-18-6-24 4-6 8-16 8-22-2l-14-22c-6-10 0-20 12-20z" fill="url(#cheeseG)"/>
+
+  <!-- patty 1 -->
+  <rect x="72" y="286" width="376" height="52" rx="26" fill="url(#pattyG)"/>
+  <g fill="#8a5031" opacity=".65">
+    <circle cx="130" cy="304" r="5"/><circle cx="200" cy="298" r="4"/><circle cx="286" cy="306" r="5"/><circle cx="368" cy="300" r="4"/>
+  </g>
+
+  <!-- tomato -->
+  <g>
+    <rect x="86" y="336" width="348" height="26" rx="13" fill="#d1462f"/>
+    <rect x="86" y="336" width="348" height="10" rx="5" fill="#e4573f"/>
+  </g>
+
+  <!-- patty 2 -->
+  <rect x="72" y="360" width="376" height="52" rx="26" fill="url(#pattyG)"/>
+  <g fill="#8a5031" opacity=".65">
+    <circle cx="160" cy="380" r="5"/><circle cx="248" cy="374" r="4"/><circle cx="330" cy="382" r="5"/>
+  </g>
+
+  <!-- bottom bun -->
+  <path d="M78 408h364c0 44-46 66-182 66S78 452 78 408z" fill="url(#bunBot)"/>
+  <rect x="78" y="402" width="364" height="14" rx="7" fill="#c97e33"/>
+</svg>

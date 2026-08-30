@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember &amp; Bun — Handcrafted Burgers, Fries &amp; Shakes</title>
+
+<meta name="description" content="Ember &amp; Bun is a neighborhood burger house serving flame-grilled patties, hand-cut fries and thick shakes. See the full menu, hours and location.">
+<meta name="theme-color" content="#141210">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://example.com/">
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="restaurant">
+<meta property="og:title" content="Ember &amp; Bun — Handcrafted Burgers">
+<meta property="og:description" content="Flame-grilled patties, hand-cut fries and thick shakes. Open daily.">
+<meta property="og:image" content="assets/img/burger-hero.svg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+
+<!-- Structured data helps this template show rich results in search. Replace with real details. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Ember & Bun",
+  "servesCuisine": "Burgers",
+  "priceRange": "$$",
+  "telephone": "+1-555-0142",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "184 Kiln Street",
+    "addressLocality": "Riverside",
+    "addressRegion": "CA",
+    "postalCode": "92501",
+    "addressCountry": "US"
+  },
+  "openingHours": ["Mo-Th 11:00-22:00", "Fr-Sa 11:00-24:00", "Su 12:00-21:00"]
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#menu">Skip to menu</a>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="container topbar__inner">
+    <p class="topbar__item"><span aria-hidden="true">🔥</span> Kitchen open today until <strong>10:00 PM</strong></p>
+    <p class="topbar__item topbar__item--right">
+      <a href="tel:+15550142">(555) 014-2</a>
+      <span class="topbar__sep" aria-hidden="true">•</span>
+      <a href="#visit">184 Kiln St, Riverside</a>
+    </p>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="top">
+  <div class="container header__inner">
+    <a class="brand" href="#top" aria-label="Ember and Bun, home">
+      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="40" height="40">
+      <span class="brand__text">
+        <span class="brand__name">Ember &amp; Bun</span>
+        <span class="brand__tag">Burger House · Est. 2014</span>
+      </span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav">
+      <span class="nav-toggle__bars" aria-hidden="true"></span>
+      <span class="sr-only">Toggle navigation</span>
+    </button>
+
+    <nav class="nav" id="primaryNav" aria-label="Primary">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="#menu">Menu</a></li>
+        <li><a class="nav__link" href="#deal">Deals</a></li>
+        <li><a class="nav__link" href="#story">Our Story</a></li>
+        <li><a class="nav__link" href="#gallery">Gallery</a></li>
+        <li><a class="nav__link" href="#visit">Visit</a></li>
+      </ul>
+      <a class="btn btn--primary nav__cta" href="#reserve">Book a table</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <p class="eyebrow">Flame-grilled · Never frozen</p>
+        <h1 class="hero__title">Burgers worth<br><em>the mess.</em></h1>
+        <p class="hero__lede">
+          Dry-aged chuck and brisket, ground every morning, seared hard over open coals
+          and stacked on butter-toasted potato buns. Nothing sits under a heat lamp. Ever.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--lg" href="#menu">View the menu</a>
+          <a class="btn btn--ghost btn--lg" href="#reserve">Reserve a table</a>
+        </div>
+        <ul class="hero__facts">
+          <li><strong>100%</strong><span>Grass-fed beef</span></li>
+          <li><strong>28 day</strong><span>Dry-aged blend</span></li>
+          <li><strong>4.9★</strong><span>1,200+ reviews</span></li>
+        </ul>
+      </div>
+      <div class="hero__art">
+        <img src="assets/img/burger-hero.svg" alt="Illustration of a double stacked cheeseburger" width="520" height="520">
+        <span class="hero__badge">
+          <span class="hero__badge-inner">Chef's<br>Pick</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <span>Smash Patties</span><span class="dot"></span><span>Hand-Cut Fries</span><span class="dot"></span>
+      <span>Thick Shakes</span><span class="dot"></span><span>Local Buns</span><span class="dot"></span>
+      <span>Open Coals</span><span class="dot"></span>
+      <span>Smash Patties</span><span class="dot"></span><span>Hand-Cut Fries</span><span class="dot"></span>
+      <span>Thick Shakes</span><span class="dot"></span><span>Local Buns</span><span class="dot"></span>
+      <span>Open Coals</span><span class="dot"></span>
+    </div>
+  </div>
+
+  <!-- ============ MENU ============ -->
+  <section class="section" id="menu">
+    <div class="container">
+      <header class="section__head reveal">
+        <p class="eyebrow">The Menu</p>
+        <h2 class="section__title">Everything off the grill</h2>
+        <p class="section__lede">
+          Prices include tax. Swap any patty for a black bean or grilled chicken breast at no charge.
+        </p>
+      </header>
+
+      <div class="menu-filters reveal" role="toolbar" aria-label="Filter menu by category" aria-controls="menuGrid">
+        <button type="button" class="chip is-active" aria-pressed="true"  data-filter="all">All</button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="burgers">Signature Burgers</button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="smash">Smash Classics</button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="sides">Sides</button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="drinks">Shakes &amp; Drinks</button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="sweets">Desserts</button>
+      </div>
+
+      <p class="menu-count" id="menuCount" role="status"></p>
+
+      <ul class="menu-grid" id="menuGrid">
+
+        <!-- ---- Signature burgers ---- -->
+        <li class="card" data-category="burgers">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">The Ember Double <span class="card__flag">Best seller</span></h3>
+              <p class="card__price">$16</p>
+            </div>
+            <p class="card__desc">Two 4oz coal-seared patties, aged cheddar, house ember sauce, pickled onion, butter bun.</p>
+            <ul class="tags"><li class="tag">Spicy</li><li class="tag">Double</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="burgers">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Blue Ridge</h3>
+              <p class="card__price">$17</p>
+            </div>
+            <p class="card__desc">Dry-aged patty, melted blue cheese, bacon jam, crisp shallots, watercress.</p>
+            <ul class="tags"><li class="tag">Dry-aged</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="burgers">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Smoked Brisket Stack</h3>
+              <p class="card__price">$19</p>
+            </div>
+            <p class="card__desc">Chuck patty layered with 12-hour smoked brisket, cider slaw, mustard barbecue.</p>
+            <ul class="tags"><li class="tag">Smoked</li><li class="tag">Loaded</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="burgers">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Garden Ember <span class="card__flag card__flag--green">Vegan</span></h3>
+              <p class="card__price">$15</p>
+            </div>
+            <p class="card__desc">Charred black bean and beet patty, smoked paprika aioli, avocado, heirloom tomato.</p>
+            <ul class="tags"><li class="tag">Vegan</li><li class="tag">Gluten-free bun +$1</li></ul>
+          </div>
+        </li>
+
+        <!-- ---- Smash classics ---- -->
+        <li class="card" data-category="smash">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Classic Smash</h3>
+              <p class="card__price">$11</p>
+            </div>
+            <p class="card__desc">Single smashed patty, American cheese, diced onion, pickles, house sauce.</p>
+            <ul class="tags"><li class="tag">Under 10 min</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="smash">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Triple Smash</h3>
+              <p class="card__price">$16</p>
+            </div>
+            <p class="card__desc">Three lace-edged patties, triple American, grilled onion, dill pickle.</p>
+            <ul class="tags"><li class="tag">Triple</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="smash">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Jalapeño Smash</h3>
+              <p class="card__price">$13</p>
+            </div>
+            <p class="card__desc">Double smash, pepper jack, charred jalapeño, chipotle crema, crispy tortilla.</p>
+            <ul class="tags"><li class="tag">Hot</li></ul>
+          </div>
+        </li>
+
+        <!-- ---- Sides ---- -->
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Hand-Cut Fries</h3>
+              <p class="card__price">$6</p>
+            </div>
+            <p class="card__desc">Twice-fried russets, rosemary salt, smoked ketchup on the side.</p>
+            <ul class="tags"><li class="tag">Vegetarian</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Loaded Ember Fries</h3>
+              <p class="card__price">$10</p>
+            </div>
+            <p class="card__desc">Beer cheese, burnt ends, scallion, pickled chilli.</p>
+            <ul class="tags"><li class="tag">Shareable</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Charred Corn Ribs</h3>
+              <p class="card__price">$8</p>
+            </div>
+            <p class="card__desc">Grilled corn quarters, lime butter, cotija, chilli flake.</p>
+            <ul class="tags"><li class="tag">Vegetarian</li><li class="tag">Gluten-free</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Buttermilk Onion Rings</h3>
+              <p class="card__price">$7</p>
+            </div>
+            <p class="card__desc">Thick-cut sweet onion, buttermilk batter, ranch dust.</p>
+            <ul class="tags"><li class="tag">Vegetarian</li></ul>
+          </div>
+        </li>
+
+        <!-- ---- Drinks ---- -->
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Salted Malt Shake</h3>
+              <p class="card__price">$8</p>
+            </div>
+            <p class="card__desc">Frozen custard, malted barley, sea salt, whipped cream.</p>
+            <ul class="tags"><li class="tag">Thick</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Burnt Honey Shake</h3>
+              <p class="card__price">$9</p>
+            </div>
+            <p class="card__desc">Caramelised honey, vanilla custard, toasted oat crumb.</p>
+            <ul class="tags"><li class="tag">Seasonal</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">House Root Beer</h3>
+              <p class="card__price">$5</p>
+            </div>
+            <p class="card__desc">Sarsaparilla, star anise, vanilla bean. Free refills in house.</p>
+            <ul class="tags"><li class="tag">Free refill</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Local Draft Lager</h3>
+              <p class="card__price">$7</p>
+            </div>
+            <p class="card__desc">Rotating pour from Kiln Street Brewing, two blocks away.</p>
+            <ul class="tags"><li class="tag">21+</li></ul>
+          </div>
+        </li>
+
+        <!-- ---- Desserts ---- -->
+        <li class="card" data-category="sweets">
+          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Griddled Apple Pie</h3>
+              <p class="card__price">$8</p>
+            </div>
+            <p class="card__desc">Buttered on the flat-top, cinnamon sugar, bourbon caramel.</p>
+            <ul class="tags"><li class="tag">Serves 1–2</li></ul>
+          </div>
+        </li>
+
+        <li class="card" data-category="sweets">
+          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">Campfire Sundae</h3>
+              <p class="card__price">$9</p>
+            </div>
+            <p class="card__desc">Torched marshmallow, dark chocolate shell, graham crumb.</p>
+            <ul class="tags"><li class="tag">Vegetarian</li></ul>
+          </div>
+        </li>
+      </ul>
+
+      <p class="menu-note">
+        <strong>Allergens:</strong> Please tell your server about any allergies — our kitchen handles gluten,
+        dairy, egg, soy and sesame. A full allergen chart is available on request.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ DEAL BAND ============ -->
+  <section class="deal" id="deal">
+    <div class="container deal__inner reveal">
+      <div class="deal__copy">
+        <p class="eyebrow eyebrow--dark">Weekdays, 3–6 PM</p>
+        <h2 class="deal__title">Happy Hour Smash Combo</h2>
+        <p class="deal__desc">
+          Any smash burger, hand-cut fries and a draft or soda. Dine-in only, Monday through Thursday.
+        </p>
+        <div class="deal__actions">
+          <a class="btn btn--dark btn--lg" href="#visit">Get directions</a>
+          <a class="btn btn--outline-dark btn--lg" href="tel:+15550142">Call to order</a>
+        </div>
+      </div>
+      <div class="deal__price">
+        <span class="deal__was">$24</span>
+        <span class="deal__now">$15</span>
+        <span class="deal__label">per person</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section class="section" id="story">
+    <div class="container story">
+      <div class="story__art reveal">
+        <img src="assets/img/grill.svg" alt="Illustration of a chef working a flat-top grill" width="460" height="420">
+      </div>
+      <div class="story__copy reveal">
+        <p class="eyebrow">Our Story</p>
+        <h2 class="section__title">One grill, one obsession</h2>
+        <p>
+          Ember &amp; Bun started in 2014 as a single charcoal grill behind a hardware store on
+          Kiln Street. We ground our own beef because nobody would sell us the blend we wanted,
+          and we baked our own buns because nothing local held up to the juice.
+        </p>
+        <p>
+          Eleven years later the recipe hasn't moved. The beef is still ground each morning,
+          the fries are still cut by hand at 6 AM, and the sauce is still made in a stockpot
+          by whoever gets in first.
+        </p>
+        <dl class="stats">
+          <div><dt>2014</dt><dd>Year we opened</dd></div>
+          <div><dt>3</dt><dd>Neighborhood locations</dd></div>
+          <div><dt>62</dt><dd>Cooks trained here</dd></div>
+          <div><dt>0</dt><dd>Freezers in the kitchen</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section class="section section--tint" id="gallery">
+    <div class="container">
+      <header class="section__head reveal">
+        <p class="eyebrow">Gallery</p>
+        <h2 class="section__title">Straight off the pass</h2>
+      </header>
+      <ul class="gallery">
+        <li class="gallery__item gallery__item--tall reveal"><img src="assets/img/thumb-burger.svg" alt="Double cheeseburger on the pass" loading="lazy"><span class="gallery__cap">The Ember Double</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/thumb-fries.svg" alt="Basket of hand-cut fries" loading="lazy"><span class="gallery__cap">Hand-cut fries</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/thumb-shake.svg" alt="Thick malt shake" loading="lazy"><span class="gallery__cap">Salted malt shake</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/grill.svg" alt="Cook working the flat-top" loading="lazy"><span class="gallery__cap">Open coals</span></li>
+        <li class="gallery__item gallery__item--wide reveal"><img src="assets/img/burger-hero.svg" alt="Stacked burger with melted cheese" loading="lazy"><span class="gallery__cap">Brisket stack</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="section">
+    <div class="container">
+      <header class="section__head reveal">
+        <p class="eyebrow">Word of mouth</p>
+        <h2 class="section__title">What regulars say</h2>
+      </header>
+      <ul class="quotes">
+        <li class="quote reveal">
+          <p class="quote__stars" aria-label="Rated 5 out of 5">★★★★★</p>
+          <blockquote>“The crust on that smash patty is the reason I moved into this neighborhood. Not exaggerating.”</blockquote>
+          <p class="quote__who">Dana R. <span>Regular since 2016</span></p>
+        </li>
+        <li class="quote reveal">
+          <p class="quote__stars" aria-label="Rated 5 out of 5">★★★★★</p>
+          <blockquote>“Ordered the Garden Ember expecting a compromise. It out-ate my friend's brisket stack.”</blockquote>
+          <p class="quote__who">Marcus O. <span>Riverside Food Weekly</span></p>
+        </li>
+        <li class="quote reveal">
+          <p class="quote__stars" aria-label="Rated 5 out of 5">★★★★★</p>
+          <blockquote>“Happy hour combo is the best fifteen dollars in the city. We come every Thursday.”</blockquote>
+          <p class="quote__who">Priya &amp; Sam <span>Table 6, always</span></p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ VISIT / HOURS / RESERVE ============ -->
+  <section class="section section--tint" id="visit">
+    <div class="container visit">
+      <div class="visit__info reveal">
+        <p class="eyebrow">Visit us</p>
+        <h2 class="section__title">Kiln Street, Riverside</h2>
+
+        <address class="visit__address">
+          184 Kiln Street<br>
+          Riverside, CA 92501<br>
+          <a href="tel:+15550142">(555) 014-2</a> · <a href="mailto:hello@emberandbun.example">hello@emberandbun.example</a>
+        </address>
+
+        <table class="hours">
+          <caption class="sr-only">Opening hours</caption>
+          <tbody>
+            <tr><th scope="row">Monday – Thursday</th><td>11:00 AM – 10:00 PM</td></tr>
+            <tr><th scope="row">Friday – Saturday</th><td>11:00 AM – 12:00 AM</td></tr>
+            <tr><th scope="row">Sunday</th><td>12:00 PM – 9:00 PM</td></tr>
+            <tr><th scope="row">Kitchen closes</th><td>30 minutes before close</td></tr>
+          </tbody>
+        </table>
+
+        <ul class="perks">
+          <li>Walk-ins always welcome</li>
+          <li>Street parking after 6 PM</li>
+          <li>Dog-friendly patio</li>
+          <li>Takeaway &amp; local delivery</li>
+        </ul>
+      </div>
+
+      <div class="visit__form reveal" id="reserve">
+        <h3 class="form__title">Book a table</h3>
+        <p class="form__lede">Parties of 8 or more, please call us directly.</p>
+
+        <form class="form" id="reserveForm" novalidate>
+          <div class="field">
+            <label for="name">Full name</label>
+            <input type="text" id="name" name="name" autocomplete="name" required>
+            <p class="field__error" data-error-for="name"></p>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+            <p class="field__error" data-error-for="email"></p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required>
+              <p class="field__error" data-error-for="date"></p>
+            </div>
+            <div class="field">
+              <label for="time">Time</label>
+              <input type="time" id="time" name="time" value="19:00" required>
+              <p class="field__error" data-error-for="time"></p>
+            </div>
+            <div class="field">
+              <label for="guests">Guests</label>
+              <select id="guests" name="guests">
+                <option>1</option><option selected>2</option><option>3</option>
+                <option>4</option><option>5</option><option>6</option><option>7</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="notes">Anything we should know? <span class="field__opt">(optional)</span></label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Allergies, high chair, birthday…"></textarea>
+          </div>
+
+          <button class="btn btn--primary btn--block" type="submit">Request booking</button>
+          <p class="form__status" id="formStatus" role="status"></p>
+          <p class="form__fineprint">
+            This template does not send data anywhere. Wire the form to your booking provider in
+            <code>assets/js/main.js</code>.
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <img src="assets/img/logo.svg" alt="" width="44" height="44">
+      <p class="footer__name">Ember &amp; Bun</p>
+      <p class="footer__blurb">A neighborhood burger house. Open coals, hand-cut fries, no freezers.</p>
+    </div>
+
+    <nav class="footer__col" aria-label="Menu links">
+      <h2 class="footer__heading">Menu</h2>
+      <ul>
+        <li><a href="#menu">Signature burgers</a></li>
+        <li><a href="#menu">Smash classics</a></li>
+        <li><a href="#menu">Sides</a></li>
+        <li><a href="#menu">Shakes &amp; drinks</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer__col" aria-label="Company links">
+      <h2 class="footer__heading">Company</h2>
+      <ul>
+        <li><a href="#story">Our story</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#visit">Hours &amp; location</a></li>
+        <li><a href="#reserve">Reservations</a></li>
+      </ul>
+    </nav>
+
+    <div class="footer__col">
+      <h2 class="footer__heading">Stay in touch</h2>
+      <p class="footer__blurb">Specials, pop-ups and the odd free shake.</p>
+      <form class="subscribe" id="subscribeForm">
+        <label class="sr-only" for="subEmail">Email address</label>
+        <input type="email" id="subEmail" name="email" placeholder="you@example.com" required>
+        <button class="btn btn--primary" type="submit">Join</button>
+      </form>
+      <p class="form__status" id="subStatus" role="status"></p>
+      <ul class="social">
+        <li><a href="#" aria-label="Instagram">Instagram</a></li>
+        <li><a href="#" aria-label="Facebook">Facebook</a></li>
+        <li><a href="#" aria-label="TikTok">TikTok</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer__legal">
+    <p>&copy; <span id="year">2025</span> Ember &amp; Bun. All rights reserved.</p>
+    <p><a href="#">Privacy</a> · <a href="#">Accessibility</a> · <a href="#top">Back to top</a></p>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

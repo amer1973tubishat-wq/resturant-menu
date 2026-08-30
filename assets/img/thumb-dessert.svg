@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Slice of pie">
+  <path d="M18 84h84l-6 16a8 8 0 0 1-7 5H31a8 8 0 0 1-7-5z" fill="#c97e33"/>
+  <path d="M14 62h92a6 6 0 0 1 6 7l-2 9a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6l-2-9a6 6 0 0 1 6-7z" fill="#eaa84f"/>
+  <path d="M22 62c4-24 18-36 38-36s34 12 38 36z" fill="#f4c56a"/>
+  <g fill="#c97e33" opacity=".8">
+    <rect x="34" y="34" width="52" height="6" rx="3" transform="rotate(-14 60 37)"/>
+    <rect x="30" y="48" width="60" height="6" rx="3" transform="rotate(-6 60 51)"/>
+  </g>
+  <circle cx="60" cy="20" r="8" fill="#f7f1e8"/>
+  <circle cx="60" cy="20" r="8" fill="#fff" opacity=".5"/>
+</svg>

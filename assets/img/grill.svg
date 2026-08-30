@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 420" width="460" height="420" role="img" aria-label="Cook working a flat-top grill">
+  <defs>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#d1462f"/><stop offset="1" stop-color="#f0a72c"/>
+    </linearGradient>
+  </defs>
+  <!-- chef -->
+  <rect x="176" y="70" width="108" height="34" rx="17" fill="#f7f1e8"/>
+  <path d="M186 72c-6-26 14-42 44-42s50 16 44 42z" fill="#f7f1e8"/>
+  <circle cx="230" cy="128" r="26" fill="#e0b48c"/>
+  <path d="M164 244c0-42 30-70 66-70s66 28 66 70l-6 24H170z" fill="#f7f1e8"/>
+  <path d="M230 174l-16 30 16 20 16-20z" fill="#e8dccb"/>
+  <!-- grill body -->
+  <rect x="86" y="286" width="288" height="26" rx="13" fill="#2a2421"/>
+  <rect x="104" y="312" width="252" height="70" rx="14" fill="#1e1a17" stroke="#2a2421" stroke-width="4"/>
+  <g stroke="#3a322c" stroke-width="6" stroke-linecap="round">
+    <path d="M126 336h208"/><path d="M126 356h208"/>
+  </g>
+  <rect x="130" y="382" width="16" height="30" rx="6" fill="#2a2421"/>
+  <rect x="314" y="382" width="16" height="30" rx="6" fill="#2a2421"/>
+  <!-- patties + flames -->
+  <g>
+    <ellipse cx="164" cy="286" rx="30" ry="12" fill="#5b3320"/>
+    <ellipse cx="230" cy="286" rx="30" ry="12" fill="#6b3b23"/>
+    <ellipse cx="296" cy="286" rx="30" ry="12" fill="#5b3320"/>
+  </g>
+  <g fill="url(#flame)" opacity=".9">
+    <path d="M164 274c-10-8-6-20 0-26 2 8 8 8 8 2 8 6 10 18 0 24z"/>
+    <path d="M296 276c-12-10-6-24 2-30 1 9 9 9 8 2 9 8 10 22-1 28z"/>
+  </g>
+  <!-- spatula -->
+  <g fill="#2a2421" transform="rotate(-24 330 250)">
+    <rect x="318" y="192" width="10" height="58" rx="5"/>
+    <rect x="300" y="248" width="46" height="26" rx="6"/>
+  </g>
+</svg>
