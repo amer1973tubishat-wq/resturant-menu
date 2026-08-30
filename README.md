@@ -46,6 +46,7 @@ assets/css/styles.css      Site styling — tokens, layout, components, RTL, res
 assets/css/admin.css       Dashboard styling
 assets/js/main.js          Renders the menu; nav, search, filter, scroll-spy, reveals
 assets/js/admin.js         Dashboard logic
+tools/build.mjs            Pre-renders the menu into index.html (optional, Node)
 assets/img/*.svg           13 vector placeholders: logo, favicon, hero burger, grill scene
                            and 9 dish thumbnails
 ```
@@ -86,8 +87,8 @@ There is no server, so the dashboard uses a two-step flow:
    "معاينة محلية" flag appears on the site while you're seeing local edits rather than
    the published file.
 2. **تنزيل menu.js (Download)** gives you the updated data file. Replace
-   `assets/data/menu.js` with it and re-upload to publish the changes **for everyone
-   else**.
+   `assets/data/menu.js` with it, run `node tools/build.mjs` to refresh the static copy
+   in `index.html`, and re-upload to publish the changes **for everyone else**.
 
 Until you do step 2, your edits exist only in your own browser. The other buttons:
 **استيراد** loads a `menu.js` or JSON file back in, and **استعادة الأصل** discards the
@@ -245,12 +246,32 @@ fallbacks so the page still reads correctly if the webfont fails to load.
 - Phone numbers and emails are isolated with `dir="ltr"` so they read correctly in Arabic
 - All motion is disabled under `prefers-reduced-motion: reduce`
 
-## Known limitation
+## The menu is in the HTML
 
-Because the menu renders from `menu.js`, **JavaScript is required to see the dishes**. A
-`<noscript>` block shows the phone number instead. This is the trade-off that makes the
-dashboard possible; if you need the dish names in the HTML for SEO, paste the rendered
-markup into `index.html` and drop the renderer.
+The dishes are written into `index.html` as real markup, so search engines index them and
+the menu still displays with JavaScript switched off. When JavaScript runs it re-renders
+the same menu from `assets/data/menu.js`, which is what lets the dashboard's local edits
+show up.
+
+That means there are two copies of the menu, and a generator keeps them in step:
+
+```bash
+node tools/build.mjs        # after editing assets/data/menu.js
+```
+
+It rewrites only the regions between `<!--build:x-->` markers, plus the `data-bind`
+fields, the `<title>` and the JSON-LD block. Nothing else in `index.html` is touched, and
+running it twice changes nothing the second time. Node 18+ is needed, but only for this
+script — the site itself has no build step and no dependencies.
+
+If you skip it, the site still works: visitors with JavaScript (essentially everyone) see
+the current menu either way. What goes stale is the copy that crawlers and no-JS visitors
+read.
+
+Without JavaScript the dishes, prices, tags, hours and contact links are all present; only
+the search box and the category filter are unavailable, and they're hidden rather than
+shown dead. The structured-data block lists every dish with its price, so the menu is
+eligible for rich results.
 
 ## Browser support
 

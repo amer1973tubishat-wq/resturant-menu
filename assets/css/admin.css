@@ -177,3 +177,12 @@ body.admin {
   .modal { place-items: center; padding: 1.5rem; }
   .modal__box { border-radius: var(--radius-xl); }
 }
+
+.publish-hint {
+  flex-basis: 100%; margin: .5rem 0 0;
+  font-size: .78rem; color: var(--text-muted); line-height: 1.7;
+}
+.publish-hint code {
+  background: var(--ink-2); border: 1px solid var(--ink-3);
+  border-radius: 5px; padding: .05rem .35rem; color: var(--cream);
+}

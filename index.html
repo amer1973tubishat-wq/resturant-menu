@@ -21,6 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
+<!-- Flag JS before first paint so the reveal animations only apply when they can finish -->
+<script>document.documentElement.className += " js";</script>
 
 <!-- بيانات منظّمة لمحركات البحث — تُحدَّث تلقائياً من ملف البيانات -->
 <script type="application/ld+json" id="ldJson">
@@ -30,8 +32,352 @@
   "name": "شيف هاشم",
   "inLanguage": "ar",
   "servesCuisine": "برجر",
-  "priceRange": "$$",
-  "currenciesAccepted": "SAR"
+  "priceRange": "$",
+  "telephone": "+966551234567",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "شارع الأمير سلطان، حي العليا",
+    "addressLocality": "الرياض، المملكة العربية السعودية"
+  },
+  "hasMenu": [
+    {
+      "@type": "MenuSection",
+      "name": "برجر اللحم",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "برجر هاشم المزدوج",
+          "description": "قطعتا لحم مشويتان على الفحم، جبن شيدر معتّق، صلصة هاشم الخاصة، بصل مخلل، وخبز محمّص بالزبدة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 45,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الجبن الأزرق",
+          "description": "لحم معتّق 28 يوماً، جبن أزرق ذائب، مربّى البصل، بصل مقرمش، وجرجير طازج.",
+          "offers": {
+            "@type": "Offer",
+            "price": 49,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر البريسكِت المدخّن",
+          "description": "قرص لحم مشوي فوقه بريسكِت مدخّن 12 ساعة، سلطة كول سلو، وصلصة الباربكيو بالخردل.",
+          "offers": {
+            "@type": "Offer",
+            "price": 55,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "سماش كلاسيك",
+          "description": "قرص لحم مسحوق على الصاج بحواف مقرمشة، جبن شيدر، بصل مفروم، مخلل، وصلصة البيت.",
+          "offers": {
+            "@type": "Offer",
+            "price": 32,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "سماش ثلاثي",
+          "description": "ثلاثة أقراص لحم بحواف مقرمشة، ثلاث شرائح جبن، بصل مشوي، ومخلل الشبت.",
+          "offers": {
+            "@type": "Offer",
+            "price": 47,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "سماش الهالبينو",
+          "description": "سماش مزدوج، جبن بيبر جاك، هالبينو مشوي، صلصة الشيبوتلي، ورقائق التورتيلا.",
+          "offers": {
+            "@type": "Offer",
+            "price": 38,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الفطر والجبن السويسري",
+          "description": "لحم مشوي، فطر مقلي بالزبدة والثوم، جبن سويسري ذائب، وصلصة الترافل.",
+          "offers": {
+            "@type": "Offer",
+            "price": 46,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "برجر الدجاج",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "برجر الدجاج المقرمش",
+          "description": "صدر دجاج متبّل بالبابريكا ومقلي حتى القرمشة، مخلل، صلصة الثوم، وخس طازج.",
+          "offers": {
+            "@type": "Offer",
+            "price": 36,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الدجاج المشوي",
+          "description": "صدر دجاج مشوي على الفحم، أفوكادو، طماطم، وصلصة الزبادي بالأعشاب.",
+          "offers": {
+            "@type": "Offer",
+            "price": 34,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الدجاج الحار",
+          "description": "دجاج مقرمش مغموس بصلصة بافلو الحارة، جبن ذائب، وصلصة الرانش المبرّدة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 38,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الزنجر بالجبن",
+          "description": "شرائح دجاج مقرمشة، جبن شيدر مضاعف، خس، وصلصة المايونيز بالليمون.",
+          "offers": {
+            "@type": "Offer",
+            "price": 39,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "برجر الخضار",
+          "description": "قرص فاصولياء سوداء وشمندر مشوي، صلصة البابريكا المدخّنة، أفوكادو، وطماطم بلدية.",
+          "offers": {
+            "@type": "Offer",
+            "price": 30,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "الوجبات",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "وجبة هاشم",
+          "description": "برجر هاشم المزدوج مع بطاطس مقطّعة يدوياً ومشروب غازي أو ليموناضة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 62,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "وجبة السماش",
+          "description": "سماش كلاسيك مع بطاطس مقطّعة يدوياً ومشروب. الخيار الأسرع في القائمة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 48,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "وجبة الدجاج المقرمش",
+          "description": "برجر الدجاج المقرمش مع بطاطس وحلقات بصل ومشروب.",
+          "offers": {
+            "@type": "Offer",
+            "price": 55,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "وجبة العائلة",
+          "description": "أربعة برجر من اختيارك، طبقا بطاطس كبيران، حلقات بصل، وأربعة مشروبات.",
+          "offers": {
+            "@type": "Offer",
+            "price": 165,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "الإضافات",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "بطاطس مقطّعة يدوياً",
+          "description": "بطاطس تُقطّع كل صباح وتُقلى مرتين، ملح بإكليل الجبل، وكاتشب مدخّن جانباً.",
+          "offers": {
+            "@type": "Offer",
+            "price": 18,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "بطاطس هاشم المحمّلة",
+          "description": "بطاطس مغطاة بصلصة الجبن، قطع لحم مدخّن، بصل أخضر، وفلفل مخلل.",
+          "offers": {
+            "@type": "Offer",
+            "price": 29,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "حلقات البصل",
+          "description": "حلقات بصل حلو سميكة بخليط اللبن الرائب، مقلية حتى الذهبية، مع صلصة الرانش.",
+          "offers": {
+            "@type": "Offer",
+            "price": 22,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "ذرة مشوية بالزبدة",
+          "description": "أرباع ذرة مشوية على الفحم، زبدة الليمون، جبن مبشور، ورشة فلفل أحمر.",
+          "offers": {
+            "@type": "Offer",
+            "price": 24,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "سلطة جانبية",
+          "description": "خس روماني، طماطم كرزية، خيار، بصل أحمر، وصلصة الليمون والزيت.",
+          "offers": {
+            "@type": "Offer",
+            "price": 19,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "بطاطس بالجبن",
+          "description": "بطاطس مقطّعة يدوياً مغمورة بصلصة الجبن الشيدر الساخنة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 24,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "المشروبات",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "ميلك شيك بالمالت المملّح",
+          "description": "كاسترد مثلج، شعير مالت، ملح البحر، وكريمة مخفوقة. كثيف بحيث تقف الملعقة فيه.",
+          "offers": {
+            "@type": "Offer",
+            "price": 26,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "ميلك شيك بالعسل المحروق",
+          "description": "عسل مكرمل على النار، كاسترد الفانيلا، وفتات الشوفان المحمّص.",
+          "offers": {
+            "@type": "Offer",
+            "price": 28,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "مشروب غازي",
+          "description": "تشكيلة مشروبات غازية مثلجة، مع تعبئة مجانية داخل الفرع.",
+          "offers": {
+            "@type": "Offer",
+            "price": 12,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "ليموناضة بالنعناع",
+          "description": "ليمون طازج يُعصر عند الطلب، نعناع مهروس، وثلج مجروش.",
+          "offers": {
+            "@type": "Offer",
+            "price": 16,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "مياه معدنية",
+          "description": "عبوة 600 مل، مبرّدة.",
+          "offers": {
+            "@type": "Offer",
+            "price": 4,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "الحلويات",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "فطيرة التفاح المحمّرة",
+          "description": "فطيرة تُحمَّر بالزبدة على الصاج، سكر بالقرفة، وكراميل دافئ.",
+          "offers": {
+            "@type": "Offer",
+            "price": 24,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "صنداي الكامب فاير",
+          "description": "مارشميلو محروق على النار، طبقة شوكولاتة داكنة، وفتات بسكويت الجراهام.",
+          "offers": {
+            "@type": "Offer",
+            "price": 27,
+            "priceCurrency": "SAR"
+          }
+        },
+        {
+          "@type": "MenuItem",
+          "name": "كنافة بالجبن",
+          "description": "كنافة طازجة بالجبن تُخبز عند الطلب، قطر بماء الزهر، وفستق حلبي.",
+          "offers": {
+            "@type": "Offer",
+            "price": 29,
+            "priceCurrency": "SAR"
+          }
+        }
+      ]
+    }
+  ],
+  "hasMap": "https://maps.google.com/?q=Riyadh"
 }
 </script>
 </head>
@@ -74,7 +420,7 @@
         <li><a class="nav__link" href="#gallery">الصور</a></li>
         <li><a class="nav__link" href="#visit">تواصل معنا</a></li>
       </ul>
-      <a class="btn btn--primary nav__cta" data-bind-href="whatsapp" href="#visit">
+      <a class="btn btn--primary nav__cta" data-bind-href="whatsapp" href="https://wa.me/966551234567?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%B4%D9%8A%D9%81%20%D9%87%D8%A7%D8%B4%D9%85%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%A7%D9%84%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%20%D8%A7%D9%84%D9%82%D8%A7%D8%A6%D9%85%D8%A9.">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
         اطلب عبر واتساب
       </a>
@@ -180,7 +526,49 @@
         <h2 class="section__title">إن كانت زيارتك الأولى</h2>
         <p class="section__lede">أطباق يطلبها ضيوفنا أكثر من غيرها — ابدأ منها ولن تخطئ.</p>
       </header>
-      <ul class="featured" id="featuredGrid"></ul>
+      <ul class="featured" id="featuredGrid">
+<!--build:featured-->
+        <li class="feature-card reveal">
+          <div class="feature-card__media">
+            <img src="assets/img/thumb-burger.svg" alt="برجر هاشم المزدوج" loading="lazy">
+            <span class="feature-card__rank" aria-hidden="true">1</span>
+          </div>
+          <div class="feature-card__body">
+            <div class="feature-card__head">
+              <h3>برجر هاشم المزدوج</h3>
+              <p class="card__price">45 <span>ر.س</span></p>
+            </div>
+            <p>قطعتا لحم مشويتان على الفحم، جبن شيدر معتّق، صلصة هاشم الخاصة، بصل مخلل، وخبز محمّص بالزبدة.</p>
+          </div>
+        </li>
+        <li class="feature-card reveal">
+          <div class="feature-card__media">
+            <img src="assets/img/thumb-chicken.svg" alt="برجر الدجاج المقرمش" loading="lazy">
+            <span class="feature-card__rank" aria-hidden="true">2</span>
+          </div>
+          <div class="feature-card__body">
+            <div class="feature-card__head">
+              <h3>برجر الدجاج المقرمش</h3>
+              <p class="card__price">36 <span>ر.س</span></p>
+            </div>
+            <p>صدر دجاج متبّل بالبابريكا ومقلي حتى القرمشة، مخلل، صلصة الثوم، وخس طازج.</p>
+          </div>
+        </li>
+        <li class="feature-card reveal">
+          <div class="feature-card__media">
+            <img src="assets/img/thumb-combo.svg" alt="وجبة هاشم" loading="lazy">
+            <span class="feature-card__rank" aria-hidden="true">3</span>
+          </div>
+          <div class="feature-card__body">
+            <div class="feature-card__head">
+              <h3>وجبة هاشم</h3>
+              <p class="card__price">62 <span>ر.س</span></p>
+            </div>
+            <p>برجر هاشم المزدوج مع بطاطس مقطّعة يدوياً ومشروب غازي أو ليموناضة.</p>
+          </div>
+        </li>
+        <!--/build:featured-->
+      </ul>
     </div>
   </section>
 
@@ -204,7 +592,17 @@
           <input type="search" id="menuSearch" placeholder="ابحث عن طبق… مثلاً: سماش، دجاج، شيك" autocomplete="off">
           <button type="button" class="search__clear" id="menuSearchClear" aria-label="مسح البحث">&times;</button>
         </div>
-        <div class="menu-filters" id="menuFilters" role="toolbar" aria-label="تصفية القائمة حسب القسم" aria-controls="menuGrid" data-all-label="الكل"></div>
+        <div class="menu-filters" id="menuFilters" role="toolbar" aria-label="تصفية القائمة حسب القسم" aria-controls="menuGrid" data-all-label="الكل">
+<!--build:filters-->
+          <button type="button" class="chip is-active" aria-pressed="true" data-filter="all">الكل</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="beef">برجر اللحم</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="chicken">برجر الدجاج</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="combo">الوجبات</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="sides">الإضافات</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="drinks">المشروبات</button>
+          <button type="button" class="chip" aria-pressed="false" data-filter="sweets">الحلويات</button>
+        <!--/build:filters-->
+        </div>
       </div>
 
       <p class="menu-count" id="menuCount" role="status"
@@ -212,7 +610,339 @@
          data-msg-category="عرض {n} من أطباق «{category}»"
          data-msg-search="{n} نتيجة للبحث عن «{q}»"></p>
 
-      <ul class="menu-grid" id="menuGrid"></ul>
+      <ul class="menu-grid" id="menuGrid">
+<!--build:menu-->
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر هاشم المزدوج <span class="card__flag">الأكثر مبيعاً</span></h3>
+              <p class="card__price">45 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">قطعتا لحم مشويتان على الفحم، جبن شيدر معتّق، صلصة هاشم الخاصة، بصل مخلل، وخبز محمّص بالزبدة.</p>
+            <ul class="tags"><li class="tag">حار قليلاً</li><li class="tag">مزدوج</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الجبن الأزرق</h3>
+              <p class="card__price">49 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">لحم معتّق 28 يوماً، جبن أزرق ذائب، مربّى البصل، بصل مقرمش، وجرجير طازج.</p>
+            <ul class="tags"><li class="tag">لحم معتّق</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر البريسكِت المدخّن</h3>
+              <p class="card__price">55 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">قرص لحم مشوي فوقه بريسكِت مدخّن 12 ساعة، سلطة كول سلو، وصلصة الباربكيو بالخردل.</p>
+            <ul class="tags"><li class="tag">مدخّن</li><li class="tag">دسم</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">سماش كلاسيك</h3>
+              <p class="card__price">32 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">قرص لحم مسحوق على الصاج بحواف مقرمشة، جبن شيدر، بصل مفروم، مخلل، وصلصة البيت.</p>
+            <ul class="tags"><li class="tag">جاهز خلال 10 دقائق</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">سماش ثلاثي</h3>
+              <p class="card__price">47 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">ثلاثة أقراص لحم بحواف مقرمشة، ثلاث شرائح جبن، بصل مشوي، ومخلل الشبت.</p>
+            <ul class="tags"><li class="tag">ثلاثي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">سماش الهالبينو</h3>
+              <p class="card__price">38 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">سماش مزدوج، جبن بيبر جاك، هالبينو مشوي، صلصة الشيبوتلي، ورقائق التورتيلا.</p>
+            <ul class="tags"><li class="tag">حار جداً</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="beef">
+          <div class="card__media"><img src="assets/img/thumb-burger.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الفطر والجبن السويسري <span class="card__flag card__flag--new">جديد</span></h3>
+              <p class="card__price">46 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">لحم مشوي، فطر مقلي بالزبدة والثوم، جبن سويسري ذائب، وصلصة الترافل.</p>
+            <ul class="tags"><li class="tag">جديد</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="chicken">
+          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الدجاج المقرمش <span class="card__flag">مفضّل الضيوف</span></h3>
+              <p class="card__price">36 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">صدر دجاج متبّل بالبابريكا ومقلي حتى القرمشة، مخلل، صلصة الثوم، وخس طازج.</p>
+            <ul class="tags"><li class="tag">مقرمش</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="chicken">
+          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الدجاج المشوي</h3>
+              <p class="card__price">34 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">صدر دجاج مشوي على الفحم، أفوكادو، طماطم، وصلصة الزبادي بالأعشاب.</p>
+            <ul class="tags"><li class="tag">خيار خفيف</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="chicken">
+          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الدجاج الحار</h3>
+              <p class="card__price">38 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">دجاج مقرمش مغموس بصلصة بافلو الحارة، جبن ذائب، وصلصة الرانش المبرّدة.</p>
+            <ul class="tags"><li class="tag">حار جداً</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="chicken">
+          <div class="card__media"><img src="assets/img/thumb-chicken.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الزنجر بالجبن</h3>
+              <p class="card__price">39 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">شرائح دجاج مقرمشة، جبن شيدر مضاعف، خس، وصلصة المايونيز بالليمون.</p>
+            <ul class="tags"><li class="tag">مضاعف الجبن</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="chicken">
+          <div class="card__media"><img src="assets/img/thumb-salad.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">برجر الخضار <span class="card__flag card__flag--veg">نباتي</span></h3>
+              <p class="card__price">30 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">قرص فاصولياء سوداء وشمندر مشوي، صلصة البابريكا المدخّنة، أفوكادو، وطماطم بلدية.</p>
+            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خبز خالٍ من الجلوتين +5 ر.س</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="combo">
+          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">وجبة هاشم <span class="card__flag">وفّر 12</span></h3>
+              <p class="card__price">62 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">برجر هاشم المزدوج مع بطاطس مقطّعة يدوياً ومشروب غازي أو ليموناضة.</p>
+            <ul class="tags"><li class="tag">وجبة كاملة</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="combo">
+          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">وجبة السماش</h3>
+              <p class="card__price">48 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">سماش كلاسيك مع بطاطس مقطّعة يدوياً ومشروب. الخيار الأسرع في القائمة.</p>
+            <ul class="tags"><li class="tag">سريعة</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="combo">
+          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">وجبة الدجاج المقرمش</h3>
+              <p class="card__price">55 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">برجر الدجاج المقرمش مع بطاطس وحلقات بصل ومشروب.</p>
+            <ul class="tags"><li class="tag">وجبة كاملة</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="combo">
+          <div class="card__media"><img src="assets/img/thumb-combo.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">وجبة العائلة</h3>
+              <p class="card__price">165 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">أربعة برجر من اختيارك، طبقا بطاطس كبيران، حلقات بصل، وأربعة مشروبات.</p>
+            <ul class="tags"><li class="tag">تكفي 4 أشخاص</li><li class="tag">للمشاركة</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">بطاطس مقطّعة يدوياً</h3>
+              <p class="card__price">18 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">بطاطس تُقطّع كل صباح وتُقلى مرتين، ملح بإكليل الجبل، وكاتشب مدخّن جانباً.</p>
+            <ul class="tags"><li class="tag">نباتي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">بطاطس هاشم المحمّلة</h3>
+              <p class="card__price">29 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">بطاطس مغطاة بصلصة الجبن، قطع لحم مدخّن، بصل أخضر، وفلفل مخلل.</p>
+            <ul class="tags"><li class="tag">للمشاركة</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-rings.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">حلقات البصل</h3>
+              <p class="card__price">22 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">حلقات بصل حلو سميكة بخليط اللبن الرائب، مقلية حتى الذهبية، مع صلصة الرانش.</p>
+            <ul class="tags"><li class="tag">نباتي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">ذرة مشوية بالزبدة</h3>
+              <p class="card__price">24 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">أرباع ذرة مشوية على الفحم، زبدة الليمون، جبن مبشور، ورشة فلفل أحمر.</p>
+            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خالٍ من الجلوتين</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-salad.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">سلطة جانبية</h3>
+              <p class="card__price">19 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">خس روماني، طماطم كرزية، خيار، بصل أحمر، وصلصة الليمون والزيت.</p>
+            <ul class="tags"><li class="tag">نباتي</li><li class="tag">خفيف</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sides">
+          <div class="card__media"><img src="assets/img/thumb-fries.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">بطاطس بالجبن</h3>
+              <p class="card__price">24 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">بطاطس مقطّعة يدوياً مغمورة بصلصة الجبن الشيدر الساخنة.</p>
+            <ul class="tags"><li class="tag">نباتي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">ميلك شيك بالمالت المملّح</h3>
+              <p class="card__price">26 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">كاسترد مثلج، شعير مالت، ملح البحر، وكريمة مخفوقة. كثيف بحيث تقف الملعقة فيه.</p>
+            <ul class="tags"><li class="tag">كثيف</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-shake.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">ميلك شيك بالعسل المحروق</h3>
+              <p class="card__price">28 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">عسل مكرمل على النار، كاسترد الفانيلا، وفتات الشوفان المحمّص.</p>
+            <ul class="tags"><li class="tag">موسمي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-soda.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">مشروب غازي</h3>
+              <p class="card__price">12 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">تشكيلة مشروبات غازية مثلجة، مع تعبئة مجانية داخل الفرع.</p>
+            <ul class="tags"><li class="tag">تعبئة مجانية</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-soda.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">ليموناضة بالنعناع</h3>
+              <p class="card__price">16 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">ليمون طازج يُعصر عند الطلب، نعناع مهروس، وثلج مجروش.</p>
+            <ul class="tags"><li class="tag">منعش</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="drinks">
+          <div class="card__media"><img src="assets/img/thumb-soda.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">مياه معدنية</h3>
+              <p class="card__price">4 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">عبوة 600 مل، مبرّدة.</p>
+          </div>
+        </li>
+        <li class="card" data-category="sweets">
+          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">فطيرة التفاح المحمّرة</h3>
+              <p class="card__price">24 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">فطيرة تُحمَّر بالزبدة على الصاج، سكر بالقرفة، وكراميل دافئ.</p>
+            <ul class="tags"><li class="tag">تكفي شخصين</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sweets">
+          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">صنداي الكامب فاير</h3>
+              <p class="card__price">27 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">مارشميلو محروق على النار، طبقة شوكولاتة داكنة، وفتات بسكويت الجراهام.</p>
+            <ul class="tags"><li class="tag">نباتي</li></ul>
+          </div>
+        </li>
+        <li class="card" data-category="sweets">
+          <div class="card__media"><img src="assets/img/thumb-dessert.svg" alt="" loading="lazy" width="120" height="120"></div>
+          <div class="card__body">
+            <div class="card__head">
+              <h3 class="card__title">كنافة بالجبن</h3>
+              <p class="card__price">29 <span>ر.س</span></p>
+            </div>
+            <p class="card__desc">كنافة طازجة بالجبن تُخبز عند الطلب، قطر بماء الزهر، وفستق حلبي.</p>
+            <ul class="tags"><li class="tag">حلوى شرقية</li></ul>
+          </div>
+        </li>
+        <!--/build:menu-->
+      </ul>
 
       <div class="menu-empty" id="menuEmpty" hidden>
         <strong>لا توجد أطباق مطابقة</strong>
@@ -221,8 +951,9 @@
 
       <noscript>
         <div class="menu-empty">
-          <strong>لعرض القائمة يلزم تفعيل JavaScript</strong>
-          يمكنك الاتصال بنا على <span class="ltr">+966 55 123 4567</span> وسنسعد بمساعدتك.
+          <strong>القائمة معروضة كاملة أدناه</strong>
+          البحث والتصفية حسب القسم يحتاجان إلى تفعيل JavaScript. للاستفسار اتصل بنا على
+          <span class="ltr">+966 55 123 4567</span>.
         </div>
       </noscript>
 
@@ -243,7 +974,7 @@
           أي سماش برجر، مع بطاطس مقطّعة يدوياً ومشروب. داخل الفرع فقط، ولا يشمل أيام العطل الرسمية.
         </p>
         <div class="deal__actions">
-          <a class="btn btn--dark btn--lg" data-bind-href="map" href="#visit">موقع الفرع</a>
+          <a class="btn btn--dark btn--lg" data-bind-href="map" href="https://maps.google.com/?q=Riyadh">موقع الفرع</a>
           <a class="btn btn--outline-dark btn--lg" data-bind-href="tel" href="tel:+966551234567">اتصل بنا</a>
         </div>
       </div>
@@ -345,7 +1076,12 @@
         <table class="hours">
           <caption class="sr-only">مواعيد العمل</caption>
           <tbody id="hoursBody">
+<!--build:hours-->
             <tr><th scope="row">الأحد – الخميس</th><td>12:00 ظهراً – 1:00 فجراً</td></tr>
+            <tr><th scope="row">الجمعة</th><td>1:00 ظهراً – 2:00 فجراً</td></tr>
+            <tr><th scope="row">السبت</th><td>12:00 ظهراً – 2:00 فجراً</td></tr>
+            <tr><th scope="row">إغلاق المطبخ</th><td>قبل الإغلاق بنصف ساعة</td></tr>
+        <!--/build:hours-->
           </tbody>
         </table>
 
@@ -364,7 +1100,7 @@
           وسنجهّزه للاستلام أو التوصيل.
         </p>
         <div class="contact-actions">
-          <a class="btn btn--whatsapp btn--lg btn--block" data-bind-href="whatsapp" href="#">
+          <a class="btn btn--whatsapp btn--lg btn--block" data-bind-href="whatsapp" href="https://wa.me/966551234567?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%B4%D9%8A%D9%81%20%D9%87%D8%A7%D8%B4%D9%85%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%A7%D9%84%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%20%D8%A7%D9%84%D9%82%D8%A7%D8%A6%D9%85%D8%A9.">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
             واتساب
           </a>
@@ -374,7 +1110,7 @@
             </svg>
             اتصل بنا
           </a>
-          <a class="btn btn--ghost btn--lg btn--block" data-bind-href="map" href="#" target="_blank" rel="noopener">الموقع على الخريطة</a>
+          <a class="btn btn--ghost btn--lg btn--block" data-bind-href="map" href="https://maps.google.com/?q=Riyadh" target="_blank" rel="noopener">الموقع على الخريطة</a>
         </div>
         <p class="contact-note">
           هذا الموقع قائمة طعام للعرض فقط — لا يتم إتمام الطلب أو الدفع عبر الموقع.
@@ -395,7 +1131,16 @@
 
     <nav class="footer__col" aria-label="روابط القائمة">
       <h2 class="footer__heading">القائمة</h2>
-      <ul id="footerCategories"></ul>
+      <ul id="footerCategories">
+<!--build:footercats-->
+        <li><a href="#menu" data-jump="beef">برجر اللحم</a></li>
+        <li><a href="#menu" data-jump="chicken">برجر الدجاج</a></li>
+        <li><a href="#menu" data-jump="combo">الوجبات</a></li>
+        <li><a href="#menu" data-jump="sides">الإضافات</a></li>
+        <li><a href="#menu" data-jump="drinks">المشروبات</a></li>
+        <li><a href="#menu" data-jump="sweets">الحلويات</a></li>
+        <!--/build:footercats-->
+      </ul>
     </nav>
 
     <nav class="footer__col" aria-label="روابط المطعم">
@@ -413,7 +1158,7 @@
       <ul>
         <li><a class="ltr" data-bind="phoneDisplay" data-bind-href="tel" href="tel:+966551234567">+966 55 123 4567</a></li>
         <li><a class="ltr" data-bind="email" data-bind-href="mail" href="mailto:hello@chefhashem.example">hello@chefhashem.example</a></li>
-        <li><a data-bind-href="whatsapp" href="#">الطلب عبر واتساب</a></li>
+        <li><a data-bind-href="whatsapp" href="https://wa.me/966551234567?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%B4%D9%8A%D9%81%20%D9%87%D8%A7%D8%B4%D9%85%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%A7%D9%84%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%20%D8%A7%D9%84%D9%82%D8%A7%D8%A6%D9%85%D8%A9.">الطلب عبر واتساب</a></li>
       </ul>
       <ul class="social">
         <li><a data-bind-href="instagram" href="#">إنستغرام</a></li>
@@ -431,7 +1176,7 @@
 
 <!-- شريط التواصل الثابت (الجوال) -->
 <div class="actionbar">
-  <a class="btn btn--whatsapp" data-bind-href="whatsapp" href="#">
+  <a class="btn btn--whatsapp" data-bind-href="whatsapp" href="https://wa.me/966551234567?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%B4%D9%8A%D9%81%20%D9%87%D8%A7%D8%B4%D9%85%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%A7%D9%84%D8%B7%D9%84%D8%A8%20%D9%85%D9%86%20%D8%A7%D9%84%D9%82%D8%A7%D8%A6%D9%85%D8%A9.">
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2Zm5.8 14.19c-.24.68-1.4 1.3-1.94 1.34-.5.04-1.13.06-1.82-.11a16.6 16.6 0 0 1-1.65-.61c-2.9-1.25-4.8-4.17-4.95-4.37-.14-.2-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36l.56.01c.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.14.12.31.02.51-.1.2-.15.32-.29.5l-.44.5c-.14.15-.29.3-.13.6.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.41.28.15.45.12.62-.07l.88-1.03c.2-.24.37-.19.62-.1l1.77.84c.26.12.43.19.5.29.06.1.06.58-.18 1.26Z"/></svg>
     واتساب
   </a>

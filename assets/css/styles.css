@@ -564,8 +564,14 @@ a:hover { text-decoration: underline; }
 .footer__legal a:hover { color: var(--gold); }
 
 /* ---------- Reveal on scroll ---------- */
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
-.reveal.is-visible { opacity: 1; transform: none; }
+/* Scoped to .js so that without JavaScript the content is simply visible
+   rather than stuck at opacity 0 — the static menu must stand on its own. */
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+.js .reveal.is-visible { opacity: 1; transform: none; }
+
+/* Search and filtering need JavaScript, so hide those controls without it */
+html:not(.js) .menu-toolbar,
+html:not(.js) .menu-count { display: none; }
 
 /* ---------- 9. Arabic typography ---------- */
 /* Arabic is a connected script: letter-spacing breaks the joins. */
@@ -689,6 +695,9 @@ html[lang="ar"] * { letter-spacing: normal; }
   .topbar, .header, .hero, .marquee, .features, .deal, .gallery, .quotes,
   .contact-card, .footer, .menu-toolbar, .skip-link, .story__art,
   .actionbar, .preview-flag, .featured { display: none !important; }
+  /* Sections not yet scrolled into view are still at opacity 0 — always
+     print them, or the sheet comes out with invisible headings. */
+  .js .reveal { opacity: 1 !important; transform: none !important; }
   body { background: #fff; color: #000; padding: 0; }
   .card, .menu-note { border: 1px solid #ccc; background: #fff; break-inside: avoid; }
   .card__media { display: none; }
