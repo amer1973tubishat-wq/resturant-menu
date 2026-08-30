@@ -258,7 +258,7 @@
     $('fDesc').value = item ? item.desc : '';
     $('fBadge').value = item ? (item.badge || '') : '';
     $('fBadgeStyle').value = item ? (item.badgeStyle || 'hot') : 'hot';
-    $('fTags').value = item && item.tags ? item.tags.join('، ') : '';
+    $('fTags').value = item && item.tags ? item.tags.join('\u060C ') : '';
     $('fFeatured').checked = !!(item && item.featured);
 
     var known = item && IMAGES.some(function (e) { return e.file === item.image; });
@@ -315,7 +315,7 @@
       image: $('fImageCustom').value.trim() || $('fImage').value,
       badge: $('fBadge').value.trim(),
       badgeStyle: $('fBadgeStyle').value,
-      tags: $('fTags').value.split(/[،,]/).map(function (t) { return t.trim(); }).filter(Boolean)
+      tags: $('fTags').value.split(/[\u060C,]/).map(function (t) { return t.trim(); }).filter(Boolean)
     };
 
     if (editingId) {

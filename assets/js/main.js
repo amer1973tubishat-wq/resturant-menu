@@ -63,14 +63,17 @@
    * strips diacritics and tatweel, unifies alef/yaa/taa-marbuta/hamza.
    */
   function normalize(text) {
+    // Written as \u escapes rather than literal Arabic: a character-class
+    // range throws a SyntaxError if this file is ever parsed as anything
+    // but UTF-8, which would take the whole script down.
     return String(text)
       .toLowerCase()
-      .replace(/[ً-ْٰـ]/g, '')
-      .replace(/[أإآٱ]/g, 'ا')
-      .replace(/ى/g, 'ي')
-      .replace(/ئ/g, 'ي')
-      .replace(/ؤ/g, 'و')
-      .replace(/ة/g, 'ه')
+      .replace(/[\u064B-\u0652\u0670\u0640]/g, '')   // tashkeel + tatweel
+      .replace(/[\u0623\u0625\u0622\u0671]/g, '\u0627') // أ إ آ ٱ -> ا
+      .replace(/\u0649/g, '\u064A')                    // ى -> ي
+      .replace(/\u0626/g, '\u064A')                    // ئ -> ي
+      .replace(/\u0624/g, '\u0648')                    // ؤ -> و
+      .replace(/\u0629/g, '\u0647')                    // ة -> ه
       .replace(/\s+/g, ' ')
       .trim();
   }
