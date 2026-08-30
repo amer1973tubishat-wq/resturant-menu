@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Combo meal">
+  <!-- drink -->
+  <path d="M78 44h30l-4 56a7 7 0 0 1-7 6H89a7 7 0 0 1-7-6z" fill="#d1462f"/>
+  <rect x="76" y="38" width="34" height="8" rx="4" fill="#f7f1e8"/>
+  <rect x="94" y="18" width="6" height="22" rx="3" fill="#f7f1e8" transform="rotate(14 97 29)"/>
+  <!-- fries -->
+  <g fill="#f4c56a" stroke="#d9a13f" stroke-width="2">
+    <rect x="10" y="46" width="9" height="30" rx="4" transform="rotate(-12 14 60)"/>
+    <rect x="22" y="42" width="9" height="34" rx="4"/>
+    <rect x="34" y="46" width="9" height="30" rx="4" transform="rotate(12 38 60)"/>
+  </g>
+  <path d="M8 68h38l-5 32a6 6 0 0 1-6 5H19a6 6 0 0 1-6-5z" fill="#d1462f"/>
+  <path d="M8 68h38l-1 8H9z" fill="#e4573f"/>
+  <!-- burger -->
+  <path d="M40 34c0-12 10-19 25-19s25 7 25 19z" fill="#eaa84f" transform="translate(-8,-8) scale(.9)"/>
+  <g transform="translate(-8,-8) scale(.9)">
+    <rect x="40" y="34" width="50" height="7" rx="3" fill="#4e9b4e"/>
+    <rect x="39" y="40" width="52" height="10" rx="5" fill="#5b3320"/>
+    <path d="M41 50h48c0 7-8 10-24 10s-24-3-24-10z" fill="#d4863a"/>
+  </g>
+</svg>

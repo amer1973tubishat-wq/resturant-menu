@@ -1,13 +1,50 @@
 /* =========================================================
-   Ember & Bun — template behaviour
-   Vanilla JS, no dependencies. Everything degrades gracefully
-   if JavaScript is disabled: the full menu stays visible and
-   the form falls back to native browser validation.
+   برجر الجمر / Ember & Bun — template behaviour
+   Vanilla JS, no dependencies, shared by the Arabic (RTL) and
+   English (LTR) pages.
+
+   No user-facing text lives in this file. Every message is read
+   from a data-* attribute on the relevant element, so translating
+   the site never means editing JavaScript.
+
+   Everything degrades gracefully without JS: the full menu stays
+   visible and the forms fall back to native browser validation.
    ========================================================= */
 (function () {
   'use strict';
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** Read a message template from an element, with an English fallback. */
+  function msg(el, name, fallback) {
+    var value = el && el.getAttribute('data-msg-' + name);
+    return value || fallback;
+  }
+
+  /** Fill {placeholders} in a message template. */
+  function fill(template, values) {
+    return template.replace(/\{(\w+)\}/g, function (match, key) {
+      return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : match;
+    });
+  }
+
+  /**
+   * Fold Arabic spelling variants so search matches how people actually
+   * type: strips diacritics and tatweel, and unifies alef/yaa/taa-marbuta.
+   * Latin text just gets lower-cased.
+   */
+  function normalize(text) {
+    return String(text)
+      .toLowerCase()
+      .replace(/[ً-ْٰـ]/g, '')
+      .replace(/[أإآٱ]/g, 'ا')
+      .replace(/ى/g, 'ي')
+      .replace(/ئ/g, 'ي')
+      .replace(/ؤ/g, 'و')
+      .replace(/ة/g, 'ه')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   /* ---------- Mobile navigation ---------- */
   var toggle = document.getElementById('navToggle');
@@ -38,74 +75,139 @@
     });
   }
 
-  /* ---------- Sticky header shadow ---------- */
+  /* ---------- Sticky header & menu toolbar ---------- */
   var header = document.querySelector('.header');
-  if (header) {
+  var toolbar = document.querySelector('.menu-toolbar');
+
+  if (header || toolbar) {
     var onScroll = function () {
-      header.classList.toggle('is-stuck', window.scrollY > 8);
+      if (header) header.classList.toggle('is-stuck', window.scrollY > 8);
+      if (toolbar) {
+        var top = toolbar.getBoundingClientRect().top;
+        toolbar.classList.toggle('is-stuck', top <= header.offsetHeight + 1);
+      }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   }
 
-  /* ---------- Menu category filter ---------- */
+  /* ---------- Menu: category filter + search ---------- */
   var chips = Array.prototype.slice.call(document.querySelectorAll('.chip[data-filter]'));
   var cards = Array.prototype.slice.call(document.querySelectorAll('#menuGrid .card'));
   var counter = document.getElementById('menuCount');
+  var empty = document.getElementById('menuEmpty');
+  var searchWrap = document.querySelector('.search');
+  var search = document.getElementById('menuSearch');
+  var clearBtn = document.getElementById('menuSearchClear');
+
+  var state = { category: 'all', query: '' };
 
   function labelFor(filter) {
     var chip = chips.filter(function (c) { return c.dataset.filter === filter; })[0];
-    return chip ? chip.textContent.trim() : 'items';
+    return chip ? chip.textContent.trim() : '';
   }
 
-  function applyFilter(filter) {
+  function report(shown) {
+    if (!counter) return;
+
+    var text;
+    if (state.query) {
+      text = fill(msg(counter, 'search', '{n} results for “{q}”'), { n: shown, q: search.value.trim() });
+    } else if (state.category !== 'all') {
+      text = fill(msg(counter, 'category', 'Showing {n} in {category}'), { n: shown, category: labelFor(state.category) });
+    } else {
+      text = fill(msg(counter, 'all', 'Showing all {n} dishes'), { n: shown });
+    }
+    counter.textContent = text;
+  }
+
+  function apply() {
     var shown = 0;
 
     cards.forEach(function (card) {
-      var match = filter === 'all' || card.dataset.category === filter;
+      var byCategory = state.category === 'all' || card.dataset.category === state.category;
+      var byQuery = !state.query || card.dataset.search.indexOf(state.query) !== -1;
+      var match = byCategory && byQuery;
+
       card.hidden = !match;
       if (match) shown++;
     });
 
     chips.forEach(function (chip) {
-      var active = chip.dataset.filter === filter;
+      var active = chip.dataset.filter === state.category;
       chip.classList.toggle('is-active', active);
       chip.setAttribute('aria-pressed', String(active));
     });
 
-    if (counter) {
-      counter.textContent = filter === 'all'
-        ? 'Showing all ' + shown + ' dishes'
-        : 'Showing ' + shown + ' in ' + labelFor(filter);
-    }
+    if (empty) empty.hidden = shown > 0;
+    if (searchWrap) searchWrap.classList.toggle('has-value', !!state.query);
+
+    report(shown);
   }
 
-  if (chips.length && cards.length) {
+  if (cards.length) {
+    // Index each card once: title, description and tags are all searchable.
+    cards.forEach(function (card) {
+      card.dataset.search = normalize(card.textContent);
+    });
+
     chips.forEach(function (chip) {
       chip.addEventListener('click', function () {
-        applyFilter(chip.dataset.filter);
+        state.category = chip.dataset.filter;
+        apply();
       });
 
       // Arrow-key navigation across the filter toolbar.
       chip.addEventListener('keydown', function (e) {
         if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
         e.preventDefault();
+
+        // In RTL the visual direction of the arrows is mirrored.
+        var rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+        var forward = (e.key === 'ArrowRight') !== rtl;
         var i = chips.indexOf(chip);
-        var next = e.key === 'ArrowRight'
-          ? (i + 1) % chips.length
-          : (i - 1 + chips.length) % chips.length;
+        var next = forward ? (i + 1) % chips.length : (i - 1 + chips.length) % chips.length;
+
         chips[next].focus();
         chips[next].click();
       });
     });
 
-    applyFilter('all');
+    if (search) {
+      search.addEventListener('input', function () {
+        state.query = normalize(search.value);
+        apply();
+      });
+
+      search.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && search.value) {
+          e.stopPropagation();
+          search.value = '';
+          state.query = '';
+          apply();
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        search.value = '';
+        state.query = '';
+        apply();
+        search.focus();
+      });
+    }
+
+    apply();
   }
 
   /* ---------- Highlight the section you're reading ---------- */
   var links = Array.prototype.slice.call(document.querySelectorAll('.nav__link'));
   var sections = links
-    .map(function (link) { return document.querySelector(link.getAttribute('href')); })
+    .map(function (link) {
+      var href = link.getAttribute('href');
+      return href && href.charAt(0) === '#' ? document.querySelector(href) : null;
+    })
     .filter(Boolean);
 
   if ('IntersectionObserver' in window && sections.length) {
@@ -151,13 +253,13 @@
   function validate(field) {
     var value = field.value.trim();
 
-    if (!value) return 'This field is required.';
+    if (!value) return msg(form, 'required', 'This field is required.');
     if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
-      return 'Enter a valid email address.';
+      return msg(form, 'email', 'Enter a valid email address.');
     }
     if (field.type === 'date') {
       var today = new Date(); today.setHours(0, 0, 0, 0);
-      if (new Date(value + 'T00:00:00') < today) return 'Pick today or a future date.';
+      if (new Date(value + 'T00:00:00') < today) return msg(form, 'past', 'Pick today or a future date.');
     }
     return '';
   }
@@ -187,7 +289,7 @@
       });
 
       if (firstInvalid) {
-        status.textContent = 'Please fix the highlighted fields.';
+        status.textContent = msg(form, 'fix', 'Please fix the highlighted fields.');
         status.className = 'form__status is-err';
         firstInvalid.focus();
         return;
@@ -203,8 +305,10 @@
       //   })
       // ---------------------------------------------------------------
       var data = new FormData(form);
-      status.textContent = 'Thanks, ' + data.get('name').split(' ')[0] +
-        ' — we’ll confirm your table for ' + data.get('guests') + ' by email.';
+      status.textContent = fill(msg(form, 'success', 'Thanks {name} — we’ll confirm your table for {guests} by email.'), {
+        name: String(data.get('name')).trim().split(/\s+/)[0],
+        guests: data.get('guests')
+      });
       status.className = 'form__status is-ok';
       form.reset();
       fields.forEach(function (field) { setError(field, ''); });
@@ -221,12 +325,12 @@
       var email = subForm.querySelector('input[type="email"]').value.trim();
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-        subStatus.textContent = 'Enter a valid email address.';
+        subStatus.textContent = msg(subForm, 'email', 'Enter a valid email address.');
         subStatus.className = 'form__status is-err';
         return;
       }
 
-      subStatus.textContent = 'You’re on the list. See you soon.';
+      subStatus.textContent = msg(subForm, 'success', 'You’re on the list. See you soon.');
       subStatus.className = 'form__status is-ok';
       subForm.reset();
     });
