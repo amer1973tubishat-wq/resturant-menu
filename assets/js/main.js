@@ -80,7 +80,10 @@
 
   function imageUrl(name) {
     if (!name) return IMG_BASE + 'thumb-burger.svg';
-    return /^(https?:)?\/\//.test(name) || name.indexOf('/') !== -1 ? name : IMG_BASE + name;
+    // an uploaded image is a data: URI, a linked one is a path or an absolute URL,
+    // and anything else is a filename inside assets/img/
+    if (/^data:/.test(name) || /^(https?:)?\/\//.test(name) || name.indexOf('/') !== -1) return name;
+    return IMG_BASE + name;
   }
 
   function digits(value) {
@@ -108,6 +111,11 @@
     document.querySelectorAll('[data-bind-href]').forEach(function (node) {
       var href = LINKS[node.getAttribute('data-bind-href')];
       if (href) node.setAttribute('href', href);
+    });
+
+    document.querySelectorAll('[data-bind-img]').forEach(function (node) {
+      var value = R[node.getAttribute('data-bind-img')];
+      if (value) node.src = imageUrl(value);
     });
 
     // Opening hours
@@ -219,10 +227,27 @@
     return li;
   }
 
+  function buildGalleryItem(entry, index) {
+    // the first tile is tall and the fifth spans two columns — that shape is the design,
+    // so it follows position rather than anything in the data
+    var shape = index === 0 ? ' gallery__item--tall' : (index === 4 ? ' gallery__item--wide' : '');
+    var li = el('li', 'gallery__item' + shape + ' reveal');
+
+    var img = el('img');
+    img.src = imageUrl(entry.image);
+    img.alt = entry.caption || '';
+    img.loading = 'lazy';
+
+    li.appendChild(img);
+    li.appendChild(el('span', 'gallery__cap', entry.caption || ''));
+    return li;
+  }
+
   var grid = document.getElementById('menuGrid');
   var featuredGrid = document.getElementById('featuredGrid');
   var filters = document.getElementById('menuFilters');
   var footerCats = document.getElementById('footerCategories');
+  var galleryGrid = document.getElementById('galleryGrid');
 
   function renderAll() {
     if (grid) {
@@ -252,6 +277,11 @@
         chip.setAttribute('aria-pressed', 'false');
         filters.appendChild(chip);
       });
+    }
+
+    if (galleryGrid && R.gallery) {
+      galleryGrid.textContent = '';
+      R.gallery.forEach(function (entry, i) { galleryGrid.appendChild(buildGalleryItem(entry, i)); });
     }
 
     if (footerCats) {

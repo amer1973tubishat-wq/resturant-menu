@@ -15,11 +15,17 @@
 
   var STORAGE_KEY = 'chefhashem.menu';
   var UNLOCK_KEY = 'chefhashem.unlocked';
-  var IMG_BASE = 'assets/img/';
+  var IMG_BASE = '../assets/img/';   // the dashboard lives one level down, at /manage/
 
-  /* Hash of the default passcode "hashem2014".
-     Change it: run hash('your-code') in the browser console and paste the result. */
+  /* Hash of the default passcode "hashem2014". The dashboard can change the
+     passcode at runtime, which stores an override in this browser; edit this
+     constant to change it for every browser. */
   var PASS_HASH = '57c4a9a2';
+  var PASS_KEY = 'chefhashem.pass';
+
+  function currentHash() {
+    try { return localStorage.getItem(PASS_KEY) || PASS_HASH; } catch (e) { return PASS_HASH; }
+  }
 
   var IMAGES = [
     { file: 'thumb-burger.svg',  label: 'برجر لحم' },
@@ -55,6 +61,183 @@
   }
 
   function deepCopy(value) { return JSON.parse(JSON.stringify(value)); }
+
+  /* ---------- Uploaded images ----------
+     Everything is stored inside the menu data as a data: URI, because there
+     is no server to upload to. Photos are therefore downscaled and
+     re-encoded before storing — a phone photo is several megabytes, and
+     localStorage gives us roughly five in total. */
+  var LIMITS = {
+    dish:    { max: 500, mode: 'photo' },
+    hero:    { max: 900, mode: 'photo' },
+    logo:    { max: 256, mode: 'flat'  },   // keeps transparency
+    gallery: { max: 700, mode: 'photo' }
+  };
+
+  function processImage(file, kind, done, fail) {
+    var limit = LIMITS[kind] || LIMITS.dish;
+
+    if (!/^image\//.test(file.type)) {
+      fail('الملف المختار ليس صورة.');
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onerror = function () { fail('تعذّرت قراءة الملف.'); };
+    reader.onload = function () {
+      var source = String(reader.result);
+
+      // SVG is already small and lossless — store it as-is
+      if (file.type === 'image/svg+xml') { done(source); return; }
+
+      var img = new Image();
+      img.onerror = function () { fail('تعذّر فتح الصورة.'); };
+      img.onload = function () {
+        var scale = Math.min(1, limit.max / Math.max(img.width, img.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // PNG for logos so transparency survives, JPEG for photographs
+        done(limit.mode === 'flat'
+          ? canvas.toDataURL('image/png')
+          : canvas.toDataURL('image/jpeg', 0.78));
+      };
+      img.src = source;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function byteSize(value) {
+    if (!value) return 0;
+    var m = /^data:[^;]+;base64,(.*)$/.exec(value);
+    return m ? Math.round(m[1].length * 0.75) : value.length;
+  }
+
+  function humanSize(bytes) {
+    if (bytes < 1024) return bytes + ' بايت';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' ك.ب';
+    return (bytes / 1048576).toFixed(1) + ' م.ب';
+  }
+
+  /**
+   * Renders a preview + upload / choose / link control into `mount`.
+   * `get` returns the current value, `set` stores a new one.
+   */
+  function imageField(mount, kind, get, set) {
+    mount.textContent = '';
+    mount.className = 'imgfield';
+
+    var preview = el('div', 'imgfield__preview');
+    var img = el('img');
+    img.alt = '';
+    preview.appendChild(img);
+
+    var controls = el('div', 'imgfield__controls');
+
+    var upload = el('button', 'btn btn--primary btn--sm', 'رفع صورة');
+    upload.type = 'button';
+
+    var file = el('input');
+    file.type = 'file';
+    file.accept = 'image/*';
+    file.hidden = true;
+
+    var choose = el('select', 'imgfield__select');
+    var head = el('option', null, 'أو اختر رسمة جاهزة…');
+    head.value = '';
+    choose.appendChild(head);
+    IMAGES.forEach(function (entry) {
+      var option = el('option', null, entry.label);
+      option.value = entry.file;
+      choose.appendChild(option);
+    });
+
+    var link = el('input', 'imgfield__link');
+    link.type = 'text';
+    link.dir = 'ltr';
+    link.placeholder = 'أو الصق مسار/رابط صورة';
+
+    var meta = el('p', 'imgfield__meta');
+    var error = el('p', 'field__error');
+
+    function refresh() {
+      var value = get() || '';
+      img.src = imageUrl(value);
+      var uploaded = /^data:/.test(value);
+      // only uploads need a caption; a filename already shows in the field below
+      meta.textContent = uploaded ? 'صورة مرفوعة · ' + humanSize(byteSize(value)) : '';
+      choose.value = IMAGES.some(function (e) { return e.file === value; }) ? value : '';
+      link.value = uploaded || !value ? '' : (choose.value ? '' : value);
+    }
+
+    upload.addEventListener('click', function () { file.click(); });
+
+    file.addEventListener('change', function (e) {
+      var picked = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!picked) return;
+
+      error.textContent = '';
+      meta.textContent = 'جارٍ المعالجة…';
+
+      processImage(picked, kind, function (uri) {
+        set(uri);
+        markDirty(true);
+        refresh();
+        updateSize();
+        toast('تمت إضافة الصورة');
+      }, function (message) {
+        error.textContent = message;
+        refresh();
+      });
+    });
+
+    choose.addEventListener('change', function () {
+      if (!choose.value) return;
+      set(choose.value);
+      markDirty(true);
+      refresh();
+      updateSize();
+    });
+
+    link.addEventListener('change', function () {
+      var value = link.value.trim();
+      if (!value) return;
+      set(value);
+      markDirty(true);
+      refresh();
+      updateSize();
+    });
+
+    controls.appendChild(upload);
+    controls.appendChild(file);
+    controls.appendChild(choose);
+    controls.appendChild(link);
+
+    mount.appendChild(preview);
+    mount.appendChild(controls);
+    mount.appendChild(meta);
+    mount.appendChild(error);
+    refresh();
+    return { refresh: refresh };
+  }
+
+  /** Total size of the stored menu, so uploads can't silently blow the quota. */
+  function updateSize() {
+    var badge = $('sizeState');
+    if (!badge) return;
+
+    var bytes = JSON.stringify(data).length;
+    badge.textContent = humanSize(bytes);
+    badge.className = 'save-state' + (bytes > 3.5 * 1048576 ? ' is-dirty' : '');
+    badge.title = bytes > 3.5 * 1048576
+      ? 'الحجم كبير — قد يرفض المتصفح الحفظ. استخدم صوراً أصغر.'
+      : 'حجم بيانات القائمة بما فيها الصور المرفوعة';
+  }
 
   /* ---------- State ---------- */
   var original = deepCopy(window.MENU_DATA);   // what the data file holds
@@ -112,7 +295,7 @@
     e.preventDefault();
     var value = $('passcode').value;
 
-    if (hash(value) !== PASS_HASH) {
+    if (hash(value) !== currentHash()) {
       $('gateError').textContent = 'رمز الدخول غير صحيح.';
       $('passcode').select();
       return;
@@ -130,7 +313,7 @@
   });
 
   /* ---------- Tabs ---------- */
-  var TABS = ['items', 'categories', 'info'];
+  var TABS = ['items', 'categories', 'info', 'security'];
   TABS.forEach(function (name) {
     $('tabbtn-' + name).addEventListener('click', function () {
       TABS.forEach(function (other) {
@@ -223,6 +406,8 @@
     renderItems();
   }
 
+  var draftImage = '';   // the image being edited in the modal
+
   function fillModalSelects() {
     var cat = $('fCategory');
     cat.textContent = '';
@@ -232,13 +417,9 @@
       cat.appendChild(option);
     });
 
-    var img = $('fImage');
-    img.textContent = '';
-    IMAGES.forEach(function (entry) {
-      var option = el('option', null, entry.label);
-      option.value = entry.file;
-      img.appendChild(option);
-    });
+    imageField($('fImageField'), 'dish',
+      function () { return draftImage; },
+      function (value) { draftImage = value; });
   }
 
   function openItem(id) {
@@ -248,7 +429,6 @@
     }
 
     editingId = id;
-    fillModalSelects();
 
     var item = id ? data.items.filter(function (i) { return i.id === id; })[0] : null;
     $('modalTitle').textContent = item ? 'تعديل الصنف' : 'صنف جديد';
@@ -261,9 +441,8 @@
     $('fTags').value = item && item.tags ? item.tags.join('\u060C ') : '';
     $('fFeatured').checked = !!(item && item.featured);
 
-    var known = item && IMAGES.some(function (e) { return e.file === item.image; });
-    $('fImage').value = known ? item.image : IMAGES[0].file;
-    $('fImageCustom').value = item && !known ? item.image : '';
+    draftImage = item ? item.image : IMAGES[0].file;
+    fillModalSelects();
 
     $('fNameError').textContent = '';
     $('fPriceError').textContent = '';
@@ -312,7 +491,7 @@
       name: name,
       desc: $('fDesc').value.trim(),
       price: price,
-      image: $('fImageCustom').value.trim() || $('fImage').value,
+      image: draftImage,
       badge: $('fBadge').value.trim(),
       badgeStyle: $('fBadgeStyle').value,
       tags: $('fTags').value.split(/[\u060C,]/).map(function (t) { return t.trim(); }).filter(Boolean)
@@ -426,7 +605,48 @@
     });
 
     $('brandName').textContent = data.restaurant.name || '';
+
+    imageField($('logoField'), 'logo',
+      function () { return data.restaurant.logo; },
+      function (value) { data.restaurant.logo = value; });
+
+    imageField($('heroField'), 'hero',
+      function () { return data.restaurant.heroImage; },
+      function (value) { data.restaurant.heroImage = value; });
+
+    renderGallery();
     renderHours();
+  }
+
+  function renderGallery() {
+    var wrap = $('galleryEditor');
+    if (!wrap) return;
+
+    wrap.textContent = '';
+    if (!data.restaurant.gallery) data.restaurant.gallery = [];
+
+    data.restaurant.gallery.forEach(function (entry, index) {
+      var row = el('div', 'gallery-row');
+
+      var mount = el('div');
+      imageField(mount, 'gallery',
+        function () { return entry.image; },
+        function (value) { entry.image = value; });
+
+      var caption = el('input');
+      caption.type = 'text';
+      caption.value = entry.caption || '';
+      caption.placeholder = 'الوصف تحت الصورة';
+      caption.setAttribute('aria-label', 'وصف الصورة ' + (index + 1));
+      caption.addEventListener('input', function () {
+        entry.caption = caption.value;
+        markDirty(true);
+      });
+
+      row.appendChild(mount);
+      row.appendChild(caption);
+      wrap.appendChild(row);
+    });
   }
 
   function renderHours() {
@@ -472,64 +692,47 @@
       markDirty(false);
       toast('تم الحفظ — افتح «معاينة الموقع» لرؤية النتيجة');
     } catch (e) {
-      toast('تعذّر الحفظ في هذا المتصفح', true);
+      var quota = e && (e.name === 'QuotaExceededError' || e.code === 22);
+      toast(quota
+        ? 'الصور المرفوعة تجاوزت سعة المتصفح — استخدم صوراً أقل أو أصغر.'
+        : 'تعذّر الحفظ في هذا المتصفح', true);
     }
   });
 
-  function fileContents() {
-    return '/* شيف هاشم — بيانات القائمة\n' +
-           '   Generated by the dashboard on ' + new Date().toISOString().slice(0, 10) + '.\n' +
-           '   Replace assets/data/menu.js with this file to publish the changes. */\n' +
-           'window.MENU_DATA = ' + JSON.stringify(data, null, 2) + ';\n';
-  }
+  /* ---------- Change the passcode ---------- */
+  $('pwSaveBtn').addEventListener('click', function () {
+    var current = $('pwCurrent').value;
+    var next = $('pwNew').value;
+    var confirmValue = $('pwConfirm').value;
+    var error = $('pwError');
 
-  $('downloadBtn').addEventListener('click', function () {
-    var blob = new Blob([fileContents()], { type: 'text/javascript;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'menu.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-    toast('تم تنزيل menu.js — استبدل به assets/data/menu.js');
-  });
+    error.textContent = '';
 
-  $('importBtn').addEventListener('click', function () { $('importFile').click(); });
+    if (hash(current) !== currentHash()) { error.textContent = 'كلمة المرور الحالية غير صحيحة.'; return; }
+    if (next.length < 6) { error.textContent = 'كلمة المرور الجديدة قصيرة — 6 أحرف على الأقل.'; return; }
+    if (next !== confirmValue) { error.textContent = 'كلمة المرور الجديدة وتأكيدها غير متطابقين.'; return; }
+    if (next === current) { error.textContent = 'كلمة المرور الجديدة مطابقة للحالية.'; return; }
 
-  $('importFile').addEventListener('change', function (e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
+    var digest = hash(next);
+    try {
+      localStorage.setItem(PASS_KEY, digest);
+    } catch (e) {
+      error.textContent = 'تعذّر حفظ كلمة المرور في هذا المتصفح.';
+      return;
+    }
 
-    var reader = new FileReader();
-    reader.onload = function () {
-      try {
-        var text = String(reader.result).trim();
-        // Accept either raw JSON or a menu.js file that assigns window.MENU_DATA
-        var start = text.indexOf('{');
-        var end = text.lastIndexOf('}');
-        if (start === -1 || end === -1) throw new Error('no object');
-
-        var parsed = JSON.parse(text.slice(start, end + 1));
-        if (!parsed.items || !parsed.categories || !parsed.restaurant) throw new Error('shape');
-
-        data = parsed;
-        markDirty(true);
-        renderAll();
-        toast('تم الاستيراد — اضغط «حفظ» لتطبيقه');
-      } catch (err) {
-        toast('الملف غير صالح', true);
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
+    $('pwCurrent').value = '';
+    $('pwNew').value = '';
+    $('pwConfirm').value = '';
+    $('pwHash').textContent = digest;
+    $('pwPermanent').hidden = false;
+    toast('تم تغيير كلمة المرور');
   });
 
   $('resetBtn').addEventListener('click', function () {
     if (!confirm('استعادة البيانات الأصلية من ملف menu.js وحذف التعديلات المحفوظة في المتصفح؟')) return;
     try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
-    data = deepCopy(original);
+    data = deepCopy(original);   // the passcode override is deliberately kept
     markDirty(false);
     renderAll();
     toast('تمت الاستعادة من ملف البيانات');
@@ -546,6 +749,7 @@
     renderItems();
     renderCategories();
     renderInfo();
+    updateSize();
     markDirty(dirty);
   }
 })();

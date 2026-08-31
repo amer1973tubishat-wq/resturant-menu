@@ -384,23 +384,11 @@
 <body data-title-template="{name} — قائمة البرجر المشوي على الفحم">
 <a class="skip-link" href="#menu">تخطَّ إلى القائمة</a>
 
-<!-- ============ الشريط العلوي ============ -->
-<div class="topbar">
-  <div class="container topbar__inner">
-    <p class="topbar__item"><span aria-hidden="true">🔥</span> مشويّ على الفحم · لحم طازج يومياً</p>
-    <p class="topbar__item topbar__item--right">
-      <a data-bind="phoneDisplay" data-bind-href="tel" class="ltr" href="tel:+966551234567">+966 55 123 4567</a>
-      <span class="topbar__sep" aria-hidden="true">•</span>
-      <a href="#visit" data-bind="addressLine1">شارع الأمير سلطان، حي العليا</a>
-    </p>
-  </div>
-</div>
-
 <!-- ============ الترويسة ============ -->
 <header class="header" id="top">
   <div class="container header__inner">
     <a class="brand" href="#top" aria-label="شيف هاشم، الصفحة الرئيسية">
-      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="44" height="44">
+      <img class="brand__mark" data-bind-img="logo" src="assets/img/logo.svg" alt="" width="44" height="44">
       <span class="brand__text">
         <span class="brand__name" data-bind="name">شيف هاشم</span>
         <span class="brand__tag" data-bind="tagline">برجر مشوي على الفحم · منذ 2014</span>
@@ -433,7 +421,7 @@
   <section class="hero">
     <div class="container hero__inner">
       <div class="hero__art">
-        <img src="assets/img/burger-hero.svg" alt="رسم توضيحي لبرجر مزدوج بالجبن" width="520" height="520">
+        <img data-bind-img="heroImage" src="assets/img/burger-hero.svg" alt="صورة الطبق الرئيسي" width="520" height="520">
         <span class="hero__badge"><span class="hero__badge-inner">اختيار<br>الشيف</span></span>
       </div>
       <div class="hero__copy">
@@ -1022,12 +1010,14 @@
         <p class="eyebrow">من المطبخ</p>
         <h2 class="section__title">مباشرةً من الشواية</h2>
       </header>
-      <ul class="gallery">
-        <li class="gallery__item gallery__item--tall reveal"><img src="assets/img/thumb-burger.svg" alt="برجر مزدوج بالجبن جاهز للتقديم" loading="lazy"><span class="gallery__cap">برجر هاشم المزدوج</span></li>
-        <li class="gallery__item reveal"><img src="assets/img/thumb-fries.svg" alt="سلة بطاطس مقطّعة يدوياً" loading="lazy"><span class="gallery__cap">بطاطس يدوية</span></li>
-        <li class="gallery__item reveal"><img src="assets/img/thumb-shake.svg" alt="كوب ميلك شيك كثيف" loading="lazy"><span class="gallery__cap">ميلك شيك</span></li>
-        <li class="gallery__item reveal"><img src="assets/img/grill.svg" alt="طاهٍ يعمل على الشواية" loading="lazy"><span class="gallery__cap">الفحم المفتوح</span></li>
-        <li class="gallery__item gallery__item--wide reveal"><img src="assets/img/burger-hero.svg" alt="برجر مرصوص بالجبن الذائب" loading="lazy"><span class="gallery__cap">برجر البريسكِت</span></li>
+      <ul class="gallery" id="galleryGrid">
+<!--build:gallery-->
+        <li class="gallery__item gallery__item--tall reveal"><img src="assets/img/thumb-burger.svg" alt="برجر هاشم المزدوج" loading="lazy"><span class="gallery__cap">برجر هاشم المزدوج</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/thumb-fries.svg" alt="بطاطس يدوية" loading="lazy"><span class="gallery__cap">بطاطس يدوية</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/thumb-shake.svg" alt="ميلك شيك" loading="lazy"><span class="gallery__cap">ميلك شيك</span></li>
+        <li class="gallery__item reveal"><img src="assets/img/grill.svg" alt="الفحم المفتوح" loading="lazy"><span class="gallery__cap">الفحم المفتوح</span></li>
+        <li class="gallery__item gallery__item--wide reveal"><img src="assets/img/burger-hero.svg" alt="برجر البريسكِت" loading="lazy"><span class="gallery__cap">برجر البريسكِت</span></li>
+        <!--/build:gallery-->
       </ul>
     </div>
   </section>
@@ -1124,7 +1114,7 @@
 <footer class="footer">
   <div class="container footer__inner">
     <div class="footer__brand">
-      <img src="assets/img/logo.svg" alt="" width="44" height="44">
+      <img data-bind-img="logo" src="assets/img/logo.svg" alt="" width="44" height="44">
       <p class="footer__name" data-bind="name">شيف هاشم</p>
       <p class="footer__blurb">مطعم برجر في الحي. فحم مفتوح، بطاطس مقطّعة يدوياً، وبلا ثلاجات تجميد.</p>
     </div>

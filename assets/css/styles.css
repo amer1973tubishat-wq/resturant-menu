@@ -128,20 +128,6 @@ a:hover { text-decoration: underline; }
 }
 
 /* ---------- 4. Header & nav ---------- */
-.topbar {
-  background: #0a0908; color: var(--text-muted);
-  font-size: .78rem; border-block-end: 1px solid var(--ink-3);
-}
-.topbar__inner {
-  display: flex; flex-wrap: wrap; gap: .3rem 1.25rem;
-  justify-content: center; padding-block: .5rem; text-align: center;
-}
-.topbar p { margin: 0; }
-.topbar a { color: var(--text-muted); }
-.topbar a:hover { color: var(--gold); }
-.topbar strong { color: var(--cream); }
-.topbar__sep { margin-inline: .5rem; opacity: .5; }
-.topbar__item--right { display: none; }
 
 .header {
   position: sticky; inset-block-start: 0; z-index: 100;
@@ -595,8 +581,6 @@ html[lang="ar"] * { letter-spacing: normal; }
   .gallery__item--tall { grid-row: span 2; }
   .contact-actions { grid-template-columns: repeat(2, 1fr); }
   .footer__inner { grid-template-columns: repeat(2, 1fr); }
-  .topbar__item--right { display: block; }
-  .topbar__inner { justify-content: space-between; text-align: start; }
 }
 
 /* --- 900px: desktop nav, side-by-side sections, no action bar --- */
@@ -692,7 +676,7 @@ html[lang="ar"] * { letter-spacing: normal; }
 
 /* ---------- Print: a clean menu sheet ---------- */
 @media print {
-  .topbar, .header, .hero, .marquee, .features, .deal, .gallery, .quotes,
+  .header, .hero, .marquee, .features, .deal, .gallery, .quotes,
   .contact-card, .footer, .menu-toolbar, .skip-link, .story__art,
   .actionbar, .preview-flag, .featured { display: none !important; }
   /* Sections not yet scrolled into view are still at opacity 0 — always

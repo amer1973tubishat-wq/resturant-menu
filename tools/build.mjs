@@ -47,7 +47,9 @@ const digits = (value) => String(value ?? '').replace(/[^0-9]/g, '');
 
 const imageUrl = (name) => {
   if (!name) return 'assets/img/thumb-burger.svg';
-  return /^(https?:)?\/\//.test(name) || name.includes('/') ? name : 'assets/img/' + name;
+  // uploaded images are data: URIs, linked ones are paths or absolute URLs
+  if (/^data:/.test(name) || /^(https?:)?\/\//.test(name) || name.includes('/')) return name;
+  return 'assets/img/' + name;
 };
 
 const fillTemplate = (template, values) =>
@@ -119,6 +121,15 @@ const hoursHtml = () => (R.hours || []).map((row) =>
 const footerCatsHtml = () => data.categories.map((c) =>
   `\n        <li><a href="#menu" data-jump="${esc(c.id)}">${esc(c.name)}</a></li>`).join('');
 
+// The first tile is tall and the fifth spans two columns — that shape is the
+// design, so it follows position rather than anything in the data.
+const galleryHtml = () => (R.gallery || []).map((entry, i) => {
+  const shape = i === 0 ? ' gallery__item--tall' : (i === 4 ? ' gallery__item--wide' : '');
+  return `\n        <li class="gallery__item${shape} reveal">` +
+         `<img src="${esc(imageUrl(entry.image))}" alt="${esc(entry.caption || '')}" loading="lazy">` +
+         `<span class="gallery__cap">${esc(entry.caption || '')}</span></li>`;
+}).join('');
+
 /* ---------- Rewrite the page ---------- */
 let page = readFileSync(PAGE, 'utf8');
 const before = page;
@@ -137,6 +148,7 @@ region('featured', featuredHtml());
 region('filters', filtersHtml());
 region('hours', hoursHtml());
 region('footercats', footerCatsHtml());
+region('gallery', galleryHtml());
 
 // Text of every [data-bind] element (they all contain plain text)
 for (const [key, value] of Object.entries(R)) {
@@ -144,6 +156,15 @@ for (const [key, value] of Object.entries(R)) {
   page = page.replace(
     new RegExp(`(<(\\w+)[^>]*\\sdata-bind="${key}"[^>]*>)[^<]*(</\\2>)`, 'g'),
     (m, open, tag, close) => `${open}${esc(value)}${close}`
+  );
+}
+
+// src of every [data-bind-img] element
+for (const key of ['logo', 'heroImage']) {
+  if (!R[key]) continue;
+  page = page.replace(
+    new RegExp(`(<img[^>]*\\sdata-bind-img="${key}"[^>]*>)`, 'g'),
+    (tag) => tag.replace(/\ssrc="[^"]*"/, ` src="${esc(imageUrl(R[key]))}"`)
   );
 }
 

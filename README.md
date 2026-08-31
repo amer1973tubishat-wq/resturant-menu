@@ -15,7 +15,7 @@ which are present on every screen.
 | File | What it is |
 | --- | --- |
 | `index.html` | The public menu site |
-| `admin.html` | The private dashboard — not linked from the site, and marked `noindex` |
+| `manage/index.html` | The private dashboard, served at `/manage/` — not linked from the site, and marked `noindex` |
 
 ## What's on the site
 
@@ -40,13 +40,14 @@ which are present on every screen.
 
 ```
 index.html                 Public menu site
-admin.html                 Private dashboard
+manage/index.html          Private dashboard (its own URL: /manage/)
 assets/data/menu.js        ← all menu content lives here (single source of truth)
 assets/css/styles.css      Site styling — tokens, layout, components, RTL, responsive, print
 assets/css/admin.css       Dashboard styling
 assets/js/main.js          Renders the menu; nav, search, filter, scroll-spy, reveals
 assets/js/admin.js         Dashboard logic
 tools/build.mjs            Pre-renders the menu into index.html (optional, Node)
+DEPLOY.md                  Hosting, custom domain and protecting /manage/
 assets/img/*.svg           13 vector placeholders: logo, favicon, hero burger, grill scene
                            and 9 dish thumbnails
 ```
@@ -66,7 +67,8 @@ Cloudflare Pages or plain shared hosting.
 
 ## The dashboard
 
-Open **`admin.html`** and enter the passcode. The default is `hashem2014`.
+Open **`/manage/`** and enter the passcode. The default is `hashem2014`, and you can
+change it from the dashboard's **كلمة المرور** tab.
 
 You can:
 
@@ -75,28 +77,44 @@ You can:
   order in the list is the order on the site.
 - **Manage categories** — add, rename, reorder. A category that still has dishes in it
   cannot be deleted, so you can't orphan items by accident.
+- **Upload images** — for each dish, the restaurant logo, the big homepage image, and the
+  five gallery tiles. Pick a file, paste a path or URL, or choose a built-in illustration.
 - **Edit restaurant details** — name, tagline, phone, WhatsApp number, email, address,
   map link, currency symbol, social links, and the opening-hours table.
+- **Change the passcode.**
+
+### How images are stored
+
+There is no server to upload to, so an uploaded image is downscaled in the browser and
+stored inside the menu data as a `data:` URI. Dishes are capped at 500px and re-encoded as
+JPEG, the homepage image at 900px, gallery tiles at 700px, and the logo at 256px as PNG so
+transparency survives. In practice a 1.4 MB phone photo lands around 30–60 KB.
+
+The dashboard shows the total data size beside the save button and turns it amber past
+about 3.5 MB, because browser storage runs out around 5 MB. A save that fails for that
+reason says so rather than failing silently.
 
 ### How saving works
 
-There is no server, so the dashboard uses a two-step flow:
+**حفظ (Save)** writes your changes to this browser's `localStorage`. The site reads that
+immediately, so you see real changes on your own machine — a "معاينة محلية" flag appears
+on the site while you're looking at local edits rather than the published file.
 
-1. **حفظ (Save)** writes your changes to this browser's `localStorage`. The public site
-   reads that immediately, so you can preview real changes on your own machine — a
-   "معاينة محلية" flag appears on the site while you're seeing local edits rather than
-   the published file.
-2. **تنزيل menu.js (Download)** gives you the updated data file. Replace
-   `assets/data/menu.js` with it, run `node tools/build.mjs` to refresh the static copy
-   in `index.html`, and re-upload to publish the changes **for everyone else**.
+**استعادة الأصل (Reset)** discards those local edits and returns to whatever
+`assets/data/menu.js` contains. It leaves your passcode alone.
 
-Until you do step 2, your edits exist only in your own browser. The other buttons:
-**استيراد** loads a `menu.js` or JSON file back in, and **استعادة الأصل** discards the
-local edits and returns to whatever `assets/data/menu.js` contains.
+> **What this does not do:** edits stay in the browser you made them in. They do **not**
+> reach other visitors. To publish for everyone, edit `assets/data/menu.js`, run
+> `node tools/build.mjs`, and re-upload — see `DEPLOY.md`. Publishing straight from the
+> dashboard would need a server or a CMS, which a static site doesn't have.
 
 ### About the passcode — read this
 
-The passcode gate is **client-side only, and it is not security.** It keeps the page from
+The passcode can be changed from the dashboard. That change is stored in the browser you
+made it in; the tab also shows the hash to paste into `PASS_HASH` in
+`assets/js/admin.js` if you want it to apply everywhere.
+
+Either way the gate is **client-side only, and it is not security.** It keeps the page from
 being opened casually; it does not protect anything. The entire site — including
 `admin.js` and the passcode hash — is downloaded by every visitor, so anyone determined
 enough can read it and can also read the menu data directly.
@@ -104,12 +122,12 @@ enough can read it and can also read the menu data directly.
 That is acceptable here because a menu contains nothing secret. **Do not put anything
 sensitive in the dashboard**, and do not treat it as an account system.
 
-If you need genuine protection, put `admin.html` behind server-side auth — HTTP basic auth
-on the directory, Netlify/Cloudflare Access, or a host-level password.
+If you need genuine protection, put `/manage/` behind server-side auth — HTTP basic auth
+on the directory, Netlify/Cloudflare Access, or a host-level password. `DEPLOY.md` has the
+exact steps per host.
 
-To change the passcode: open the browser console on `admin.html`, run
-`hash('your-new-code')`, and paste the result into `PASS_HASH` at the top of
-`assets/js/admin.js`.
+To change it for every browser at once, use the dashboard's password tab and paste the
+hash it shows into `PASS_HASH` at the top of `assets/js/admin.js`.
 
 ---
 
@@ -235,7 +253,8 @@ fallbacks so the page still reads correctly if the webfont fails to load.
 - Update the opening hours
 - Point `<link rel="canonical">` and the Open Graph tags at your real domain
 - Fill in the social links
-- Change the dashboard passcode, and ideally put `admin.html` behind real server auth
+- Change the dashboard passcode, and ideally put `/manage/` behind real server auth
+- Point a custom domain at the site — `DEPLOY.md` has the DNS records
 
 ## Accessibility
 

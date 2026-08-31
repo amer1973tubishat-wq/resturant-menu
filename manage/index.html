@@ -6,20 +6,20 @@
 <title>لوحة التحكم — شيف هاشم</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#100e0c">
-<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/styles.css">
-<link rel="stylesheet" href="assets/css/admin.css">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
 </head>
 <body class="admin">
 
 <!-- ============ بوابة الدخول ============ -->
 <div class="gate" id="gate">
   <form class="gate__box" id="gateForm">
-    <img src="assets/img/logo.svg" alt="">
+    <img src="../assets/img/logo.svg" alt="">
     <h1>لوحة تحكم القائمة</h1>
     <p>أدخل رمز الدخول لتعديل الأصناف والأسعار.</p>
 
@@ -43,7 +43,7 @@
   <header class="admin-bar">
     <div class="container admin-bar__inner">
       <div class="admin-bar__brand">
-        <img src="assets/img/logo.svg" alt="">
+        <img src="../assets/img/logo.svg" alt="">
         <div>
           <strong>لوحة التحكم</strong>
           <span id="brandName">شيف هاشم</span>
@@ -52,19 +52,15 @@
 
       <div class="admin-bar__actions">
         <span class="save-state" id="saveState">لا تغييرات</span>
+        <span class="save-state" id="sizeState" title="حجم بيانات القائمة بما فيها الصور المرفوعة">—</span>
         <button class="btn btn--primary btn--sm" id="saveBtn" type="button">حفظ</button>
-        <button class="btn btn--ghost btn--sm" id="downloadBtn" type="button">تنزيل menu.js</button>
-        <button class="btn btn--ghost btn--sm" id="importBtn" type="button">استيراد</button>
-        <a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">معاينة الموقع</a>
         <button class="btn btn--ghost btn--sm" id="resetBtn" type="button">استعادة الأصل</button>
         <button class="btn btn--ghost btn--sm" id="lockBtn" type="button">قفل</button>
-        <input type="file" id="importFile" accept=".js,.json,application/json,text/javascript" hidden>
       </div>
 
       <p class="publish-hint">
-        «حفظ» يحفظ التعديلات في هذا المتصفح فقط. لنشرها للزوّار: نزّل <code>menu.js</code>،
-        استبدل به <code>assets/data/menu.js</code>، ثم شغّل <code>node tools/build.mjs</code>
-        لتحديث نسخة القائمة الثابتة داخل الصفحة.
+        «حفظ» يخزّن التعديلات في هذا المتصفح على هذا الجهاز، ويراها الموقع فوراً عند فتحه هنا.
+        لا تظهر للزوّار الآخرين إلا بعد تحديث ملف البيانات في الاستضافة.
       </p>
     </div>
   </header>
@@ -74,6 +70,7 @@
       <button class="chip is-active" type="button" role="tab" aria-selected="true"  aria-controls="tab-items"      id="tabbtn-items">الأصناف</button>
       <button class="chip" type="button" role="tab" aria-selected="false" aria-controls="tab-categories" id="tabbtn-categories">الأقسام</button>
       <button class="chip" type="button" role="tab" aria-selected="false" aria-controls="tab-info"       id="tabbtn-info">معلومات المطعم</button>
+      <button class="chip" type="button" role="tab" aria-selected="false" aria-controls="tab-security"   id="tabbtn-security">كلمة المرور</button>
     </nav>
 
     <!-- ---- الأصناف ---- -->
@@ -166,6 +163,16 @@
           <label for="infoCurrency">رمز العملة</label>
           <input type="text" id="infoCurrency" data-info="currency">
         </div>
+
+        <div class="field">
+          <label>شعار المطعم <span class="hint">(يظهر في الترويسة والتذييل)</span></label>
+          <div id="logoField"></div>
+        </div>
+
+        <div class="field">
+          <label>صورة الصفحة الرئيسية <span class="hint">(الصورة الكبيرة في أعلى الموقع)</span></label>
+          <div id="heroField"></div>
+        </div>
         <div class="field">
           <label for="infoWaMsg">نص رسالة واتساب الجاهزة <span class="hint">({name} تُستبدل باسم المطعم)</span></label>
           <input type="text" id="infoWaMsg" data-info="whatsappMessage">
@@ -185,9 +192,52 @@
       </div>
 
       <div class="form-card" style="margin-block-start:1rem">
+        <h3>صور المعرض</h3>
+        <p class="hint" style="margin-block:0 1rem">خمس صور تظهر في قسم «مباشرةً من الشواية».</p>
+        <div id="galleryEditor"></div>
+      </div>
+
+      <div class="form-card" style="margin-block-start:1rem">
         <h3>مواعيد العمل</h3>
         <div class="hours-editor" id="hoursEditor"></div>
         <button class="btn btn--ghost btn--sm" id="addHourBtn" type="button" style="margin-block-start:.75rem">+ إضافة سطر</button>
+      </div>
+    </section>
+    <!-- ---- كلمة المرور ---- -->
+    <section class="admin-panel" id="tab-security" role="tabpanel" aria-labelledby="tabbtn-security" hidden>
+      <div class="panel-head">
+        <h2>كلمة المرور</h2>
+        <p>غيّر رمز الدخول إلى لوحة التحكم.</p>
+      </div>
+
+      <div class="form-card">
+        <div class="field">
+          <label for="pwCurrent">كلمة المرور الحالية</label>
+          <input type="password" id="pwCurrent" autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label for="pwNew">كلمة المرور الجديدة <span class="hint">(6 أحرف على الأقل)</span></label>
+          <input type="password" id="pwNew" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="pwConfirm">تأكيد كلمة المرور الجديدة</label>
+          <input type="password" id="pwConfirm" autocomplete="new-password">
+        </div>
+        <p class="field__error" id="pwError"></p>
+        <button class="btn btn--primary" id="pwSaveBtn" type="button">تغيير كلمة المرور</button>
+
+        <div id="pwPermanent" hidden>
+          <p class="publish-hint" style="margin-block-start:1.25rem">
+            تم التغيير على هذا الجهاز. ولجعله ساري المفعول على كل الأجهزة، استبدل قيمة
+            <code>PASS_HASH</code> في ملف <code>assets/js/admin.js</code> بهذه القيمة:
+          </p>
+          <p class="pw-hash" id="pwHash" dir="ltr"></p>
+        </div>
+
+        <p class="publish-hint" style="margin-block-start:1.25rem">
+          تنبيه: هذه اللوحة تعمل داخل المتصفح، وكلمة المرور تمنع الفتح العابر فقط وليست حماية
+          حقيقية. للحماية الفعلية ضع مجلد الإدارة خلف كلمة مرور من لوحة الاستضافة.
+        </p>
       </div>
     </section>
   </div>
@@ -217,15 +267,11 @@
         <input type="number" id="fPrice" min="0" step="0.5" required>
         <p class="field__error" id="fPriceError"></p>
       </div>
-      <div class="field">
-        <label for="fImage">الصورة</label>
-        <select id="fImage"></select>
-      </div>
     </div>
 
     <div class="field">
-      <label for="fImageCustom">مسار صورة مخصّص <span class="hint">(اختياري — يتجاوز الاختيار أعلاه)</span></label>
-      <input type="text" id="fImageCustom" dir="ltr" placeholder="assets/img/photo.jpg">
+      <label>صورة الطبق</label>
+      <div id="fImageField"></div>
     </div>
 
     <div class="field">
@@ -265,7 +311,7 @@
 
 <p class="toast" id="toast" hidden></p>
 
-<script src="assets/data/menu.js"></script>
-<script src="assets/js/admin.js"></script>
+<script src="../assets/data/menu.js"></script>
+<script src="../assets/js/admin.js"></script>
 </body>
 </html>

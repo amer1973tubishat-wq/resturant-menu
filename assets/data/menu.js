@@ -25,6 +25,15 @@ window.MENU_DATA = {
     "addressLine2": "الرياض، المملكة العربية السعودية",
     "mapUrl": "https://maps.google.com/?q=Riyadh",
     "currency": "ر.س",
+    "logo": "logo.svg",
+    "heroImage": "burger-hero.svg",
+    "gallery": [
+      { "image": "thumb-burger.svg", "caption": "برجر هاشم المزدوج" },
+      { "image": "thumb-fries.svg",  "caption": "بطاطس يدوية" },
+      { "image": "thumb-shake.svg",  "caption": "ميلك شيك" },
+      { "image": "grill.svg",        "caption": "الفحم المفتوح" },
+      { "image": "burger-hero.svg",  "caption": "برجر البريسكِت" }
+    ],
     "whatsappMessage": "مرحباً {name}، أود الطلب من القائمة.",
     "instagram": "#",
     "tiktok": "#",
