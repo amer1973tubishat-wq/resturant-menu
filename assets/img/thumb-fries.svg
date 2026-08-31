@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Fries">
+  <g fill="#f4c56a" stroke="#d9a13f" stroke-width="2">
+    <rect x="30" y="20" width="12" height="56" rx="4" transform="rotate(-12 36 48)"/>
+    <rect x="48" y="12" width="12" height="64" rx="4" transform="rotate(-3 54 44)"/>
+    <rect x="64" y="16" width="12" height="60" rx="4" transform="rotate(8 70 46)"/>
+    <rect x="78" y="26" width="12" height="52" rx="4" transform="rotate(16 84 52)"/>
+  </g>
+  <path d="M24 62h72l-8 44a6 6 0 0 1-6 5H38a6 6 0 0 1-6-5z" fill="#d1462f"/>
+  <path d="M24 62h72l-2 12H26z" fill="#e4573f"/>
+  <rect x="44" y="78" width="32" height="8" rx="4" fill="#f7f1e8" opacity=".85"/>
+</svg>

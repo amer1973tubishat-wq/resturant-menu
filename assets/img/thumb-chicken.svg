@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Chicken burger">
+  <path d="M18 52c0-20 17-32 42-32s42 12 42 32z" fill="#eaa84f"/>
+  <g fill="#fbe4bd"><ellipse cx="45" cy="34" rx="6" ry="3"/><ellipse cx="66" cy="29" rx="6" ry="3"/><ellipse cx="82" cy="38" rx="6" ry="3"/></g>
+  <path d="M14 56c8-6 14 4 22-1s14 5 22-1 14 5 22-1 14 4 22 0c4 8-2 13-8 13H22c-6 0-11-5-8-10z" fill="#4e9b4e"/>
+  <path d="M18 70h84c4 0 6 4 4 8-3 10-12 16-25 16H39c-13 0-22-6-25-16-2-4 0-8 4-8z" fill="#c9772e"/>
+  <g fill="#e09443">
+    <circle cx="34" cy="80" r="4"/><circle cx="52" cy="86" r="5"/><circle cx="72" cy="80" r="4"/><circle cx="90" cy="85" r="4"/>
+    <circle cx="44" cy="76" r="3"/><circle cx="62" cy="78" r="3"/><circle cx="82" cy="76" r="3"/>
+  </g>
+  <path d="M20 96h80c0 12-13 16-40 16s-40-4-40-16z" fill="#d4863a"/>
+</svg>

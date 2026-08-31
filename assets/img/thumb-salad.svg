@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Side salad">
+  <path d="M16 58h88c0 26-20 44-44 44S16 84 16 58z" fill="#f7f1e8"/>
+  <path d="M16 58h88c0 6-1 11-3 16H19c-2-5-3-10-3-16z" fill="#e8d9c4"/>
+  <g>
+    <circle cx="40" cy="46" r="16" fill="#4e9b4e"/>
+    <circle cx="66" cy="40" r="14" fill="#5cb35c"/>
+    <circle cx="86" cy="50" r="12" fill="#3d7f3e"/>
+    <circle cx="54" cy="52" r="10" fill="#6cc46c"/>
+    <circle cx="78" cy="34" r="8" fill="#d1462f"/>
+    <circle cx="30" cy="54" r="7" fill="#d1462f"/>
+    <circle cx="62" cy="56" r="6" fill="#f0a72c"/>
+  </g>
+</svg>

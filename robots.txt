@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chef-hashem.com/sitemap.xml
