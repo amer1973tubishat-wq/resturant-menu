@@ -47,7 +47,9 @@ assets/css/admin.css       Dashboard styling
 assets/js/main.js          Renders the menu; nav, search, filter, scroll-spy, reveals
 assets/js/admin.js         Dashboard logic
 tools/build.mjs            Pre-renders the menu into index.html (optional, Node)
-DEPLOY.md                  Hosting, custom domain and protecting /manage/
+CNAME                      Custom domain for GitHub Pages (chef-hashem.com)
+robots.txt / sitemap.xml   Search-engine basics
+DEPLOY.md                  Hosting, DNS records and protecting /manage/
 assets/img/*.svg           13 vector placeholders: logo, favicon, hero burger, grill scene
                            and 9 dish thumbnails
 ```
@@ -60,8 +62,12 @@ Open `index.html` directly, or serve the folder:
 python3 -m http.server 8000   # then http://localhost:8000
 ```
 
-Deploy by uploading the folder to any static host — GitHub Pages, Netlify, Vercel,
-Cloudflare Pages or plain shared hosting.
+The site is set up for **chef-hashem.com**: the `CNAME` file, the canonical URL, the
+Open Graph tags, `robots.txt` and the JSON-LD `url` all point at it. Enabling hosting and
+adding the DNS records are the two remaining steps — `DEPLOY.md` has them.
+
+It deploys to any static host: GitHub Pages, Netlify, Vercel, Cloudflare Pages or plain
+shared hosting.
 
 ---
 
@@ -251,7 +257,8 @@ fallbacks so the page still reads correctly if the webfont fails to load.
 - Replace the phone `+966 55 123 4567`, the WhatsApp number, the email and the Riyadh
   address (dashboard → معلومات المطعم)
 - Update the opening hours
-- Point `<link rel="canonical">` and the Open Graph tags at your real domain
+- The canonical and Open Graph tags already point at `chef-hashem.com`; change them if
+  the domain changes
 - Fill in the social links
 - Change the dashboard passcode, and ideally put `/manage/` behind real server auth
 - Point a custom domain at the site — `DEPLOY.md` has the DNS records

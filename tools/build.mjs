@@ -187,10 +187,13 @@ page = page.replace(
 );
 
 // Structured data
+const SITE_URL = (page.match(/<link rel="canonical" href="([^"]+)"/) || [])[1] || '';
+
 const ld = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
   name: R.name,
+  url: SITE_URL,
   inLanguage: 'ar',
   servesCuisine: 'برجر',
   priceRange: '$$',
