@@ -1,0 +1,5 @@
+# Artifacts produced by running the skills' scripts — not part of the skills.
+__pycache__/
+*.pyc
+.coverage
+.pytest_cache/

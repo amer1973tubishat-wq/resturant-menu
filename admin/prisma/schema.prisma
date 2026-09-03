@@ -1,0 +1,423 @@
+// Baytna Burger — admin schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTH & ACCESS CONTROL
+// ============================================================
+
+enum Role {
+  SUPER_ADMIN // full access, including user management
+  ADMIN // all content
+  EDITOR // menu only
+  VIEWER // read only
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  username     String  @unique
+  name         String
+  passwordHash String
+  role         Role    @default(VIEWER)
+  isActive     Boolean @default(true)
+
+  // forces the "set a new password" screen before any other page is reachable
+  mustChangePassword Boolean   @default(true)
+  passwordChangedAt  DateTime?
+
+  // 2FA — secret is stored encrypted at rest (AES-256-GCM), never plaintext
+  twoFactorEnabled    Boolean   @default(false)
+  twoFactorSecret     String?
+  twoFactorVerifiedAt DateTime?
+
+  // lockout state
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  lastLoginAt DateTime?
+  lastLoginIp String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  createdById  String?
+  createdBy    User?    @relation("UserCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers User[]   @relation("UserCreator")
+
+  sessions     Session[]
+  backupCodes  BackupCode[]
+  resetTokens  PasswordResetToken[]
+  knownDevices KnownDevice[]
+  auditLogs    AuditLog[]
+  uploads      Media[]
+
+  @@index([email])
+  @@index([isActive])
+}
+
+/// One row per refresh token. Revoking a row logs that device out;
+/// revoking all rows for a user is "sign out of every device".
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique // SHA-256 of the refresh token; the raw value is never stored
+  userAgent  String?
+  ip         String?
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model BackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String // Argon2id hash — single use
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime // 15 minutes
+  usedAt    DateTime? // single use
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+/// Lets us email the user the first time a device signs in.
+model KnownDevice {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fingerprintHash String
+  label           String?
+  lastSeenAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, fingerprintHash])
+}
+
+/// Feeds both rate limiting and the lockout backoff.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+}
+
+// ============================================================
+// AUDIT
+// ============================================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorName String // denormalised so the trail survives user deletion
+  action    String // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | ...
+  entity    String // MenuItem | Category | User | ...
+  entityId  String?
+  summary   String?
+  before    Json?
+  after     Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+  @@index([userId])
+}
+
+// ============================================================
+// MEDIA
+// ============================================================
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String   @unique // randomised on upload, never the client's name
+  originalName String
+  mimeType     String // verified from magic bytes, not the extension
+  size         Int
+  width        Int?
+  height       Int?
+  url          String
+  thumbUrl     String?
+  mediumUrl    String?
+  alt          String?
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  menuItems      MenuItem[]
+  heroSlides     HeroSlide[]
+  promotions     Promotion[]
+  builderOptions BuilderOption[]
+  storyBlocks    StoryBlock[]
+  logoFor        SiteSettings[]  @relation("SettingsLogo")
+  faviconFor     SiteSettings[]  @relation("SettingsFavicon")
+  ogImageFor     SiteSettings[]  @relation("SettingsOg")
+
+  @@index([createdAt])
+}
+
+// ============================================================
+// MENU
+// ============================================================
+
+enum Badge {
+  BEST_SELLER
+  NEW
+  SPICY
+  VEGETARIAN
+  CHEF_PICK
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  nameEn    String
+  nameAr    String
+  order     Int        @default(0)
+  isVisible Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     MenuItem[]
+
+  @@index([order])
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  nameEn      String
+  nameAr      String
+  descEn      String   @default("")
+  descAr      String   @default("")
+  price       Decimal  @db.Decimal(8, 2) // JD
+  imageId     String?
+  image       Media?   @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  badges      Badge[]  @default([])
+  spiceLevel  Int      @default(0) // 0–5
+  isAvailable Boolean  @default(true)
+  isPublished Boolean  @default(true)
+  order       Int      @default(0)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId, order])
+  @@index([isPublished])
+}
+
+// ============================================================
+// SITE CONTENT
+// ============================================================
+
+model HeroSlide {
+  id             String   @id @default(cuid())
+  mediaId        String?
+  media          Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  videoUrl       String?
+  titleEn        String   @default("")
+  titleAr        String   @default("")
+  subtitleEn     String   @default("")
+  subtitleAr     String   @default("")
+  ctaTextEn      String   @default("")
+  ctaTextAr      String   @default("")
+  ctaHref        String   @default("#menu")
+  overlayOpacity Float    @default(0.5) // 0–1, slider in the admin
+  order          Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([order])
+}
+
+model StoryBlock {
+  id        String   @id @default(cuid())
+  key       String   @unique @default("about")
+  titleEn   String   @default("")
+  titleAr   String   @default("")
+  bodyEn    String   @default("") // sanitised rich text
+  bodyAr    String   @default("")
+  mediaId   String?
+  media     Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  updatedAt DateTime @updatedAt
+}
+
+/// One row per weekday (0 = Sunday). closeMinutes may exceed 1440 to
+/// express a closing time after midnight (01:00 => 1500).
+model OpeningHours {
+  id           String  @id @default(cuid())
+  dayOfWeek    Int     @unique // 0–6
+  openMinutes  Int     @default(720)
+  closeMinutes Int     @default(1500)
+  isClosed     Boolean @default(false)
+}
+
+model SocialLink {
+  id       String  @id @default(cuid())
+  platform String // instagram | facebook | tiktok | x | youtube
+  url      String
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  @@index([order])
+}
+
+model Promotion {
+  id        String   @id @default(cuid())
+  titleEn   String
+  titleAr   String
+  descEn    String   @default("")
+  descAr    String   @default("")
+  mediaId   String?
+  media     Media?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  startsAt  DateTime
+  endsAt    DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([startsAt, endsAt])
+}
+
+// ============================================================
+// BUILD YOUR OWN
+// ============================================================
+
+model BuilderStep {
+  id       String          @id @default(cuid())
+  key      String          @unique // bun | patty | toppings | sauce
+  nameEn   String
+  nameAr   String
+  order    Int             @default(0)
+  isMulti  Boolean         @default(false)
+  isActive Boolean         @default(true)
+  options  BuilderOption[]
+
+  @@index([order])
+}
+
+model BuilderOption {
+  id       String      @id @default(cuid())
+  stepId   String
+  step     BuilderStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  nameEn   String
+  nameAr   String
+  descEn   String      @default("")
+  descAr   String      @default("")
+  price    Decimal     @default(0) @db.Decimal(8, 2)
+  mediaId  String?
+  media    Media?      @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  order    Int         @default(0)
+  isActive Boolean     @default(true)
+
+  @@index([stepId, order])
+}
+
+// ============================================================
+// INBOX & ANALYTICS
+// ============================================================
+
+enum MessageType {
+  CONTACT
+  WHATSAPP_ORDER
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  type      MessageType   @default(CONTACT)
+  name      String
+  email     String?
+  phone     String?
+  body      String
+  status    MessageStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  @@index([status, createdAt])
+}
+
+/// IP is stored hashed — enough to count uniques, not enough to identify.
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  itemId    String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([itemId])
+}
+
+// ============================================================
+// SETTINGS (single row, id = "singleton")
+// ============================================================
+
+model SiteSettings {
+  id        String  @id @default("singleton")
+  logoId    String?
+  logo      Media?  @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  faviconId String?
+  favicon   Media?  @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
+  ogImageId String?
+  ogImage   Media?  @relation("SettingsOg", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  colorPrimary    String @default("#FF6A1A")
+  colorAccent     String @default("#F2B33D")
+  colorCta        String @default("#CE1126")
+  colorBackground String @default("#0A0A0B")
+  fontFamily      String @default("Anton")
+
+  seoTitleEn  String @default("Baytna Burger")
+  seoTitleAr  String @default("بيتنا برجر")
+  seoDescEn   String @default("")
+  seoDescAr   String @default("")
+  seoKeywords String @default("")
+
+  addressEn String @default("")
+  addressAr String @default("")
+  lat       Float?
+  lng       Float?
+  phone     String @default("")
+  whatsapp  String @default("")
+  email     String @default("")
+
+  defaultLocale        String  @default("en")
+  showLanguageSwitcher Boolean @default(true)
+  maintenanceMode      Boolean @default(false)
+  maintenanceMsgEn     String  @default("We'll be back shortly.")
+  maintenanceMsgAr     String  @default("سنعود قريباً.")
+
+  updatedAt DateTime @updatedAt
+}

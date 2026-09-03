@@ -1,0 +1,1686 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0B">
+<title>Baytna Burger — Grilled in Amman, Loved Everywhere</title>
+<meta name="description" content="Baytna Burger — smashed local beef, za'atar, halloumi and shatta. A modern burger joint on Rainbow Street, Jabal Amman.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cairo:wght@400;700;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BAYTNA BURGER — design tokens
+   ============================================================ */
+:root{
+  /* base — charred black → charcoal */
+  --char-900:#0A0A0B;
+  --char-800:#101012;
+  --char-700:#16161A;
+  --char-600:#1E1E24;
+  --char-500:#2A2A31;
+  --line:#33333C;
+
+  /* flame + gold accents */
+  --flame:#FF6A1A;
+  --flame-deep:#E8500A;
+  --gold:#F2B33D;
+  --gold-deep:#C98A16;
+
+  /* Jordanian red — CTA only, used sparingly */
+  --jo-red:#CE1126;
+  --jo-red-hi:#E5203A;
+
+  /* text */
+  --cream:#F4EFE6;
+  --cream-dim:#C9C2B6;
+  --muted:#8E887E;
+
+  /* type */
+  --f-display:'Anton','Oswald','Arial Narrow','Liberation Sans Narrow','Helvetica Neue Condensed',Impact,sans-serif;
+  --f-display-ar:'Cairo', 'Tahoma', sans-serif;
+  --f-body:'IBM Plex Sans Arabic', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* motion */
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+  --maxw:1180px;
+  --nav-h:76px;
+}
+
+/* Arabic mode swaps the display face (Anton has no Arabic glyphs) */
+html[lang="ar"]{ --f-display:var(--f-display-ar); }
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+@media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+
+body{
+  margin:0;
+  background:var(--char-900);
+  color:var(--cream);
+  font-family:var(--f-body);
+  font-size:16px;
+  line-height:1.65;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body.is-loading{ overflow:hidden; }
+
+img,svg{ max-width:100%; display:block; }
+button{ font:inherit; color:inherit; cursor:pointer; }
+a{ color:inherit; }
+
+/* ---- grain / kraft texture overlay ---- */
+body::before{
+  content:'';
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  opacity:.055; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:22px; }
+
+/* ---- shared section furniture ---- */
+.sec{ position:relative; padding:clamp(72px,10vw,128px) 0; }
+.sec-head{ margin-bottom:clamp(32px,5vw,56px); }
+.eyebrow{
+  font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--gold); font-weight:700; margin:0 0 12px;
+  display:flex; align-items:center; gap:10px;
+}
+html[lang="ar"] .eyebrow{ letter-spacing:0; }
+.eyebrow::before{ content:''; width:26px; height:2px; background:var(--flame); flex:none; }
+
+h2.title{
+  font-family:var(--f-display);
+  font-size:clamp(38px,7vw,74px);
+  line-height:.94;
+  letter-spacing:-.01em;
+  text-transform:uppercase;
+  margin:0 0 14px;
+}
+html[lang="ar"] h2.title{ text-transform:none; line-height:1.15; }
+.lede{ color:var(--cream-dim); max-width:58ch; margin:0; font-size:clamp(15px,1.6vw,17px); }
+
+.flame-text{
+  background:linear-gradient(180deg,var(--gold) 0%,var(--flame) 55%,var(--flame-deep) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* ---- buttons ---- */
+.btn{
+  --btn-bg:var(--flame);
+  position:relative; display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  padding:15px 30px; border:0; border-radius:100px;
+  background:var(--btn-bg); color:#120802;
+  font-weight:700; font-size:15px; letter-spacing:.01em;
+  text-decoration:none; overflow:hidden; isolation:isolate;
+  transition:transform .28s var(--ease-spring), box-shadow .28s var(--ease-out), filter .2s;
+  box-shadow:0 6px 22px -8px rgba(255,106,26,.65);
+}
+.btn::after{ /* sizzle sweep */
+  content:''; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.42) 50%,transparent 80%);
+  transform:translateX(-120%);
+  transition:transform .62s var(--ease-out);
+}
+.btn:hover{ transform:translateY(-3px) scale(1.02); box-shadow:0 12px 30px -8px rgba(255,106,26,.8); }
+.btn:hover::after{ transform:translateX(120%); }
+.btn:active{ transform:translateY(-1px) scale(.99); }
+.btn--red{ --btn-bg:var(--jo-red); color:#fff; box-shadow:0 6px 22px -8px rgba(206,17,38,.7); }
+.btn--red:hover{ box-shadow:0 12px 30px -8px rgba(206,17,38,.85); }
+.btn--ghost{
+  --btn-bg:transparent; color:var(--cream);
+  border:1.5px solid var(--line); box-shadow:none;
+}
+.btn--ghost:hover{ border-color:var(--flame); color:var(--flame); box-shadow:none; }
+
+/* keyboard focus */
+:focus-visible{ outline:2.5px solid var(--gold); outline-offset:3px; border-radius:4px; }
+
+/* ============================================================
+   LOADER — burger assembles itself
+   ============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:9999;
+  background:var(--char-900);
+  display:grid; place-items:center;
+  transition:opacity .6s var(--ease-out), visibility .6s;
+}
+#loader.done{ opacity:0; visibility:hidden; }
+.loader-inner{ text-align:center; }
+.loader-burger{ width:132px; height:120px; margin:0 auto 22px; position:relative; }
+.loader-burger svg{ overflow:visible; }
+.lb-layer{ opacity:0; transform-box:fill-box; transform-origin:center; }
+.loader-word{
+  font-family:var(--f-display); text-transform:uppercase;
+  font-size:15px; letter-spacing:.34em; color:var(--muted);
+}
+html[lang="ar"] .loader-word{ letter-spacing:0; }
+.loader-bar{ width:180px; height:2px; background:var(--char-500); margin:16px auto 0; overflow:hidden; border-radius:2px; }
+.loader-bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold),var(--flame)); }
+
+@keyframes lbDrop{
+  0%{ opacity:0; transform:translateY(-46px) scale(.86); }
+  70%{ opacity:1; }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+.playing .lb-layer{ animation:lbDrop .5s var(--ease-spring) forwards; }
+.playing .lb-1{ animation-delay:.05s } .playing .lb-2{ animation-delay:.20s }
+.playing .lb-3{ animation-delay:.35s } .playing .lb-4{ animation-delay:.50s }
+.playing .lb-5{ animation-delay:.65s } .playing .lb-6{ animation-delay:.80s }
+.playing .loader-bar i{ animation:lbFill 1.5s var(--ease-out) forwards; }
+@keyframes lbFill{ to{ width:100% } }
+
+/* ============================================================
+   NAV — sticky, shrinks + tints on scroll
+   ============================================================ */
+#nav{
+  position:fixed; inset-inline:0; top:0; z-index:900;
+  height:var(--nav-h);
+  display:flex; align-items:center;
+  transition:height .32s var(--ease-out), background .32s, backdrop-filter .32s, border-color .32s;
+  border-bottom:1px solid transparent;
+}
+#nav.shrunk{
+  height:60px;
+  background:rgba(10,10,11,.86);
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+  border-bottom-color:var(--line);
+}
+.nav-in{ display:flex; align-items:center; gap:20px; width:100%; }
+.brand{ display:flex; align-items:center; gap:11px; text-decoration:none; margin-inline-end:auto; }
+.brand-mark{ width:34px; height:34px; flex:none; transition:transform .4s var(--ease-spring); }
+.brand:hover .brand-mark{ transform:rotate(-12deg) scale(1.08); }
+.brand-name{
+  font-family:var(--f-display); text-transform:uppercase;
+  font-size:20px; letter-spacing:.03em; line-height:1; white-space:nowrap;
+}
+html[lang="ar"] .brand-name{ text-transform:none; letter-spacing:0; font-size:22px; }
+.brand-name b{ color:var(--flame); font-weight:inherit; }
+
+.nav-links{ display:flex; align-items:center; gap:6px; }
+.nav-links a{
+  position:relative; padding:9px 13px; border-radius:8px;
+  font-size:14px; font-weight:500; text-decoration:none; color:var(--cream-dim);
+  transition:color .22s;
+}
+.nav-links a::after{
+  content:''; position:absolute; inset-inline:13px; bottom:4px; height:2px;
+  background:var(--flame); transform:scaleX(0); transform-origin:inline-start;
+  transition:transform .3s var(--ease-out);
+}
+.nav-links a:hover,.nav-links a.active{ color:var(--cream); }
+.nav-links a:hover::after,.nav-links a.active::after{ transform:scaleX(1); }
+
+.nav-tools{ display:flex; align-items:center; gap:10px; }
+.lang-toggle{
+  display:flex; align-items:center; padding:3px; gap:2px;
+  background:var(--char-700); border:1px solid var(--line); border-radius:100px;
+}
+.lang-toggle button{
+  border:0; background:transparent; color:var(--muted);
+  padding:5px 11px; border-radius:100px; font-size:12px; font-weight:700;
+  transition:background .25s, color .25s;
+}
+.lang-toggle button[aria-pressed="true"]{ background:var(--flame); color:#120802; }
+.nav-cta{ padding:10px 20px; font-size:14px; }
+
+.burger-btn{ display:none; width:42px; height:42px; border:1px solid var(--line); background:var(--char-700); border-radius:10px; padding:0; place-items:center; }
+.burger-btn span{ display:block; width:17px; height:2px; background:var(--cream); position:relative; transition:background .2s; }
+.burger-btn span::before,.burger-btn span::after{ content:''; position:absolute; left:0; width:17px; height:2px; background:var(--cream); transition:transform .3s var(--ease-out); }
+.burger-btn span::before{ top:-5.5px } .burger-btn span::after{ top:5.5px }
+.burger-btn[aria-expanded="true"] span{ background:transparent; }
+.burger-btn[aria-expanded="true"] span::before{ transform:translateY(5.5px) rotate(45deg); }
+.burger-btn[aria-expanded="true"] span::after{ transform:translateY(-5.5px) rotate(-45deg); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero{
+  position:relative; min-height:100svh; display:flex; align-items:center;
+  padding-top:calc(var(--nav-h) + 20px); padding-bottom:60px;
+  overflow:hidden;
+}
+.hero-bg{ position:absolute; inset:0; z-index:0; }
+.hero-bg::before{ /* charred grill glow */
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(58% 46% at 72% 42%, rgba(255,106,26,.30) 0%, transparent 62%),
+    radial-gradient(44% 40% at 18% 78%, rgba(242,179,61,.14) 0%, transparent 65%),
+    linear-gradient(180deg,var(--char-900) 0%,var(--char-800) 55%,var(--char-900) 100%);
+}
+.hero-bg::after{ /* grill bars */
+  content:''; position:absolute; inset:0; opacity:.5;
+  background:repeating-linear-gradient(96deg, transparent 0 52px, rgba(0,0,0,.5) 52px 60px);
+  mask-image:radial-gradient(70% 60% at 60% 50%, #000 20%, transparent 78%);
+  -webkit-mask-image:radial-gradient(70% 60% at 60% 50%, #000 20%, transparent 78%);
+}
+.hero-grid{
+  position:relative; z-index:2;
+  display:grid; grid-template-columns:1.06fr .94fr; gap:40px; align-items:center;
+}
+.hero-badge{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:7px 15px 7px 8px; border-radius:100px;
+  background:rgba(242,179,61,.10); border:1px solid rgba(242,179,61,.3);
+  font-size:12.5px; font-weight:600; color:var(--gold); margin-bottom:22px;
+}
+.hero-badge .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px rgba(242,179,61,.16); }
+
+h1.hero-title{
+  font-family:var(--f-display);
+  font-size:clamp(44px,8.4vw,104px);
+  line-height:.86; letter-spacing:-.015em; text-transform:uppercase;
+  margin:0 0 20px;
+}
+html[lang="ar"] h1.hero-title{ text-transform:none; line-height:1.08; letter-spacing:0; }
+/* each line flips up into view like a grill-flip */
+.flip-line{ display:block; overflow:hidden; }
+.flip-line > span{ white-space:nowrap; }
+h1.hero-title{ overflow-wrap:normal; hyphens:none; }
+.flip-line > span{
+  display:block; transform:translateY(105%) rotateX(-72deg); opacity:0;
+  transform-origin:top center;
+  transition:transform .95s var(--ease-out), opacity .7s var(--ease-out);
+}
+.ready .flip-line > span{ transform:none; opacity:1; }
+.ready .flip-line:nth-child(2) > span{ transition-delay:.13s }
+.ready .flip-line:nth-child(3) > span{ transition-delay:.26s }
+
+.hero-tag{
+  font-size:clamp(16px,2vw,19px); color:var(--cream-dim);
+  max-width:44ch; margin:0 0 30px;
+  opacity:0; transform:translateY(18px);
+  transition:opacity .8s .5s var(--ease-out), transform .8s .5s var(--ease-out);
+}
+.ready .hero-tag{ opacity:1; transform:none; }
+.hero-actions{
+  display:flex; flex-wrap:wrap; gap:13px;
+  opacity:0; transform:translateY(18px);
+  transition:opacity .8s .66s var(--ease-out), transform .8s .66s var(--ease-out);
+}
+.ready .hero-actions{ opacity:1; transform:none; }
+
+.hero-stats{ display:flex; gap:30px; margin-top:44px; flex-wrap:wrap;
+  opacity:0; transition:opacity .9s .9s var(--ease-out); }
+.ready .hero-stats{ opacity:1; }
+.hstat b{ display:block; font-family:var(--f-display); font-size:30px; line-height:1; color:var(--gold); }
+html[lang="ar"] .hstat b{ font-size:27px; }
+.hstat span{ font-size:12.5px; color:var(--muted); }
+
+/* hero burger art */
+.hero-art{ position:relative; display:grid; place-items:center; }
+.hero-burger{
+  width:min(100%,470px); position:relative; z-index:2;
+  filter:drop-shadow(0 40px 55px rgba(0,0,0,.62));
+  opacity:0; transform:translateY(38px) scale(.94);
+  transition:opacity 1s .3s var(--ease-out), transform 1.1s .3s var(--ease-spring);
+  animation:hover-float 6.5s ease-in-out 1.6s infinite;
+}
+.ready .hero-burger{ opacity:1; transform:none; }
+@keyframes hover-float{ 0%,100%{ translate:0 0 } 50%{ translate:0 -13px } }
+
+.flame-wrap{ position:absolute; inset-inline:0; bottom:6%; height:52%; z-index:1; pointer-events:none; filter:blur(1px); }
+.flame{
+  position:absolute; bottom:0; width:56px; height:110px;
+  background:radial-gradient(ellipse at 50% 100%, var(--gold) 0%, var(--flame) 34%, var(--flame-deep) 58%, transparent 72%);
+  border-radius:50% 50% 46% 46%;
+  mix-blend-mode:screen; opacity:.72;
+  animation:flicker 1.5s ease-in-out infinite;
+}
+.flame:nth-child(1){ left:16%; animation-delay:0s;   height:96px }
+.flame:nth-child(2){ left:37%; animation-delay:.35s; height:132px; width:66px }
+.flame:nth-child(3){ left:58%; animation-delay:.7s;  height:104px }
+.flame:nth-child(4){ left:76%; animation-delay:.2s;  height:82px;  width:46px }
+@keyframes flicker{
+  0%,100%{ transform:scaleY(1) scaleX(1); opacity:.62 }
+  35%    { transform:scaleY(1.22) scaleX(.9); opacity:.85 }
+  68%    { transform:scaleY(.9) scaleX(1.08); opacity:.55 }
+}
+.steam{ position:absolute; top:-4%; inset-inline:0; height:34%; z-index:3; pointer-events:none; }
+.steam i{
+  position:absolute; bottom:0; width:9px; height:9px; border-radius:50%;
+  background:rgba(255,255,255,.30); filter:blur(4px);
+  animation:rise 4.2s ease-in infinite;
+}
+.steam i:nth-child(1){ left:34%; animation-delay:0s }
+.steam i:nth-child(2){ left:50%; animation-delay:1.4s }
+.steam i:nth-child(3){ left:64%; animation-delay:2.6s }
+@keyframes rise{
+  0%{ transform:translateY(0) scale(.6); opacity:0 }
+  22%{ opacity:.6 }
+  100%{ transform:translateY(-118px) scale(2.5); opacity:0 }
+}
+
+/* sesame confetti drifting in background */
+.sesame{ position:absolute; z-index:1; width:9px; height:13px; border-radius:50%;
+  background:linear-gradient(160deg,#F6DFA8,#D9A94E); opacity:.16; pointer-events:none;
+  animation:drift 15s linear infinite; }
+@keyframes drift{
+  0%{ transform:translateY(0) rotate(0deg); opacity:0 }
+  12%{ opacity:.2 }
+  88%{ opacity:.14 }
+  100%{ transform:translateY(-150px) rotate(320deg); opacity:0 }
+}
+
+.scroll-cue{
+  position:absolute; bottom:26px; left:50%; translate:-50% 0; z-index:3;
+  display:grid; justify-items:center; gap:7px;
+  font-size:10.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--muted);
+  opacity:0; transition:opacity 1s 1.3s;
+}
+.ready .scroll-cue{ opacity:1 }
+html[lang="ar"] .scroll-cue{ letter-spacing:0 }
+.scroll-cue i{ display:block; width:1.5px; height:34px; background:linear-gradient(var(--flame),transparent); animation:cue 2s ease-in-out infinite; }
+@keyframes cue{ 0%,100%{ transform:scaleY(.35); transform-origin:top } 50%{ transform:scaleY(1); transform-origin:top } }
+
+/* ============================================================
+   SCROLL REVEAL (IntersectionObserver driven)
+   ============================================================ */
+.rv{ opacity:0; transform:translateY(34px); transition:opacity .82s var(--ease-out), transform .82s var(--ease-out); }
+.rv.in{ opacity:1; transform:none; }
+.rv-d1{ transition-delay:.08s } .rv-d2{ transition-delay:.16s } .rv-d3{ transition-delay:.24s }
+.rv-d4{ transition-delay:.32s } .rv-d5{ transition-delay:.40s } .rv-d6{ transition-delay:.48s }
+
+/* ============================================================
+   SIGNATURE MENU
+   ============================================================ */
+#menu{ background:var(--char-800); }
+#menu::before{
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(90deg,transparent 0 118px, rgba(255,255,255,.017) 118px 119px);
+}
+.menu-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:22px; }
+
+.card{
+  position:relative; border-radius:20px; overflow:hidden;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line);
+  padding:22px;
+  display:flex; flex-direction:column; gap:13px;
+  transition:transform .42s var(--ease-spring), border-color .35s, box-shadow .42s var(--ease-out);
+  will-change:transform;
+}
+.card::before{ /* warm wash on hover */
+  content:''; position:absolute; inset:0; opacity:0; pointer-events:none;
+  background:radial-gradient(75% 58% at 50% 0%, rgba(255,106,26,.16), transparent 70%);
+  transition:opacity .42s var(--ease-out);
+}
+.card:hover,.card:focus-within{
+  transform:translateY(-10px);
+  border-color:rgba(255,106,26,.42);
+  box-shadow:0 26px 46px -22px rgba(0,0,0,.9), 0 0 0 1px rgba(255,106,26,.12);
+}
+.card:hover::before,.card:focus-within::before{ opacity:1 }
+
+.card-art{
+  position:relative; height:158px; border-radius:14px; overflow:hidden;
+  background:radial-gradient(70% 80% at 50% 40%, var(--art, var(--char-500)), var(--char-700));
+  display:grid; place-items:center; flex:none;
+}
+.card-art svg{ width:130px; transition:transform .5s var(--ease-spring); }
+.card:hover .card-art svg{ transform:scale(1.09) rotate(-4deg); }
+
+/* badge slides in on hover */
+.card-badge{
+  position:absolute; top:11px; inset-inline-start:11px; z-index:3;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:100px;
+  font-size:11px; font-weight:700; letter-spacing:.02em;
+  background:var(--jo-red); color:#fff; white-space:nowrap;
+  opacity:0; transform:translateY(-10px) scale(.9);
+  transition:opacity .38s var(--ease-out), transform .38s var(--ease-spring);
+  box-shadow:0 6px 16px -6px rgba(0,0,0,.7);
+}
+.card-badge.gold{ background:var(--gold); color:#1A1203; }
+.card:hover .card-badge,.card:focus-within .card-badge{ opacity:1; transform:none; }
+
+.card-top{ display:flex; align-items:baseline; gap:12px; }
+.card-name{ font-family:var(--f-display); font-size:23px; line-height:1.08; text-transform:uppercase; margin:0; flex:1; }
+html[lang="ar"] .card-name{ text-transform:none; font-size:21px; line-height:1.4; }
+.price{
+  font-family:var(--f-display); font-size:21px; color:var(--gold); white-space:nowrap;
+  display:inline-flex; align-items:baseline; gap:3px;
+}
+.price small{ font-size:11px; font-weight:600; color:var(--muted); font-family:var(--f-body); }
+.card-desc{ font-size:14px; color:var(--cream-dim); margin:0; flex:1; line-height:1.6; }
+
+.card-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:6px; border-top:1px solid var(--line); }
+.spice{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--muted); }
+.spice-dots{ display:flex; gap:3px; }
+.spice-dots i{ width:6px; height:6px; border-radius:50%; background:var(--char-500); transition:background .3s var(--ease-out), transform .3s var(--ease-spring); }
+.spice-dots i.on{ background:rgba(255,106,26,.55); }
+.card:hover .spice-dots i.on{ background:var(--flame); transform:scale(1.3); }
+.card:hover .spice-dots i.on:nth-child(2){ transition-delay:.05s }
+.card:hover .spice-dots i.on:nth-child(3){ transition-delay:.1s }
+.card:hover .spice-dots i.on:nth-child(4){ transition-delay:.15s }
+.card:hover .spice-dots i.on:nth-child(5){ transition-delay:.2s }
+.add-btn{
+  border:1px solid var(--line); background:var(--char-700); color:var(--cream-dim);
+  border-radius:100px; padding:7px 15px; font-size:12.5px; font-weight:600;
+  transition:background .26s, color .26s, border-color .26s, transform .26s var(--ease-spring);
+}
+.add-btn:hover{ background:var(--flame); color:#120802; border-color:var(--flame); transform:scale(1.05); }
+
+/* ============================================================
+   SIDES & DRINKS
+   ============================================================ */
+.side-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(186px,1fr)); gap:16px; }
+.side{
+  position:relative; border-radius:16px; padding:20px 18px;
+  background:var(--char-700); border:1px solid var(--line);
+  display:flex; flex-direction:column; gap:9px; text-align:center; align-items:center;
+  transition:transform .36s var(--ease-spring), background .3s, border-color .3s;
+}
+.side:hover{ transform:translateY(-7px); background:var(--char-600); border-color:rgba(242,179,61,.4); }
+.side-ico{ width:52px; height:52px; display:grid; place-items:center; border-radius:14px;
+  background:linear-gradient(150deg,rgba(242,179,61,.16),rgba(255,106,26,.08));
+  transition:transform .4s var(--ease-spring); }
+.side:hover .side-ico{ transform:rotate(-8deg) scale(1.1); }
+.side-name{ font-weight:600; font-size:14.5px; margin:0; }
+.side-price{ font-family:var(--f-display); font-size:17px; color:var(--gold); }
+.side-note{ font-size:11.5px; color:var(--muted); margin:0; }
+
+/* ============================================================
+   BUILD YOUR OWN
+   ============================================================ */
+#build{ background:var(--char-800); }
+.build-layout{ display:grid; grid-template-columns:1fr 372px; gap:34px; align-items:start; }
+
+.steps{ display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; }
+.step-tab{
+  flex:1; min-width:132px; position:relative;
+  padding:13px 15px; border-radius:13px; text-align:start;
+  background:var(--char-700); border:1px solid var(--line); color:var(--cream-dim);
+  transition:background .3s, border-color .3s, color .3s, transform .3s var(--ease-spring);
+}
+.step-tab .n{ font-family:var(--f-display); font-size:12px; color:var(--muted); display:block; }
+.step-tab .l{ font-size:14px; font-weight:600; }
+.step-tab[aria-selected="true"]{ background:linear-gradient(150deg,var(--flame),var(--flame-deep)); border-color:transparent; color:#160A02; transform:translateY(-3px); }
+.step-tab[aria-selected="true"] .n{ color:rgba(22,10,2,.65); }
+.step-tab.done{ border-color:rgba(242,179,61,.45); }
+.step-tab.done .n::after{ content:' ✓'; color:var(--gold); }
+
+.opts{ display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:12px; }
+.opt{
+  position:relative; padding:15px; border-radius:14px; text-align:start;
+  background:var(--char-700); border:1.5px solid var(--line); color:var(--cream);
+  transition:border-color .28s, background .28s, transform .28s var(--ease-spring);
+}
+.opt:hover{ border-color:rgba(255,106,26,.5); transform:translateY(-4px); }
+.opt[aria-pressed="true"]{ border-color:var(--flame); background:rgba(255,106,26,.10); }
+.opt[aria-pressed="true"]::after{
+  content:'✓'; position:absolute; top:9px; inset-inline-end:11px;
+  width:20px; height:20px; border-radius:50%; background:var(--flame); color:#160A02;
+  font-size:12px; font-weight:800; display:grid; place-items:center;
+  animation:pop .34s var(--ease-spring);
+}
+@keyframes pop{ from{ transform:scale(0) } to{ transform:scale(1) } }
+.opt{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.opt .on{ font-weight:600; font-size:14.5px; line-height:1.3; }
+.opt .od{ display:block; font-size:11.5px; color:var(--muted); line-height:1.4; }
+.opt .op{ display:block; margin-top:6px; font-size:12.5px; color:var(--gold); font-weight:700; }
+
+/* receipt / live price panel */
+.receipt{
+  position:sticky; top:calc(var(--nav-h) + 16px);
+  border-radius:20px; padding:24px;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 27px,rgba(0,0,0,.16) 27px 28px),
+    linear-gradient(165deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line);
+}
+.receipt h3{ font-family:var(--f-display); font-size:21px; text-transform:uppercase; margin:0 0 4px; }
+html[lang="ar"] .receipt h3{ text-transform:none }
+.receipt-sub{ font-size:12px; color:var(--muted); margin:0 0 18px; }
+.receipt-lines{ display:flex; flex-direction:column; gap:9px; min-height:112px; margin-bottom:16px; }
+.rline{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; align-items:baseline;
+  animation:slideIn .34s var(--ease-out); }
+@keyframes slideIn{ from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
+.rline .rl{ color:var(--cream-dim); }
+.rline .rl b{ color:var(--muted); font-weight:500; font-size:11px; display:block; }
+.rline .rp{ color:var(--gold); font-weight:600; white-space:nowrap; }
+.rempty{ font-size:13px; color:var(--muted); font-style:italic; }
+.receipt-total{
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding-top:15px; border-top:1.5px dashed var(--line); margin-bottom:16px;
+}
+.receipt-total span{ font-size:13px; color:var(--cream-dim); }
+#totalPrice{ font-family:var(--f-display); font-size:34px; color:var(--flame); line-height:1; font-variant-numeric:tabular-nums; }
+.receipt .btn{ width:100%; }
+.receipt .btn[disabled]{ opacity:.42; pointer-events:none; filter:grayscale(.5); }
+
+/* ============================================================
+   STORY (parallax)
+   ============================================================ */
+#story{ position:relative; overflow:hidden; }
+.story-bg{
+  position:absolute; inset:-14% 0; z-index:0;
+  background:
+    radial-gradient(48% 44% at 78% 26%, rgba(255,106,26,.15), transparent 64%),
+    radial-gradient(42% 40% at 14% 76%, rgba(242,179,61,.10), transparent 62%);
+  will-change:transform;
+}
+.story-grid{ position:relative; z-index:2; display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+.story-copy p{ color:var(--cream-dim); font-size:16px; }
+.story-copy p + p{ margin-top:14px; }
+.pull{
+  font-family:var(--f-display); font-size:clamp(21px,2.6vw,29px); line-height:1.24;
+  color:var(--cream); margin:26px 0; padding-inline-start:20px;
+  border-inline-start:3px solid var(--flame); text-transform:uppercase;
+}
+html[lang="ar"] .pull{ text-transform:none; line-height:1.5 }
+.ingredients{ display:flex; flex-wrap:wrap; gap:9px; margin-top:24px; }
+.ing{ padding:8px 15px; border-radius:100px; background:var(--char-700); border:1px solid var(--line);
+  font-size:12.5px; color:var(--cream-dim); transition:border-color .28s, color .28s, transform .28s var(--ease-spring); }
+.ing:hover{ border-color:var(--gold); color:var(--gold); transform:translateY(-3px); }
+
+.story-art{ position:relative; }
+.plx{ will-change:transform; }
+.story-card{
+  border-radius:20px; padding:26px; background:linear-gradient(160deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line);
+}
+.story-stat{ display:flex; align-items:center; gap:16px; padding:15px 0; }
+.story-stat + .story-stat{ border-top:1px solid var(--line); }
+.story-stat .ico{ width:46px; height:46px; flex:none; border-radius:13px; display:grid; place-items:center;
+  background:linear-gradient(150deg,rgba(255,106,26,.16),rgba(242,179,61,.08)); }
+.story-stat b{ font-family:var(--f-display); font-size:25px; color:var(--gold); line-height:1; display:block; }
+.story-stat span{ font-size:12.5px; color:var(--muted); }
+
+/* ============================================================
+   LOCATION & HOURS
+   ============================================================ */
+#visit{ background:var(--char-800); }
+.visit-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:34px; align-items:stretch; }
+.map-card{ position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--line);
+  background:var(--char-700); min-height:390px; }
+.map-svg{ position:absolute; inset:0; width:100%; height:100%; }
+
+.pin{ opacity:0; transform-box:fill-box; transform-origin:50% 100%; }
+.in .pin{ animation:pinDrop .78s var(--ease-spring) .25s forwards; }
+@keyframes pinDrop{
+  0%{ opacity:0; transform:translateY(-70px) scale(.4) }
+  60%{ opacity:1; transform:translateY(0) scale(1.14) }
+  78%{ transform:translateY(-7px) scale(.97) }
+  100%{ opacity:1; transform:translateY(0) scale(1) }
+}
+.pin-ring{ transform-box:fill-box; transform-origin:center; opacity:0; }
+.in .pin-ring{ animation:ring 2.4s ease-out 1s infinite; }
+@keyframes ring{
+  0%{ opacity:.7; transform:scale(.3) }
+  100%{ opacity:0; transform:scale(2.6) }
+}
+.map-label{
+  position:absolute; inset-block-end:16px; inset-inline-start:16px; z-index:3;
+  background:rgba(10,10,11,.86); backdrop-filter:blur(10px);
+  border:1px solid var(--line); border-radius:13px; padding:12px 16px;
+}
+.map-label b{ display:block; font-size:14px; }
+.map-label span{ font-size:12px; color:var(--muted); }
+
+.hours-card{ border-radius:20px; padding:26px; background:linear-gradient(165deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line); display:flex; flex-direction:column; }
+.status{
+  display:inline-flex; align-items:center; gap:10px; align-self:flex-start;
+  padding:9px 16px; border-radius:100px; font-size:13px; font-weight:700; margin-bottom:20px;
+  border:1px solid; transition:background .4s, color .4s, border-color .4s;
+}
+.status.open{ background:rgba(0,180,90,.13); color:#3DDC8A; border-color:rgba(61,220,138,.4); }
+.status.closed{ background:rgba(206,17,38,.13); color:#FF6B7E; border-color:rgba(255,107,126,.36); }
+.status .led{ width:8px; height:8px; border-radius:50%; background:currentColor; position:relative; }
+.status.open .led::after{
+  content:''; position:absolute; inset:0; border-radius:50%; background:currentColor;
+  animation:led 2s ease-out infinite;
+}
+@keyframes led{ 0%{ transform:scale(1); opacity:.75 } 100%{ transform:scale(3.4); opacity:0 } }
+
+.hours-list{ list-style:none; margin:0 0 20px; padding:0; }
+.hours-list li{ display:flex; justify-content:space-between; gap:14px; padding:10px 0; font-size:14px; border-bottom:1px solid var(--line); }
+.hours-list li:last-child{ border-bottom:0 }
+.hours-list .d{ color:var(--cream-dim) }
+.hours-list .h{ color:var(--muted); font-variant-numeric:tabular-nums }
+.hours-list li.today{ color:var(--cream) }
+.hours-list li.today .d{ color:var(--gold); font-weight:700 }
+.hours-list li.today .h{ color:var(--cream) }
+.visit-meta{ margin-top:auto; display:grid; gap:12px; }
+.vmeta{ display:flex; gap:12px; align-items:flex-start; font-size:13.5px; color:var(--cream-dim); }
+.vmeta svg{ flex:none; margin-top:2px }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{ background:var(--char-900); border-top:1px solid var(--line); padding:56px 0 30px; position:relative; }
+.foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:34px; margin-bottom:40px; }
+.foot-brand p{ color:var(--muted); font-size:13.5px; max-width:32ch; margin:14px 0 20px; }
+.foot h4{ font-family:var(--f-display); font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin:0 0 15px; }
+html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
+.foot ul{ list-style:none; margin:0; padding:0; display:grid; gap:9px; }
+.foot a{ color:var(--cream-dim); text-decoration:none; font-size:13.5px; transition:color .24s, padding-inline-start .24s; }
+.foot a:hover{ color:var(--flame); padding-inline-start:5px; }
+
+.socials{ display:flex; gap:10px; }
+.soc{
+  width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+  background:var(--char-700); border:1px solid var(--line); color:var(--cream-dim);
+  transition:transform .3s var(--ease-spring), background .3s, color .3s, border-color .3s;
+}
+.soc:hover{ transform:translateY(-4px) rotate(-6deg); background:var(--flame); color:#120802; border-color:var(--flame); }
+
+/* WhatsApp — pulsing */
+.wa{
+  display:inline-flex; align-items:center; gap:11px; position:relative;
+  padding:14px 26px; border-radius:100px; text-decoration:none;
+  background:#25D366; color:#04310F; font-weight:700; font-size:14.5px;
+  transition:transform .3s var(--ease-spring);
+}
+.wa::before{
+  content:''; position:absolute; inset:0; border-radius:100px; background:#25D366; z-index:-1;
+  animation:wapulse 2.3s ease-out infinite;
+}
+@keyframes wapulse{ 0%{ transform:scale(1); opacity:.55 } 70%{ transform:scale(1.16); opacity:0 } 100%{ opacity:0 } }
+.wa:hover{ transform:translateY(-3px) scale(1.03); }
+
+.foot-bottom{ display:flex; justify-content:space-between; align-items:center; gap:18px; flex-wrap:wrap;
+  padding-top:24px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); }
+.foot-bottom .sesame-row{ display:flex; gap:6px; }
+.foot-bottom .sesame-row i{ width:7px; height:10px; border-radius:50%; background:var(--char-500); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+/* Grid/flex children default to min-width:auto and refuse to shrink below
+   their content — which lets the scrollable step row widen the whole page.
+   Opting them back to 0 keeps overflow-x:auto scrolling inside its own box. */
+.build-layout > *,.hero-grid > *,.story-grid > *,.visit-grid > *,
+.foot-grid > *,.menu-grid > *,.side-grid > *,.nav-in > *{ min-width:0; }
+.steps{ max-width:100%; }
+@media (max-width:1000px){
+  .hero-grid{ grid-template-columns:1fr; gap:14px; text-align:start; }
+  .hero-art{ order:-1; max-width:400px; margin-inline:auto; }
+  .hero-burger{ width:min(78%,330px) }
+  .build-layout{ grid-template-columns:1fr; }
+  .receipt{ position:static; }
+  .story-grid,.visit-grid{ grid-template-columns:1fr; gap:30px; }
+  .foot-grid{ grid-template-columns:1fr 1fr; gap:28px; }
+}
+@media (max-width:760px){
+  .nav-links{
+    position:fixed; inset:var(--nav-h) 0 auto; z-index:880;
+    flex-direction:column; align-items:stretch; gap:2px; padding:14px 18px 22px;
+    background:rgba(10,10,11,.97); backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--line);
+    transform:translateY(-118%); transition:transform .42s var(--ease-out);
+  }
+  .nav-links.open{ transform:none; }
+  .nav-links a{ padding:13px 8px; font-size:15.5px; border-bottom:1px solid var(--char-700); }
+  .nav-links a::after{ display:none }
+  .burger-btn{ display:grid }
+  .nav-cta{ display:none }
+  #hero{ min-height:auto; padding-block:calc(var(--nav-h) + 44px) 72px; }
+  .scroll-cue{ display:none }
+  .hero-stats{ gap:22px; margin-top:32px }
+  .steps{ overflow-x:auto; flex-wrap:nowrap; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
+  .step-tab{ min-width:124px; flex:none }
+  .foot-grid{ grid-template-columns:1fr; }
+  .foot-bottom{ justify-content:center; text-align:center }
+}
+@media (max-width:420px){
+  .menu-grid{ grid-template-columns:1fr }
+  .side-grid{ grid-template-columns:1fr 1fr }
+}
+
+/* respect reduced-motion: kill loops + long transitions, keep content visible */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important;
+  }
+  .rv{ opacity:1 !important; transform:none !important; }
+  .flip-line > span{ transform:none !important; opacity:1 !important; }
+  .hero-tag,.hero-actions,.hero-stats,.hero-burger,.scroll-cue{ opacity:1 !important; transform:none !important; }
+  .pin{ opacity:1 !important }
+}
+
+/* no-JS: never hide content behind a loader or reveal state */
+.no-js #loader{ display:none }
+.no-js .rv,.no-js .flip-line > span,.no-js .hero-tag,.no-js .hero-actions,
+.no-js .hero-stats,.no-js .hero-burger,.no-js .scroll-cue{ opacity:1; transform:none }
+.no-js .pin{ opacity:1 }
+</style>
+</head>
+<body class="is-loading no-js">
+<script>document.body.classList.remove('no-js');</script>
+
+<!-- ========== reusable SVG art ========== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+ <defs>
+  <linearGradient id="gBunTop" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F0B463"/><stop offset="1" stop-color="#C97F2E"/></linearGradient>
+  <linearGradient id="gBunBot" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#D9993F"/><stop offset="1" stop-color="#A8651F"/></linearGradient>
+  <linearGradient id="gPatty" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#6B3A21"/><stop offset="1" stop-color="#3E1F10"/></linearGradient>
+  <linearGradient id="gCheese" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FFD24A"/><stop offset="1" stop-color="#F0A310"/></linearGradient>
+  <linearGradient id="gLettuce" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#7BC24A"/><stop offset="1" stop-color="#4E9128"/></linearGradient>
+  <linearGradient id="gTomato" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#E8452F"/><stop offset="1" stop-color="#B8261A"/></linearGradient>
+
+  <!-- full stacked burger -->
+  <symbol id="burger" viewBox="0 0 200 168">
+    <ellipse cx="100" cy="158" rx="74" ry="8" fill="#000" opacity=".38"/>
+    <path d="M18 96c0-38 37-66 82-66s82 28 82 66z" fill="url(#gBunTop)"/>
+    <g fill="#FBE9C4" opacity=".92">
+      <ellipse cx="66" cy="62" rx="5.5" ry="3.4" transform="rotate(-22 66 62)"/>
+      <ellipse cx="100" cy="52" rx="5.5" ry="3.4" transform="rotate(6 100 52)"/>
+      <ellipse cx="134" cy="63" rx="5.5" ry="3.4" transform="rotate(24 134 63)"/>
+      <ellipse cx="83" cy="78" rx="5" ry="3.1" transform="rotate(-10 83 78)"/>
+      <ellipse cx="117" cy="78" rx="5" ry="3.1" transform="rotate(14 117 78)"/>
+      <ellipse cx="48" cy="84" rx="4.6" ry="2.9" transform="rotate(-34 48 84)"/>
+      <ellipse cx="152" cy="85" rx="4.6" ry="2.9" transform="rotate(34 152 85)"/>
+    </g>
+    <path d="M14 96h172c0 8-5 12-12 12H26c-7 0-12-4-12-12z" fill="url(#gLettuce)"/>
+    <path d="M20 105c8 7 20 9 30 4 9 6 22 6 31 0 9 7 22 7 31 1 9 6 22 5 30-2 6 5 14 6 21 2v6H20z" fill="#5FA834"/>
+    <circle cx="58" cy="112" r="13" fill="url(#gTomato)"/><circle cx="100" cy="114" r="14" fill="url(#gTomato)"/>
+    <circle cx="142" cy="112" r="13" fill="url(#gTomato)"/>
+    <path d="M26 118h148l-16 15H42z" fill="url(#gCheese)"/>
+    <path d="M40 132l-7 13h18zM96 132l-7 14h18zM152 132l-7 13h18z" fill="url(#gCheese)"/>
+    <rect x="22" y="126" width="156" height="22" rx="11" fill="url(#gPatty)"/>
+    <path d="M182 148c0 9-8 14-20 14H38c-12 0-20-5-20-14z" fill="url(#gBunBot)"/>
+  </symbol>
+
+  <!-- icons -->
+  <symbol id="i-fries" viewBox="0 0 24 24"><path d="M6 9l1.6-5.2a1 1 0 011.9.2L10.4 9M14 9l.8-5.6a1 1 0 011.9.1L17 9M10 9l.6-6a1 1 0 012 0L13 9" stroke="#F2B33D" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4.8 9h14.4l-1.5 10.4a2 2 0 01-2 1.6H8.3a2 2 0 01-2-1.6z" fill="#E8500A"/><path d="M7 12h10M7 15h10" stroke="#FF9E5C" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-cheese" viewBox="0 0 24 24"><path d="M3 10.5L12.5 5A2 2 0 0114 5l7 3.5v9a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.5z" fill="#F2B33D"/><circle cx="8" cy="14" r="1.6" fill="#C98A16"/><circle cx="14" cy="12" r="1.3" fill="#C98A16"/><circle cx="17" cy="16" r="1.5" fill="#C98A16"/></symbol>
+  <symbol id="i-rings" viewBox="0 0 24 24"><circle cx="9" cy="10" r="5.2" fill="none" stroke="#F2B33D" stroke-width="2.6"/><circle cx="15.5" cy="15" r="5.2" fill="none" stroke="#E8500A" stroke-width="2.6"/></symbol>
+  <symbol id="i-ayran" viewBox="0 0 24 24"><path d="M6 5h12l-1.3 14.3a2 2 0 01-2 1.7H9.3a2 2 0 01-2-1.7z" fill="#EFEAE0"/><path d="M6.2 8h11.6l-.3 3.4c-3.6 1.6-7.4 1.6-11 0z" fill="#CFC7B8"/><rect x="5" y="3.4" width="14" height="2.6" rx="1.3" fill="#CE1126"/></symbol>
+  <symbol id="i-juice" viewBox="0 0 24 24"><path d="M7 8h10l-1 12a2 2 0 01-2 1.8h-4A2 2 0 018 20z" fill="#F2B33D"/><path d="M7.3 11h9.4l-.6 8a1.6 1.6 0 01-1.6 1.4h-5A1.6 1.6 0 018 19z" fill="#FFD24A"/><path d="M12 8V4.6M12 4.6c2.2 0 3.4-1 3.6-2.4-2 0-3.2.8-3.6 2.4z" stroke="#5FA834" stroke-width="1.5" fill="#5FA834" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tamr" viewBox="0 0 24 24"><path d="M8 7h8l-.8 13a2 2 0 01-2 1.9h-2.4a2 2 0 01-2-1.9z" fill="#6B3A21"/><path d="M8.2 10h7.6l-.5 9.5a1.4 1.4 0 01-1.4 1.3h-2.8a1.4 1.4 0 01-1.4-1.3z" fill="#8C4E2C"/><rect x="7" y="5.2" width="10" height="2.4" rx="1.2" fill="#C98A16"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4C10 4 4 9 4 16c0 2 .6 3.4 1.4 4.4C7 17 10.6 14 15 12.6c-3.4 2-6.2 4.8-7.6 8.4 1 .6 2.3 1 3.6 1 6 0 9-5.4 9-18z" fill="#5FA834"/></symbol>
+  <symbol id="i-cow" viewBox="0 0 24 24"><path d="M4 7c0-1.6 1.2-2.6 2.6-2.2L9 5.4h6l2.4-.6C18.8 4.4 20 5.4 20 7v4.6C20 16 16.4 19 12 19S4 16 4 11.6z" fill="#E8500A"/><circle cx="9.4" cy="10.6" r="1.4" fill="#160A02"/><circle cx="14.6" cy="10.6" r="1.4" fill="#160A02"/><ellipse cx="12" cy="15" rx="3.4" ry="2.4" fill="#FF9E5C"/><circle cx="10.8" cy="15" r=".7" fill="#160A02"/><circle cx="13.2" cy="15" r=".7" fill="#160A02"/></symbol>
+  <symbol id="i-olive" viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="5.4" ry="7" fill="#5FA834"/><ellipse cx="12" cy="14" rx="2.2" ry="3.4" fill="#F2B33D"/><path d="M12 7V3.6M12 3.6c2.4 0 3.6-1 3.8-2.6-2.2 0-3.4.9-3.8 2.6z" stroke="#4E9128" stroke-width="1.4" fill="#4E9128" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s8-7.6 8-13a8 8 0 10-16 0c0 5.4 8 13 8 13z" fill="#CE1126"/><circle cx="12" cy="9" r="3.2" fill="#fff"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#F2B33D" stroke-width="1.8"/><path d="M12 7v5.2l3.4 2" stroke="#F2B33D" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 3h3l1.6 4-2 1.4a12 12 0 006.4 6.4l1.4-2 4 1.6v3a2 2 0 01-2.2 2A17 17 0 014.6 5.2 2 2 0 016.6 3z" fill="#F2B33D"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm5.8 14.2c-.24.7-1.4 1.3-1.94 1.34-.5.06-1.12.08-1.8-.12a15 15 0 01-6.5-5.7c-.5-.8-.82-1.7-.82-2.6 0-.9.46-1.36.64-1.54.18-.2.4-.24.54-.24h.4c.12 0 .3-.05.46.36l.64 1.56c.06.12.1.26 0 .42l-.24.36-.34.38c-.12.12-.24.25-.1.48.14.24.62 1.02 1.32 1.66.9.8 1.66 1.06 1.9 1.18.24.12.38.1.52-.06l.74-.86c.16-.2.3-.16.5-.1l1.44.68c.2.1.34.15.4.23.05.1.05.5-.19 1.2z" fill="currentColor"/></symbol>
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5.4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="17.2" cy="6.8" r="1.3" fill="currentColor"/></symbol>
+  <symbol id="i-fb" viewBox="0 0 24 24"><path d="M14 8.4V6.8c0-.8.5-1 .9-1H17V2.6h-2.7C11.3 2.6 10.6 4.8 10.6 6.2v2.2H8.6V12h2v9.4h3.4V12h2.6l.4-3.6z" fill="currentColor"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M16.8 2.4h-3.1v13.2a2.6 2.6 0 11-2.6-2.6c.26 0 .5.04.74.1V9.9a6 6 0 00-.74-.05A5.85 5.85 0 1017 15.7V9.06a6.9 6.9 0 004 1.28V7.2a3.9 3.9 0 01-4.2-4.8z" fill="currentColor"/></symbol>
+ </defs>
+</svg>
+
+<!-- ========== LOADER ========== -->
+<div id="loader" role="status" aria-live="polite">
+  <div class="loader-inner">
+    <div class="loader-burger">
+      <svg viewBox="0 0 200 168" aria-hidden="true">
+        <g class="lb-layer lb-6"><path d="M18 96c0-38 37-66 82-66s82 28 82 66z" fill="url(#gBunTop)"/>
+          <g fill="#FBE9C4" opacity=".92"><ellipse cx="70" cy="62" rx="5.4" ry="3.3" transform="rotate(-20 70 62)"/><ellipse cx="102" cy="53" rx="5.4" ry="3.3"/><ellipse cx="133" cy="64" rx="5.4" ry="3.3" transform="rotate(22 133 64)"/></g></g>
+        <g class="lb-layer lb-5"><path d="M14 96h172c0 8-5 12-12 12H26c-7 0-12-4-12-12z" fill="url(#gLettuce)"/></g>
+        <g class="lb-layer lb-4"><circle cx="58" cy="112" r="13" fill="url(#gTomato)"/><circle cx="100" cy="114" r="14" fill="url(#gTomato)"/><circle cx="142" cy="112" r="13" fill="url(#gTomato)"/></g>
+        <g class="lb-layer lb-3"><path d="M26 118h148l-16 15H42z" fill="url(#gCheese)"/></g>
+        <g class="lb-layer lb-2"><rect x="22" y="126" width="156" height="22" rx="11" fill="url(#gPatty)"/></g>
+        <g class="lb-layer lb-1"><path d="M182 148c0 9-8 14-20 14H38c-12 0-20-5-20-14z" fill="url(#gBunBot)"/></g>
+      </svg>
+    </div>
+    <div class="loader-word" data-i18n="loading">FIRING UP THE GRILL</div>
+    <div class="loader-bar"><i></i></div>
+  </div>
+</div>
+
+<!-- ========== NAV ========== -->
+<header id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#hero" aria-label="Baytna Burger — home">
+      <svg class="brand-mark" viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>
+      <span class="brand-name" data-i18n="brand">BAYTNA <b>BURGER</b></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Main">
+      <a href="#menu"  data-i18n="nav_menu">Menu</a>
+      <a href="#sides" data-i18n="nav_sides">Sides</a>
+      <a href="#build" data-i18n="nav_build">Build Yours</a>
+      <a href="#story" data-i18n="nav_story">Our Story</a>
+      <a href="#visit" data-i18n="nav_visit">Visit</a>
+    </nav>
+    <div class="nav-tools">
+      <div class="lang-toggle" role="group" aria-label="Language / اللغة">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="ar" aria-pressed="false">ع</button>
+      </div>
+      <a class="btn btn--red nav-cta" href="#order" data-i18n="nav_order">Order Now</a>
+      <button class="burger-btn" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Menu"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ========== HERO ========== -->
+<section id="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="hero-badge"><span class="dot"></span><span data-i18n="hero_badge">Rainbow Street · Jabal Amman</span></div>
+      <h1 class="hero-title">
+        <span class="flip-line"><span data-i18n="hero_l1">SMASHED</span></span>
+        <span class="flip-line"><span class="flame-text" data-i18n="hero_l2">OVER FIRE</span></span>
+        <span class="flip-line"><span data-i18n="hero_l3">SINCE 2016</span></span>
+      </h1>
+      <p class="hero-tag" data-i18n="hero_tag">Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#menu" data-i18n="hero_cta1">See the Menu</a>
+        <a class="btn btn--ghost" href="#build" data-i18n="hero_cta2">Build Your Own</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><b data-i18n="stat1v">100%</b><span data-i18n="stat1">Jordanian beef</span></div>
+        <div class="hstat"><b data-i18n="stat2v">7 min</b><span data-i18n="stat2">Average grill time</span></div>
+        <div class="hstat"><b data-i18n="stat3v">4.9★</b><span data-i18n="stat3">1,200+ reviews</span></div>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
+      <svg class="hero-burger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger"><use href="#burger"/></svg>
+      <div class="flame-wrap" aria-hidden="true"><span class="flame"></span><span class="flame"></span><span class="flame"></span><span class="flame"></span></div>
+    </div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true"><span data-i18n="scroll">SCROLL</span><i></i></div>
+</section>
+
+<!-- ========== SIGNATURE MENU ========== -->
+<section id="menu" class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_menu">The Signatures</p>
+      <h2 class="title" data-i18n="menu_title">SIX BURGERS.<br>NO FILLER.</h2>
+      <p class="lede" data-i18n="menu_lede">Every patty is smashed to order on a 260°C flat-top. Prices in Jordanian Dinar, taxes included.</p>
+    </div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
+</section>
+
+<!-- ========== SIDES & DRINKS ========== -->
+<section id="sides" class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_sides">Sides &amp; Drinks</p>
+      <h2 class="title" data-i18n="sides_title">THE SUPPORTING CAST</h2>
+    </div>
+    <div class="side-grid" id="sideGrid"></div>
+  </div>
+</section>
+
+<!-- ========== BUILD YOUR OWN ========== -->
+<section id="build" class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_build">Build Your Own</p>
+      <h2 class="title" data-i18n="build_title">FOUR STEPS<br>TO YOUR BURGER</h2>
+      <p class="lede" data-i18n="build_lede">Pick a bun, a patty, your toppings and a sauce. The price updates as you go.</p>
+    </div>
+
+    <div class="build-layout">
+      <div class="rv">
+        <div class="steps" role="tablist" aria-label="Burger builder steps" id="stepTabs"></div>
+        <div id="stepPanel"></div>
+      </div>
+
+      <aside class="receipt rv rv-d2" aria-live="polite">
+        <h3 data-i18n="receipt_title">Your Burger</h3>
+        <p class="receipt-sub" data-i18n="receipt_sub">Baytna Burger · Rainbow Street</p>
+        <div class="receipt-lines" id="receiptLines"></div>
+        <div class="receipt-total">
+          <span data-i18n="total">Total</span>
+          <strong id="totalPrice">0.00 JD</strong>
+        </div>
+        <a class="btn btn--red" id="orderBtn" href="#" data-i18n="send_wa">Send Order on WhatsApp</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ========== STORY ========== -->
+<section id="story" class="sec">
+  <div class="story-bg plx" data-speed="0.14" aria-hidden="true"></div>
+  <div class="wrap story-grid">
+    <div class="story-copy rv">
+      <p class="eyebrow" data-i18n="eyebrow_story">Our Story</p>
+      <h2 class="title" data-i18n="story_title">A GRILL,<br>A GARAGE,<br>AND A CITY</h2>
+      <p data-i18n="story_p1">Baytna started in 2016 in a converted garage off Rainbow Street, with one flat-top grill and a queue that spilled onto the pavement. Baytna means "our home" — the plan was never a chain, just a place that felt like one.</p>
+      <p data-i18n="story_p2">The beef comes from farms outside Madaba and is ground every morning. The olive oil is pressed in Ajloun. The za'atar is a family blend from a neighbour who has been making it longer than we have been open.</p>
+      <blockquote class="pull" data-i18n="story_pull">"We buy from people we can drive to."</blockquote>
+      <div class="ingredients" id="ingList"></div>
+    </div>
+    <div class="story-art rv rv-d2">
+      <div class="story-card plx" data-speed="-0.06">
+        <div class="story-stat"><span class="ico"><svg width="26" height="26" aria-hidden="true"><use href="#i-cow"/></svg></span>
+          <div><b data-i18n="s1n">Madaba</b><span data-i18n="s1l">Beef, ground daily at 6am</span></div></div>
+        <div class="story-stat"><span class="ico"><svg width="26" height="26" aria-hidden="true"><use href="#i-olive"/></svg></span>
+          <div><b data-i18n="s2n">Ajloun</b><span data-i18n="s2l">Cold-pressed olive oil</span></div></div>
+        <div class="story-stat"><span class="ico"><svg width="26" height="26" aria-hidden="true"><use href="#i-leaf"/></svg></span>
+          <div><b data-i18n="s3n">Jerash</b><span data-i18n="s3l">Za'atar &amp; sumac blend</span></div></div>
+        <div class="story-stat"><span class="ico"><svg width="26" height="26" aria-hidden="true"><use href="#i-cheese"/></svg></span>
+          <div><b data-i18n="s4n">Irbid</b><span data-i18n="s4l">Halloumi, grilled to order</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== LOCATION & HOURS ========== -->
+<section id="visit" class="sec">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_visit">Find Us</p>
+      <h2 class="title" data-i18n="visit_title">COME HUNGRY</h2>
+    </div>
+    <div class="visit-grid">
+      <div class="map-card rv" id="mapCard">
+        <svg class="map-svg" viewBox="0 0 500 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Stylised map showing Baytna Burger on Rainbow Street, Jabal Amman">
+          <rect width="500" height="400" fill="#16161A"/>
+          <g stroke="#22222A" stroke-width="12" fill="none">
+            <path d="M-20 120h540M-20 250h540M120 -20v440M330 -20v440"/>
+          </g>
+          <g stroke="#1D1D24" stroke-width="6" fill="none">
+            <path d="M-20 60h540M-20 190h540M-20 320h540M60 -20v440M210 -20v440M420 -20v440"/>
+          </g>
+          <!-- the wadi / valley curve Amman is built around -->
+          <path d="M-20 330C90 300 150 240 250 236s180-40 270-96" stroke="#1B2A22" stroke-width="26" fill="none" opacity=".8"/>
+          <path d="M-20 330C90 300 150 240 250 236s180-40 270-96" stroke="#243A2C" stroke-width="3" fill="none"/>
+          <!-- blocks -->
+          <g fill="#1B1B21">
+            <rect x="140" y="140" width="70" height="46" rx="4"/><rect x="230" y="140" width="80" height="46" rx="4"/>
+            <rect x="140" y="205" width="70" height="34" rx="4"/><rect x="350" y="140" width="60" height="46" rx="4"/>
+            <rect x="350" y="205" width="60" height="34" rx="4"/><rect x="40" y="140" width="62" height="46" rx="4"/>
+          </g>
+          <!-- highlighted street -->
+          <path d="M120 250h210" stroke="#F2B33D" stroke-width="4" opacity=".55" stroke-linecap="round"/>
+          <text x="150" y="272" fill="#8E887E" font-family="system-ui,sans-serif" font-size="12" letter-spacing="1.5">RAINBOW ST</text>
+          <!-- pin -->
+          <g transform="translate(330 250)">
+            <circle class="pin-ring" r="16" fill="none" stroke="#CE1126" stroke-width="2.5"/>
+            <g class="pin" transform="translate(-15 -42)">
+              <svg x="0" y="0" width="30" height="42" viewBox="0 0 24 24"><use href="#i-pin"/></svg>
+            </g>
+          </g>
+        </svg>
+        <div class="map-label">
+          <b data-i18n="map_name">Baytna Burger</b>
+          <span data-i18n="map_addr">Rainbow St, Jabal Amman · Amman, Jordan</span>
+        </div>
+      </div>
+
+      <div class="hours-card rv rv-d2">
+        <div class="status closed" id="status" role="status">
+          <span class="led"></span><span id="statusText">—</span>
+        </div>
+        <ul class="hours-list" id="hoursList"></ul>
+        <div class="visit-meta">
+          <p class="vmeta"><svg width="18" height="18" aria-hidden="true"><use href="#i-clock"/></svg>
+            <span data-i18n="tz_note">All times are Amman local (GMT+3). Kitchen closes 30 minutes before we do.</span></p>
+          <p class="vmeta"><svg width="18" height="18" aria-hidden="true"><use href="#i-phone"/></svg>
+            <span><a href="tel:+96279000000" dir="ltr">+962 7 9000 0000</a></span></p>
+          <a class="btn btn--ghost" id="directions" href="https://www.google.com/maps/search/?api=1&amp;query=Rainbow+Street+Jabal+Amman+Jordan" target="_blank" rel="noopener noreferrer" data-i18n="directions">Get Directions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer id="order">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot foot-brand">
+        <a class="brand" href="#hero">
+          <svg class="brand-mark" viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>
+          <span class="brand-name" data-i18n="brand">BAYTNA <b>BURGER</b></span>
+        </a>
+        <p data-i18n="foot_blurb">Smashed over fire on Rainbow Street since 2016. Grilled in Amman, loved everywhere.</p>
+        <div class="socials">
+          <a class="soc" href="#" aria-label="Instagram"><svg width="19" height="19" aria-hidden="true"><use href="#i-ig"/></svg></a>
+          <a class="soc" href="#" aria-label="Facebook"><svg width="19" height="19" aria-hidden="true"><use href="#i-fb"/></svg></a>
+          <a class="soc" href="#" aria-label="TikTok"><svg width="19" height="19" aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+        </div>
+      </div>
+      <div class="foot">
+        <h4 data-i18n="foot_menu">Menu</h4>
+        <ul>
+          <li><a href="#menu" data-i18n="nav_menu">Menu</a></li>
+          <li><a href="#sides" data-i18n="nav_sides">Sides</a></li>
+          <li><a href="#build" data-i18n="nav_build">Build Yours</a></li>
+        </ul>
+      </div>
+      <div class="foot">
+        <h4 data-i18n="foot_visit">Visit</h4>
+        <ul>
+          <li><a href="#story" data-i18n="nav_story">Our Story</a></li>
+          <li><a href="#visit" data-i18n="nav_visit">Location</a></li>
+          <li><a href="#visit" data-i18n="foot_hours">Hours</a></li>
+        </ul>
+      </div>
+      <div class="foot">
+        <h4 data-i18n="foot_order">Order</h4>
+        <p style="color:var(--muted);font-size:13.5px;margin:0 0 16px" data-i18n="foot_order_note">Delivery across Amman, 11:30–23:30 daily.</p>
+        <a class="wa" id="waMain" href="#" target="_blank" rel="noopener noreferrer">
+          <svg width="21" height="21" aria-hidden="true"><use href="#i-wa"/></svg>
+          <span data-i18n="wa_order">Order on WhatsApp</span>
+        </a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span data-i18n="rights">© 2026 Baytna Burger · Amman, Jordan</span>
+      <span class="sesame-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span data-i18n="made">Made with fire and olive oil</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+var reduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ============================================================
+   DATA
+   ============================================================ */
+var WA_NUMBER = '962790000000'; /* placeholder — swap for the real number */
+
+var BURGERS = [
+  { id:'petra',   price:6.50, spice:1, badge:'best',
+    en:{n:"Petra Smash",            d:"Two smashed local beef patties, aged cheddar, house pickles and smash sauce on a sesame brioche."},
+    ar:{n:"سماش البتراء",           d:"قطعتا لحم بلدي مضغوطتان، شيدر معتّق، مخلل البيت وصوص السماش على خبز بريوش بالسمسم."} },
+  { id:'rainbow', price:5.75, spice:0, badge:null,
+    en:{n:"Rainbow Street Classic", d:"Single patty, crisp lettuce, tomato, raw onion and the sauce we have not changed since 2016."},
+    ar:{n:"كلاسيك الرينبو",         d:"قطعة لحم واحدة، خس مقرمش، بندورة، بصل طازج، والصوص الذي لم نغيّره منذ ٢٠١٦."} },
+  { id:'zaatar',  price:6.25, spice:2, badge:'chef',
+    en:{n:"Za'atar Crunch",         d:"Za'atar-crusted patty, grilled halloumi, sumac onions and a lemon-tahini drizzle."},
+    ar:{n:"زعتر كرانش",             d:"لحم بقشرة زعتر، حلوم مشوي، بصل بالسماق، ورشّة طحينة بالليمون."} },
+  { id:'jabal',   price:7.50, spice:1, badge:null,
+    en:{n:"Jabal Amman Double",     d:"Double beef, double cheddar, caramelised onion and garlic toum. Built for a long night."},
+    ar:{n:"دوبل جبل عمّان",         d:"لحم مزدوج، شيدر مضاعف، بصل مكرمل وثوم. مصنوع لليالي الطويلة."} },
+  { id:'shatta',  price:7.00, spice:4, badge:'spicy',
+    en:{n:"Shatta Fire",            d:"House shatta, pickled jalapeño, pepper jack and charred green chilli. It bites back."},
+    ar:{n:"نار الشطة",              d:"شطة البيت، هالابينو مخلل، جبنة حارة وفلفل أخضر مشوي. لاذع فعلاً."} },
+  { id:'halloumi',price:5.50, spice:0, badge:'veg',
+    en:{n:"Halloumi Garden",        d:"Thick-cut grilled halloumi, olive tapenade, rocket and roasted red pepper. No beef, no apology."},
+    ar:{n:"حديقة الحلوم",           d:"حلوم مشوي سميك، تابيناد زيتون، جرجير وفلفل أحمر مشوي. بلا لحم وبلا اعتذار."} }
+];
+
+var SIDES = [
+  { icon:'i-fries',  price:2.00, en:{n:"Sumac Fries",       t:"Skin-on, sumac salt"},   ar:{n:"بطاطا بالسماق",     t:"بالقشرة، ملح السماق"} },
+  { icon:'i-cheese', price:3.50, en:{n:"Halloumi Bites",    t:"Honey + za'atar"},       ar:{n:"قطع الحلوم",        t:"عسل وزعتر"} },
+  { icon:'i-rings',  price:2.75, en:{n:"Za'atar Onion Rings",t:"Six per basket"},       ar:{n:"حلقات بصل بالزعتر", t:"ستة في السلة"} },
+  { icon:'i-ayran',  price:1.25, en:{n:"Laban Ayran",       t:"Salted, ice cold"},      ar:{n:"لبن عيران",         t:"مملّح ومثلّج"} },
+  { icon:'i-juice',  price:2.00, en:{n:"Lemon & Mint",      t:"Pressed to order"},      ar:{n:"ليمون ونعناع",      t:"يُعصر عند الطلب"} },
+  { icon:'i-tamr',   price:1.75, en:{n:"Tamarind",          t:"Ramadan all year"},      ar:{n:"تمر هندي",          t:"رمضان طوال السنة"} }
+];
+
+var STEPS = [
+  { key:'bun',      multi:false, en:"Bun",      ar:"الخبز",
+    opts:[ {id:'brioche', p:0,    en:{n:"Sesame Brioche", d:"House standard"}, ar:{n:"بريوش بالسمسم", d:"الأساسي"}},
+           {id:'potato',  p:0.25, en:{n:"Potato Bun",     d:"Soft, slightly sweet"}, ar:{n:"خبز البطاطا", d:"طري ومائل للحلاوة"}},
+           {id:'saj',     p:0.50, en:{n:"Saj Flatbread",  d:"Wrapped, not stacked"}, ar:{n:"خبز الصاج", d:"ملفوف لا مكدّس"}} ] },
+  { key:'patty',    multi:false, en:"Patty",    ar:"اللحم",
+    opts:[ {id:'single',  p:4.00, en:{n:"Single Beef",    d:"110g smashed"}, ar:{n:"لحم مفرد", d:"١١٠ غرام مضغوط"}},
+           {id:'double',  p:5.50, en:{n:"Double Beef",    d:"220g, two layers"}, ar:{n:"لحم مزدوج", d:"٢٢٠ غرام، طبقتان"}},
+           {id:'halloumi',p:4.25, en:{n:"Grilled Halloumi",d:"Vegetarian"}, ar:{n:"حلوم مشوي", d:"نباتي"}},
+           {id:'chicken', p:4.00, en:{n:"Chicken Thigh",  d:"Marinated 12h"}, ar:{n:"فخذ دجاج", d:"متبّل ١٢ ساعة"}} ] },
+  { key:'toppings', multi:true,  en:"Toppings", ar:"الإضافات",
+    opts:[ {id:'cheddar', p:0.50, en:{n:"Aged Cheddar"},   ar:{n:"شيدر معتّق"}},
+           {id:'hall',    p:0.75, en:{n:"Grilled Halloumi"},ar:{n:"حلوم مشوي"}},
+           {id:'pickles', p:0.25, en:{n:"House Pickles"},  ar:{n:"مخلل البيت"}},
+           {id:'sumac',   p:0.25, en:{n:"Sumac Onions"},   ar:{n:"بصل بالسماق"}},
+           {id:'jalapeno',p:0.25, en:{n:"Jalapeño"},       ar:{n:"هالابينو"}},
+           {id:'egg',     p:0.50, en:{n:"Fried Egg"},      ar:{n:"بيضة مقلية"}} ] },
+  { key:'sauce',    multi:false, en:"Sauce",    ar:"الصوص",
+    opts:[ {id:'smash',   p:0,    en:{n:"Smash Sauce"},    ar:{n:"صوص السماش"}},
+           {id:'toum',    p:0,    en:{n:"Garlic Toum"},    ar:{n:"ثوم"}},
+           {id:'shatta',  p:0.25, en:{n:"Shatta"},         ar:{n:"شطة"}},
+           {id:'aioli',   p:0.25, en:{n:"Za'atar Aioli"},  ar:{n:"أيولي بالزعتر"}},
+           {id:'ranch',   p:0.25, en:{n:"Tahini Ranch"},   ar:{n:"رانش بالطحينة"}} ] }
+];
+
+/* Amman hours. Minutes from midnight; a close value over 1440 runs past midnight. */
+var HOURS = [
+  {o:720,  c:1500}, /* Sun 12:00–01:00 */
+  {o:720,  c:1500}, /* Mon */
+  {o:720,  c:1500}, /* Tue */
+  {o:720,  c:1500}, /* Wed */
+  {o:720,  c:1560}, /* Thu 12:00–02:00 */
+  {o:780,  c:1560}, /* Fri 13:00–02:00 */
+  {o:720,  c:1560}  /* Sat 12:00–02:00 */
+];
+
+var T = {
+  en:{
+    brand:'BAYTNA <b>BURGER</b>', loading:'FIRING UP THE GRILL',
+    nav_menu:'Menu', nav_sides:'Sides', nav_build:'Build Yours', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
+    hero_badge:'Rainbow Street · Jabal Amman',
+    hero_l1:'SMASHED', hero_l2:'OVER FIRE', hero_l3:'SINCE 2016',
+    hero_tag:"Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.",
+    hero_cta1:'See the Menu', hero_cta2:'Build Your Own',
+    stat1:'Jordanian beef', stat2:'Average grill time', stat3:'1,200+ reviews', scroll:'SCROLL',
+    stat1v:'100%', stat2v:'7 min', stat3v:'4.9★',
+    eyebrow_menu:'The Signatures', menu_title:'SIX BURGERS.<br>NO FILLER.',
+    menu_lede:'Every patty is smashed to order on a 260°C flat-top. Prices in Jordanian Dinar, taxes included.',
+    eyebrow_sides:'Sides &amp; Drinks', sides_title:'THE SUPPORTING CAST',
+    eyebrow_build:'Build Your Own', build_title:'FOUR STEPS<br>TO YOUR BURGER',
+    build_lede:'Pick a bun, a patty, your toppings and a sauce. The price updates as you go.',
+    receipt_title:'Your Burger', receipt_sub:'Baytna Burger · Rainbow Street', total:'Total',
+    send_wa:'Send Order on WhatsApp', receipt_empty:'Nothing picked yet — start with a bun.',
+    eyebrow_story:'Our Story', story_title:'A GRILL,<br>A GARAGE,<br>AND A CITY',
+    story_p1:'Baytna started in 2016 in a converted garage off Rainbow Street, with one flat-top grill and a queue that spilled onto the pavement. Baytna means "our home" — the plan was never a chain, just a place that felt like one.',
+    story_p2:'The beef comes from farms outside Madaba and is ground every morning. The olive oil is pressed in Ajloun. The za\'atar is a family blend from a neighbour who has been making it longer than we have been open.',
+    story_pull:'"We buy from people we can drive to."',
+    s1n:'Madaba', s1l:'Beef, ground daily at 6am', s2n:'Ajloun', s2l:'Cold-pressed olive oil',
+    s3n:'Jerash', s3l:"Za'atar &amp; sumac blend", s4n:'Irbid', s4l:'Halloumi, grilled to order',
+    eyebrow_visit:'Find Us', visit_title:'COME HUNGRY',
+    map_name:'Baytna Burger', map_addr:'Rainbow St, Jabal Amman · Amman, Jordan',
+    tz_note:'All times are Amman local (GMT+3). Kitchen closes 30 minutes before we do.',
+    directions:'Get Directions',
+    foot_blurb:'Smashed over fire on Rainbow Street since 2016. Grilled in Amman, loved everywhere.',
+    foot_menu:'Menu', foot_visit:'Visit', foot_hours:'Hours', foot_order:'Order',
+    foot_order_note:'Delivery across Amman, 11:30–23:30 daily.', wa_order:'Order on WhatsApp',
+    rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD',
+    days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    badges:{best:'Best Seller', chef:"Chef's Pick", spicy:'Bring Water', veg:'Vegetarian'},
+    spice:'Heat', add:'Add', open_now:'Open now', closed_now:'Closed',
+    closes_in:'closes in', opens_at:'opens', mins:'m', hrs:'h', gap:'',
+    ings:['Madaba beef','Ajloun olive oil','Jerash za\'atar','Irbid halloumi','Saj bread','House shatta'],
+    order_head:'New order from the website', order_total:'Total'
+  },
+  ar:{
+    brand:'بيتنا <b>برجر</b>', loading:'نُشعل الشوّاية',
+    nav_menu:'المنيو', nav_sides:'الإضافات', nav_build:'اصنع برجرك', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
+    hero_badge:'شارع الرينبو · جبل عمّان',
+    hero_l1:'سماش', hero_l2:'على النار', hero_l3:'منذ ٢٠١٦',
+    hero_tag:'مشوي في عمّان، محبوب في كل مكان. لحم بلدي، خبز مضغوط على الصاج، وقشرة زعتر ستفكر فيها طوال الطريق إلى البيت.',
+    hero_cta1:'شوف المنيو', hero_cta2:'اصنع برجرك',
+    stat1:'لحم أردني', stat2:'متوسط وقت الشوي', stat3:'أكثر من ١٢٠٠ تقييم', scroll:'انزل',
+    stat1v:'٪١٠٠', stat2v:'٧ دقائق', stat3v:'★٤٫٩',
+    eyebrow_menu:'الأطباق المميّزة', menu_title:'ستة برجرات.<br>بلا حشو.',
+    menu_lede:'كل قطعة لحم تُضغط عند الطلب على صاج بحرارة ٢٦٠ درجة. الأسعار بالدينار الأردني شاملة الضريبة.',
+    eyebrow_sides:'الإضافات والمشروبات', sides_title:'الطاقم المساند',
+    eyebrow_build:'اصنع برجرك', build_title:'أربع خطوات<br>إلى برجرك',
+    build_lede:'اختر الخبز واللحم والإضافات والصوص. السعر يتحدّث مع كل اختيار.',
+    receipt_title:'برجرك', receipt_sub:'بيتنا برجر · شارع الرينبو', total:'المجموع',
+    send_wa:'أرسل الطلب على واتساب', receipt_empty:'لم تختر شيئاً بعد — ابدأ بالخبز.',
+    eyebrow_story:'قصتنا', story_title:'شوّاية،<br>وكراج،<br>ومدينة',
+    story_p1:'بدأت بيتنا عام ٢٠١٦ في كراج مُحوَّل قرب شارع الرينبو، بشوّاية واحدة وطابور يمتد إلى الرصيف. «بيتنا» تعني بيتنا فعلاً — لم تكن الخطة سلسلة مطاعم، بل مكان يشبه البيت.',
+    story_p2:'اللحم يأتي من مزارع خارج مادبا ويُفرم كل صباح. زيت الزيتون معصور في عجلون. والزعتر خلطة عائلية من جار يصنعها منذ زمن أطول من عمر مطعمنا.',
+    story_pull:'«نشتري من ناس نستطيع الوصول إليهم بالسيارة.»',
+    s1n:'مادبا', s1l:'لحم يُفرم يومياً الساعة ٦ صباحاً', s2n:'عجلون', s2l:'زيت زيتون معصور على البارد',
+    s3n:'جرش', s3l:'خلطة زعتر وسماق', s4n:'إربد', s4l:'حلوم يُشوى عند الطلب',
+    eyebrow_visit:'مكاننا', visit_title:'تعال جوعان',
+    map_name:'بيتنا برجر', map_addr:'شارع الرينبو، جبل عمّان · عمّان، الأردن',
+    tz_note:'جميع الأوقات بتوقيت عمّان (غرينتش +٣). المطبخ يغلق قبل نصف ساعة من الإغلاق.',
+    directions:'احصل على الاتجاهات',
+    foot_blurb:'سماش على النار في شارع الرينبو منذ ٢٠١٦. مشوي في عمّان، محبوب في كل مكان.',
+    foot_menu:'المنيو', foot_visit:'زورونا', foot_hours:'أوقات العمل', foot_order:'اطلب',
+    foot_order_note:'توصيل داخل عمّان، يومياً من ١١:٣٠ حتى ٢٣:٣٠.', wa_order:'اطلب على واتساب',
+    rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ',
+    days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
+    badges:{best:'الأكثر مبيعاً', chef:'اختيار الشيف', spicy:'جهّز الماء', veg:'نباتي'},
+    spice:'الحرارة', add:'أضف', open_now:'مفتوح الآن', closed_now:'مغلق',
+    closes_in:'يغلق بعد', opens_at:'يفتح', mins:'دقيقة', hrs:'ساعة', gap:' ',
+    ings:['لحم مادبا','زيت زيتون عجلون','زعتر جرش','حلوم إربد','خبز الصاج','شطة البيت'],
+    order_head:'طلب جديد من الموقع', order_total:'المجموع'
+  }
+};
+
+var lang = 'en';
+var $  = function(s,c){ return (c||document).querySelector(s); };
+var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
+var money = function(n){ return n.toFixed(2) + ' ' + T[lang].cur; };
+var pad = function(n){ return (n<10?'0':'') + n; };
+var fmtTime = function(m){ return pad(Math.floor(m/60)%24) + ':' + pad(m%60); };
+
+/* ============================================================
+   RENDER: menu + sides
+   ============================================================ */
+function renderMenu(){
+  var t = T[lang];
+  $('#menuGrid').innerHTML = BURGERS.map(function(b,i){
+    var L = b[lang];
+    var badge = b.badge
+      ? '<span class="card-badge' + (b.badge==='best'||b.badge==='chef' ? ' gold':'') + '">' + t.badges[b.badge] + '</span>'
+      : '';
+    var dots = '';
+    for(var s=0; s<5; s++) dots += '<i class="' + (s < b.spice ? 'on':'') + '"></i>';
+    var tints=['#3A2418','#2E2A18','#38221C','#2B2620','#3E1E14','#22301F'];
+    return '<article class="card rv rv-d' + ((i%3)+1) + '" tabindex="0">'
+      +   '<div class="card-art" style="--art:' + tints[i%tints.length] + '">' + badge
+      +     '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>'
+      +   '</div>'
+      +   '<div class="card-top"><h3 class="card-name">' + L.n + '</h3>'
+      +     '<span class="price">' + b.price.toFixed(2) + '<small>' + t.cur + '</small></span></div>'
+      +   '<p class="card-desc">' + L.d + '</p>'
+      +   '<div class="card-foot">'
+      +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
+      +     '<button class="add-btn" type="button" data-add="' + b.id + '">' + t.add + '</button>'
+      +   '</div>'
+      + '</article>';
+  }).join('');
+  observeReveals($('#menuGrid'));
+}
+
+function renderSides(){
+  $('#sideGrid').innerHTML = SIDES.map(function(s,i){
+    var L = s[lang];
+    return '<div class="side rv rv-d' + ((i%6)+1) + '">'
+      +   '<span class="side-ico"><svg width="28" height="28" aria-hidden="true"><use href="#' + s.icon + '"/></svg></span>'
+      +   '<p class="side-name">' + L.n + '</p>'
+      +   '<span class="side-price">' + s.price.toFixed(2) + ' ' + T[lang].cur + '</span>'
+      +   '<p class="side-note">' + L.t + '</p>'
+      + '</div>';
+  }).join('');
+  observeReveals($('#sideGrid'));
+}
+
+function renderIngredients(){
+  $('#ingList').innerHTML = T[lang].ings.map(function(x){
+    return '<span class="ing">' + x + '</span>';
+  }).join('');
+}
+
+/* ============================================================
+   BUILD-YOUR-OWN
+   ============================================================ */
+var pick = { bun:null, patty:null, toppings:[], sauce:null };
+var activeStep = 0;
+
+function renderSteps(){
+  $('#stepTabs').innerHTML = STEPS.map(function(s,i){
+    var chosen = s.multi ? pick[s.key].length > 0 : !!pick[s.key];
+    return '<button class="step-tab' + (chosen ? ' done':'') + '" role="tab" type="button"'
+      +   ' aria-selected="' + (i===activeStep) + '" data-step="' + i + '">'
+      +   '<span class="n">0' + (i+1) + '</span><span class="l">' + s[lang] + '</span>'
+      + '</button>';
+  }).join('');
+}
+
+function renderOptions(){
+  var s = STEPS[activeStep];
+  $('#stepPanel').innerHTML = '<div class="opts" role="tabpanel">' + s.opts.map(function(o){
+    var on = s.multi ? pick[s.key].indexOf(o.id) > -1 : pick[s.key] === o.id;
+    var L = o[lang];
+    return '<button class="opt" type="button" aria-pressed="' + on + '" data-opt="' + o.id + '">'
+      +   '<span class="on">' + L.n + '</span>'
+      +   (L.d ? '<span class="od">' + L.d + '</span>' : '')
+      +   '<span class="op">' + (o.p > 0 ? '+' + o.p.toFixed(2) + ' ' + T[lang].cur : '—') + '</span>'
+      + '</button>';
+  }).join('') + '</div>';
+}
+
+function findOpt(key, id){
+  var s = STEPS.filter(function(x){ return x.key === key; })[0];
+  return s.opts.filter(function(o){ return o.id === id; })[0];
+}
+
+function calcTotal(){
+  var sum = 0;
+  ['bun','patty','sauce'].forEach(function(k){
+    if(pick[k]){ var o = findOpt(k, pick[k]); if(o) sum += o.p; }
+  });
+  pick.toppings.forEach(function(id){
+    var o = findOpt('toppings', id); if(o) sum += o.p;
+  });
+  return sum;
+}
+
+function renderReceipt(){
+  var t = T[lang], lines = [], total = calcTotal();
+  STEPS.forEach(function(s){
+    if(s.multi){
+      pick[s.key].forEach(function(id){
+        var o = findOpt(s.key, id);
+        if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
+      });
+    } else if(pick[s.key]){
+      var o = findOpt(s.key, pick[s.key]);
+      if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
+    }
+  });
+
+  $('#receiptLines').innerHTML = lines.length
+    ? lines.map(function(l){
+        return '<div class="rline"><span class="rl">' + l.label + '<b>' + l.sub + '</b></span>'
+          + '<span class="rp">' + (l.price > 0 ? l.price.toFixed(2) : '—') + '</span></div>';
+      }).join('')
+    : '<p class="rempty">' + t.receipt_empty + '</p>';
+
+  animateTotal(total);
+
+  var btn = $('#orderBtn');
+  var ready = pick.bun && pick.patty;
+  btn.toggleAttribute('disabled', !ready);
+  if(ready){
+    var msg = t.order_head + '\n\n'
+      + lines.map(function(l){ return '• ' + l.sub + ': ' + l.label; }).join('\n')
+      + '\n\n' + t.order_total + ': ' + money(total);
+    btn.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
+    btn.target = '_blank'; btn.rel = 'noopener noreferrer';
+  } else {
+    btn.removeAttribute('href');
+  }
+}
+
+/* count the price up rather than snapping it */
+var totalRAF = null, shownTotal = 0;
+function animateTotal(to){
+  var el = $('#totalPrice');
+  if(reduced){ shownTotal = to; el.textContent = money(to); return; }
+  var from = shownTotal, start = performance.now(), dur = 420;
+  if(totalRAF) cancelAnimationFrame(totalRAF);
+  (function tick(now){
+    var p = Math.min((now - start) / dur, 1);
+    var eased = 1 - Math.pow(1 - p, 3);
+    var v = from + (to - from) * eased;
+    el.textContent = money(v);
+    if(p < 1){ totalRAF = requestAnimationFrame(tick); }
+    else { shownTotal = to; el.textContent = money(to); }
+  })(start);
+}
+
+$('#stepTabs').addEventListener('click', function(e){
+  var b = e.target.closest('[data-step]'); if(!b) return;
+  activeStep = +b.dataset.step;
+  renderSteps(); renderOptions();
+});
+
+$('#stepPanel').addEventListener('click', function(e){
+  var b = e.target.closest('[data-opt]'); if(!b) return;
+  var s = STEPS[activeStep], id = b.dataset.opt;
+  if(s.multi){
+    var i = pick[s.key].indexOf(id);
+    if(i > -1) pick[s.key].splice(i,1); else pick[s.key].push(id);
+  } else {
+    pick[s.key] = (pick[s.key] === id) ? null : id;
+    /* single-choice steps advance on their own */
+    if(pick[s.key] && activeStep < STEPS.length - 1){
+      setTimeout(function(){ activeStep++; renderSteps(); renderOptions(); }, 240);
+    }
+  }
+  renderSteps(); renderOptions(); renderReceipt();
+});
+
+/* "Add" on a signature card seeds the builder */
+document.addEventListener('click', function(e){
+  var b = e.target.closest('[data-add]'); if(!b) return;
+  var burger = BURGERS.filter(function(x){ return x.id === b.dataset.add; })[0];
+  if(!burger) return;
+  pick.bun = 'brioche';
+  pick.patty = (burger.id === 'halloumi') ? 'halloumi' : (burger.id === 'jabal' || burger.id === 'petra' ? 'double' : 'single');
+  pick.toppings = burger.id === 'shatta' ? ['jalapeno'] : ['cheddar'];
+  pick.sauce = burger.id === 'shatta' ? 'shatta' : 'smash';
+  activeStep = 3;
+  renderSteps(); renderOptions(); renderReceipt();
+  $('#build').scrollIntoView({ behavior: reduced ? 'auto':'smooth', block:'start' });
+});
+
+/* ============================================================
+   HOURS — evaluated in Amman time, whatever the visitor's zone
+   ============================================================ */
+function ammanNow(){
+  try{
+    var parts = new Intl.DateTimeFormat('en-US',{
+      timeZone:'Asia/Amman', weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
+    }).formatToParts(new Date());
+    var p = {};
+    parts.forEach(function(x){ p[x.type] = x.value; });
+    var map = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+    var h = parseInt(p.hour,10); if(h === 24) h = 0;
+    return { day: map[p.weekday], mins: h*60 + parseInt(p.minute,10) };
+  }catch(err){
+    /* Intl without tz data — fall back to the device clock */
+    var d = new Date();
+    return { day: d.getDay(), mins: d.getHours()*60 + d.getMinutes() };
+  }
+}
+
+function openState(){
+  var n = ammanNow(), today = HOURS[n.day], prev = HOURS[(n.day+6)%7];
+  /* still inside last night's session */
+  if(prev.c > 1440 && n.mins < prev.c - 1440){
+    return { open:true, left:(prev.c - 1440) - n.mins };
+  }
+  if(n.mins >= today.o && n.mins < Math.min(today.c, 1440)){
+    return { open:true, left: Math.min(today.c, 1440) - n.mins };
+  }
+  if(n.mins < today.o){
+    return { open:false, at:today.o, day:n.day, until:today.o - n.mins };
+  }
+  var nd = (n.day+1)%7;
+  return { open:false, at:HOURS[nd].o, day:nd, until:(1440 - n.mins) + HOURS[nd].o };
+}
+
+function humanGap(m, t){
+  var h = Math.floor(m/60), mm = m%60, g = t.gap;
+  if(h && mm) return h + g + t.hrs + ' ' + mm + g + t.mins;
+  if(h) return h + g + t.hrs;
+  return mm + g + t.mins;
+}
+
+function renderHours(){
+  var t = T[lang], n = ammanNow(), st = openState();
+
+  $('#hoursList').innerHTML = HOURS.map(function(h,i){
+    return '<li class="' + (i === n.day ? 'today':'') + '">'
+      +   '<span class="d">' + t.days[i] + '</span>'
+      +   '<span class="h" dir="ltr">' + fmtTime(h.o) + ' – ' + fmtTime(h.c) + '</span>'
+      + '</li>';
+  }).join('');
+
+  var box = $('#status');
+  box.className = 'status ' + (st.open ? 'open':'closed');
+  $('#statusText').textContent = st.open
+    ? t.open_now + ' · ' + t.closes_in + ' ' + humanGap(st.left, t)
+    : t.closed_now + ' · ' + t.opens_at + ' ' + t.days[st.day] + ' ' + fmtTime(st.at);
+}
+
+/* ============================================================
+   LANGUAGE
+   ============================================================ */
+function setLang(next){
+  lang = next;
+  var html = document.documentElement;
+  html.lang = next;
+  html.dir = (next === 'ar') ? 'rtl' : 'ltr';
+
+  $$('[data-i18n]').forEach(function(el){
+    var v = T[lang][el.dataset.i18n];
+    if(v != null) el.innerHTML = v;
+  });
+
+  $$('.lang-toggle button').forEach(function(b){
+    b.setAttribute('aria-pressed', String(b.dataset.lang === next));
+  });
+
+  renderMenu(); renderSides(); renderIngredients();
+  renderSteps(); renderOptions(); renderReceipt(); renderHours();
+  buildWaLink();
+  try{ localStorage.setItem('baytna-lang', next); }catch(e){}
+}
+
+function buildWaLink(){
+  var msg = T[lang].order_head;
+  $('#waMain').href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
+}
+
+$$('.lang-toggle button').forEach(function(b){
+  b.addEventListener('click', function(){ setLang(b.dataset.lang); });
+});
+
+/* ============================================================
+   SCROLL REVEALS
+   ============================================================ */
+var revealIO = ('IntersectionObserver' in window)
+  ? new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        /* also reveal anything the viewport jumped clean over (anchor links,
+           instant scroll) — otherwise it would stay invisible for good */
+        if(en.isIntersecting || en.boundingClientRect.top < 0){
+          en.target.classList.add('in'); revealIO.unobserve(en.target);
+        }
+      });
+    }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' })
+  : null;
+
+var pendingRv = [];
+function observeReveals(scope){
+  var nodes = $$('.rv', scope || document);
+  if(!revealIO){ nodes.forEach(function(n){ n.classList.add('in'); }); return; }
+  nodes.forEach(function(n){
+    if(!n.classList.contains('in')){ revealIO.observe(n); pendingRv.push(n); }
+  });
+}
+/* An instant jump (anchor link, restored scroll position) can carry the viewport
+   clean past an element without ever crossing a threshold, so no observer entry
+   is delivered and the element would stay invisible. Sweep anything now fully
+   above the viewport and show it. */
+function sweepPassed(){
+  if(!pendingRv.length) return;
+  pendingRv = pendingRv.filter(function(n){
+    if(!n.isConnected || n.classList.contains('in')) return false;
+    if(n.getBoundingClientRect().bottom < 0){
+      n.classList.add('in'); revealIO.unobserve(n); return false;
+    }
+    return true;
+  });
+}
+
+/* the map pin drops when the card scrolls in */
+if(revealIO){
+  var mapIO = new IntersectionObserver(function(en){
+    en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); mapIO.unobserve(e.target); } });
+  }, { threshold:0.3 });
+  mapIO.observe($('#mapCard'));
+} else {
+  $('#mapCard').classList.add('in');
+}
+
+/* ============================================================
+   NAV — shrink, active link, mobile drawer
+   ============================================================ */
+var nav = $('#nav'), navLinks = $('#navLinks'), navToggle = $('#navToggle');
+
+navToggle.addEventListener('click', function(){
+  var open = navLinks.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', String(open));
+});
+navLinks.addEventListener('click', function(e){
+  if(e.target.tagName === 'A'){
+    navLinks.classList.remove('open');
+    navToggle.setAttribute('aria-expanded','false');
+  }
+});
+
+if(revealIO){
+  var linkIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      $$('.nav-links a').forEach(function(a){
+        a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id);
+      });
+    });
+  }, { rootMargin:'-45% 0px -50% 0px' });
+  ['menu','sides','build','story','visit'].forEach(function(id){
+    var s = document.getElementById(id); if(s) linkIO.observe(s);
+  });
+}
+
+/* ============================================================
+   PARALLAX (rAF-throttled, transform only)
+   ============================================================ */
+var plx = $$('.plx'), ticking = false;
+function onScroll(){
+  var y = window.pageYOffset;
+  nav.classList.toggle('shrunk', y > 40);
+  sweepPassed();
+  if(!reduced && plx.length){
+    plx.forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if(r.bottom < -200 || r.top > window.innerHeight + 200) return;
+      var mid = r.top + r.height/2 - window.innerHeight/2;
+      el.style.transform = 'translate3d(0,' + (mid * (parseFloat(el.dataset.speed) || 0.1) * -1).toFixed(2) + 'px,0)';
+    });
+  }
+  ticking = false;
+}
+window.addEventListener('scroll', function(){
+  if(!ticking){ ticking = true; requestAnimationFrame(onScroll); }
+}, { passive:true });
+
+/* ============================================================
+   DECOR — drifting sesame seeds behind the hero
+   ============================================================ */
+if(!reduced){
+  var hero = $('#hero');
+  for(var i=0;i<11;i++){
+    var s = document.createElement('span');
+    s.className = 'sesame';
+    s.style.left = (6 + Math.random()*88) + '%';
+    s.style.top  = (18 + Math.random()*74) + '%';
+    s.style.animationDelay    = (Math.random()*15) + 's';
+    s.style.animationDuration = (11 + Math.random()*10) + 's';
+    s.setAttribute('aria-hidden','true');
+    hero.appendChild(s);
+  }
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function start(){
+  document.body.classList.remove('is-loading');
+  document.body.classList.add('ready');
+  observeReveals();
+  onScroll();
+}
+
+function bootLoader(){
+  var loader = $('#loader');
+  if(reduced){
+    loader.classList.add('done');
+    document.body.classList.remove('is-loading');
+    document.body.classList.add('ready');
+    observeReveals();
+    return;
+  }
+  loader.classList.add('playing');
+  setTimeout(function(){
+    loader.classList.add('done');
+    start();
+    setTimeout(function(){ loader.remove(); }, 700);
+  }, 1650);
+}
+
+/* restore saved language, then paint */
+try{
+  var saved = localStorage.getItem('baytna-lang');
+  if(saved === 'ar' || saved === 'en') lang = saved;
+}catch(e){}
+
+setLang(lang);
+renderSteps();
+renderOptions();
+renderReceipt();
+
+/* never let a stalled font/asset trap the page behind the loader */
+var booted = false;
+function once(){ if(!booted){ booted = true; bootLoader(); } }
+window.addEventListener('load', once);
+setTimeout(once, 2600);
+
+/* keep the open/closed indicator honest without a reload */
+setInterval(renderHours, 30000);
+})();
+</script>
+</body>
+</html>
