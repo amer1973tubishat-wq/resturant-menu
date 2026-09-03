@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light is the default; dark is opt-in via [data-theme] or the OS setting. */
+:root {
+  --line: 226 232 240;
+  --surface: 255 255 255;
+  --surface2: 248 250 252;
+  --ink: 15 23 42;
+  --muted: 100 116 139;
+}
+:root[data-theme='dark'] {
+  --line: 51 51 60;
+  --surface: 22 22 26;
+  --surface2: 16 16 18;
+  --ink: 244 239 230;
+  --muted: 142 136 126;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --line: 51 51 60;
+    --surface: 22 22 26;
+    --surface2: 16 16 18;
+    --ink: 244 239 230;
+    --muted: 142 136 126;
+  }
+}
+
+body {
+  background: rgb(var(--surface2));
+  color: rgb(var(--ink));
+}
+
+/* Arabic swaps the display face — Anton has no Arabic glyphs. */
+html[lang='ar'] { --font-display: 'Cairo', sans-serif; }
+
+@layer utilities {
+  .skeleton {
+    @apply relative overflow-hidden bg-surface2;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(90deg, transparent, rgb(var(--line) / 0.55), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+:focus-visible { outline: 2px solid #F2B33D; outline-offset: 2px; border-radius: 4px; }
