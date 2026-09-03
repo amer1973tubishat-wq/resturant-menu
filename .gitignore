@@ -1,0 +1,9 @@
+# Local environment — never commit API keys
+.env
+.env.local
+.mcp.local.json
+
+# Python artifacts from skill scripts
+__pycache__/
+*.pyc
+.coverage
