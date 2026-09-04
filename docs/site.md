@@ -21,6 +21,31 @@ python3 -m http.server 8000   # then open http://localhost:8000
 Burger art is inline SVG, so there are no image files to host. To use photos,
 replace the `<use href="#burger"/>` in `.card-art` and `.hero-art` with `<img>`.
 
+## The admin route
+
+The footer's **Admin** link opens `#admin` — a dashboard built into the page for
+editing the menu, hero text, opening hours and contact details. Saved changes
+land in the artifact's database and appear on the public view immediately, for
+every open tab.
+
+**Authorisation is server-side.** The published page declares the `db`
+capability with the rule `{ read: "interact", write: "admin" }`, so the platform
+accepts writes only from viewers who have *edit* access to the artifact. Someone
+with the link can open `#admin` and look, but every save is refused by the
+server. On opening the panel the page performs one real write to
+`meta/access-probe` to find out which side of that line the viewer is on, rather
+than assuming.
+
+There is deliberately **no password in this file**. A password checked in
+client-side JavaScript is visible in view-source and protects nothing; access is
+delegated to the platform's own sharing controls instead.
+
+Content read back from the database is escaped before it reaches `innerHTML` —
+the runtime contract treats shared data as untrusted, and so does this page.
+
+Opened as a local file there is no database, so the panel reports that plainly,
+disables every input, and the public page renders from the defaults in this file.
+
 ## How a few things work
 
 **Open / closed indicator** is computed in Amman time via

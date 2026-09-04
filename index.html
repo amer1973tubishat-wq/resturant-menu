@@ -752,6 +752,131 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
 .no-js .rv,.no-js .flip-line > span,.no-js .hero-tag,.no-js .hero-actions,
 .no-js .hero-stats,.no-js .hero-burger,.no-js .scroll-cue{ opacity:1; transform:none }
 .no-js .pin{ opacity:1 }
+
+/* ============================================================
+   ADMIN PANEL  (route: #admin)
+   Authorisation is server-side: the artifact database only accepts
+   writes from viewers with edit access. Nothing here is a credential,
+   and no secret is shipped to the browser.
+   ============================================================ */
+#admin-root{
+  position:fixed; inset:0; z-index:1000; display:none;
+  background:var(--char-900); overflow-y:auto;
+  animation:adminIn .32s var(--ease-out);
+}
+#admin-root.open{ display:block }
+@keyframes adminIn{ from{ opacity:0; transform:translateY(12px) } to{ opacity:1; transform:none } }
+
+.ad-bar{
+  position:sticky; top:0; z-index:5;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:14px 20px; background:rgba(10,10,11,.94);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+}
+.ad-bar h1{
+  font-family:var(--f-display); font-size:19px; text-transform:uppercase;
+  letter-spacing:.02em; margin:0; color:var(--cream);
+}
+html[lang="ar"] .ad-bar h1{ text-transform:none }
+.ad-pill{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:5px 12px; border-radius:100px; font-size:11.5px; font-weight:700;
+  border:1px solid;
+}
+.ad-pill.ok{ background:rgba(61,220,138,.12); color:#3DDC8A; border-color:rgba(61,220,138,.35) }
+.ad-pill.ro{ background:rgba(242,179,61,.12); color:var(--gold); border-color:rgba(242,179,61,.35) }
+.ad-pill.off{ background:rgba(255,107,126,.12); color:#FF6B7E; border-color:rgba(255,107,126,.35) }
+.ad-pill i{ width:7px; height:7px; border-radius:50%; background:currentColor; flex:none }
+
+.ad-wrap{ max-width:960px; margin-inline:auto; padding:22px 20px 80px }
+.ad-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px }
+.ad-tab{
+  padding:9px 16px; border-radius:100px; border:1px solid var(--line);
+  background:var(--char-700); color:var(--cream-dim);
+  font-size:13px; font-weight:600; transition:all .24s var(--ease-out);
+}
+.ad-tab[aria-selected="true"]{ background:var(--flame); border-color:var(--flame); color:#160A02 }
+.ad-tab:hover:not([aria-selected="true"]){ border-color:var(--flame); color:var(--flame) }
+
+.ad-card{
+  border:1px solid var(--line); border-radius:16px; padding:18px;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600)); margin-bottom:14px;
+}
+.ad-card + .ad-card{ margin-top:0 }
+.ad-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+.ad-head h2{ font-family:var(--f-display); font-size:16px; text-transform:uppercase; margin:0; color:var(--cream) }
+html[lang="ar"] .ad-head h2{ text-transform:none }
+
+.ad-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.ad-field{ display:flex; flex-direction:column; gap:5px }
+.ad-field.full{ grid-column:1/-1 }
+.ad-field label{ font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.04em; text-transform:uppercase }
+html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
+.ad-field input,.ad-field textarea,.ad-field select{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+  font-family:inherit; font-size:14px;
+}
+.ad-field input:focus,.ad-field textarea:focus{ outline:2px solid var(--gold); outline-offset:1px }
+.ad-field input[type="number"]{ font-variant-numeric:tabular-nums }
+.ad-field textarea{ resize:vertical; min-height:64px }
+.ad-field input:disabled,.ad-field textarea:disabled,.ad-field select:disabled{ opacity:.55; cursor:not-allowed }
+
+.ad-row{
+  border:1px solid var(--line); border-radius:14px; padding:14px;
+  background:var(--char-800); margin-bottom:10px;
+}
+.ad-row-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px }
+.ad-row-top strong{ font-size:14px; color:var(--cream); flex:1; min-width:0 }
+.ad-mini{
+  border:1px solid var(--line); background:var(--char-700); color:var(--cream-dim);
+  border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600;
+  transition:all .22s;
+}
+.ad-mini:hover:not(:disabled){ border-color:var(--flame); color:var(--flame) }
+.ad-mini.danger:hover:not(:disabled){ border-color:var(--jo-red); color:#FF6B7E }
+.ad-mini:disabled{ opacity:.4; cursor:not-allowed }
+
+.ad-chips{ display:flex; flex-wrap:wrap; gap:6px }
+.ad-chip{
+  padding:5px 11px; border-radius:100px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); font-size:11.5px; font-weight:600;
+}
+.ad-chip[aria-pressed="true"]{ border-color:var(--flame); background:rgba(255,106,26,.14); color:var(--flame) }
+
+.ad-save{
+  position:fixed; inset-inline:0; bottom:0; z-index:10;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:12px 20px; background:rgba(10,10,11,.96);
+  border-top:1px solid var(--line); backdrop-filter:blur(12px);
+  transform:translateY(110%); transition:transform .3s var(--ease-out);
+}
+.ad-save.show{ transform:none }
+.ad-save p{ margin:0; flex:1; font-size:13px; color:var(--cream-dim) }
+
+.ad-note{
+  border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  background:var(--char-800); color:var(--cream-dim); font-size:13.5px; line-height:1.6;
+}
+.ad-note b{ color:var(--cream) }
+.ad-note code{
+  background:var(--char-600); padding:1px 6px; border-radius:5px;
+  font-size:12px; color:var(--gold);
+}
+.ad-hours{ display:grid; grid-template-columns:auto 1fr 1fr auto; gap:10px; align-items:center }
+.ad-hours > span{ font-size:13px; color:var(--cream-dim) }
+.ad-hours input[type="time"]{ color-scheme:dark }
+.ad-link{
+  background:none; border:0; color:var(--muted); font-size:12.5px;
+  text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0;
+}
+.ad-link:hover{ color:var(--flame) }
+
+@media (max-width:640px){
+  .ad-grid{ grid-template-columns:1fr }
+  .ad-hours{ grid-template-columns:1fr 1fr; gap:8px }
+  .ad-hours > span:first-child{ grid-column:1/-1 }
+}
 </style>
 </head>
 <body class="is-loading no-js">
@@ -1075,11 +1200,15 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
     </div>
     <div class="foot-bottom">
       <span data-i18n="rights">© 2026 Baytna Burger · Amman, Jordan</span>
+      <a href="#admin" id="adminLink" class="ad-link" data-i18n="admin_link">Admin</a>
       <span class="sesame-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span data-i18n="made">Made with fire and olive oil</span>
     </div>
   </div>
 </footer>
+
+<!-- Admin dashboard — rendered by JS at the #admin route -->
+<section id="admin-root" role="region" aria-label="Admin dashboard" hidden></section>
 
 <script>
 (function(){
@@ -1187,7 +1316,7 @@ var T = {
     foot_blurb:'Smashed over fire on Rainbow Street since 2016. Grilled in Amman, loved everywhere.',
     foot_menu:'Menu', foot_visit:'Visit', foot_hours:'Hours', foot_order:'Order',
     foot_order_note:'Delivery across Amman, 11:30–23:30 daily.', wa_order:'Order on WhatsApp',
-    rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD',
+    rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD', admin_link:'Admin',
     days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
     badges:{best:'Best Seller', chef:"Chef's Pick", spicy:'Bring Water', veg:'Vegetarian'},
     spice:'Heat', add:'Add', open_now:'Open now', closed_now:'Closed',
@@ -1224,7 +1353,7 @@ var T = {
     foot_blurb:'سماش على النار في شارع الرينبو منذ ٢٠١٦. مشوي في عمّان، محبوب في كل مكان.',
     foot_menu:'المنيو', foot_visit:'زورونا', foot_hours:'أوقات العمل', foot_order:'اطلب',
     foot_order_note:'توصيل داخل عمّان، يومياً من ١١:٣٠ حتى ٢٣:٣٠.', wa_order:'اطلب على واتساب',
-    rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ',
+    rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ', admin_link:'لوحة التحكم',
     days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     badges:{best:'الأكثر مبيعاً', chef:'اختيار الشيف', spicy:'جهّز الماء', veg:'نباتي'},
     spice:'الحرارة', add:'أضف', open_now:'مفتوح الآن', closed_now:'مغلق',
@@ -1238,6 +1367,18 @@ var lang = 'en';
 var $  = function(s,c){ return (c||document).querySelector(s); };
 var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
 var money = function(n){ return n.toFixed(2) + ' ' + T[lang].cur; };
+
+/* Content edited in the admin panel lives in a shared database, and the runtime
+   contract is explicit that shared data is untrusted — so everything read back
+   from it is escaped before it reaches innerHTML. */
+function esc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* Text the admin has overridden, keyed exactly like T. */
+var OVERRIDES = { en: {}, ar: {} };
 var pad = function(n){ return (n<10?'0':'') + n; };
 var fmtTime = function(m){ return pad(Math.floor(m/60)%24) + ':' + pad(m%60); };
 
@@ -1258,9 +1399,9 @@ function renderMenu(){
       +   '<div class="card-art" style="--art:' + tints[i%tints.length] + '">' + badge
       +     '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>'
       +   '</div>'
-      +   '<div class="card-top"><h3 class="card-name">' + L.n + '</h3>'
+      +   '<div class="card-top"><h3 class="card-name">' + esc(L.n) + '</h3>'
       +     '<span class="price">' + b.price.toFixed(2) + '<small>' + t.cur + '</small></span></div>'
-      +   '<p class="card-desc">' + L.d + '</p>'
+      +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
       +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
       +     '<button class="add-btn" type="button" data-add="' + b.id + '">' + t.add + '</button>'
@@ -1275,9 +1416,9 @@ function renderSides(){
     var L = s[lang];
     return '<div class="side rv rv-d' + ((i%6)+1) + '">'
       +   '<span class="side-ico"><svg width="28" height="28" aria-hidden="true"><use href="#' + s.icon + '"/></svg></span>'
-      +   '<p class="side-name">' + L.n + '</p>'
+      +   '<p class="side-name">' + esc(L.n) + '</p>'
       +   '<span class="side-price">' + s.price.toFixed(2) + ' ' + T[lang].cur + '</span>'
-      +   '<p class="side-note">' + L.t + '</p>'
+      +   '<p class="side-note">' + esc(L.t) + '</p>'
       + '</div>';
   }).join('');
   observeReveals($('#sideGrid'));
@@ -1494,7 +1635,12 @@ function setLang(next){
   html.dir = (next === 'ar') ? 'rtl' : 'ltr';
 
   $$('[data-i18n]').forEach(function(el){
-    var v = T[lang][el.dataset.i18n];
+    var key = el.dataset.i18n;
+    var over = OVERRIDES[lang] ? OVERRIDES[lang][key] : null;
+    /* Admin-supplied text goes in as text, never markup. The built-in strings
+       are authored in this file and may legitimately carry <br>. */
+    if(over != null && over !== ''){ el.textContent = over; return; }
+    var v = T[lang][key];
     if(v != null) el.innerHTML = v;
   });
 
@@ -1678,8 +1824,424 @@ function once(){ if(!booted){ booted = true; bootLoader(); } }
 window.addEventListener('load', once);
 setTimeout(once, 2600);
 
+
+/* ============================================================
+   ADMIN DASHBOARD  —  route: #admin
+   ------------------------------------------------------------
+   Authorisation is NOT done in this file. The page declares the `db`
+   capability with a rule of { read: "interact", write: "admin" }, so the
+   platform only accepts writes from viewers who have EDIT access to this
+   artifact. A visitor with the link can open this panel and read it, but
+   every save is refused server-side. That is why there is no password
+   here: a password checked in client JavaScript is visible in view-source
+   and would protect nothing.
+   ============================================================ */
+var DB = null;          // db namespace, or null when unavailable
+var canEdit = false;    // proven by a real write, never assumed
+var adminTab = 'menu';
+var draft = null;       // working copy; committed on Save
+var dirty = false;
+
+var DOC_MENU = 'content/menu';
+var DOC_SITE = 'content/site';
+
+/* Defaults double as the seed and as the fallback when there is no
+   database (opened as a local file, or capability not granted). */
+function snapshotDefaults(){
+  return {
+    burgers: BURGERS.map(function(b){ return JSON.parse(JSON.stringify(b)); }),
+    sides:   SIDES.map(function(x){ return JSON.parse(JSON.stringify(x)); }),
+    hours:   HOURS.map(function(h){ return { o:h.o, c:h.c }; }),
+    hero: {
+      en: { hero_l1:'', hero_l2:'', hero_l3:'', hero_tag:'', hero_badge:'' },
+      ar: { hero_l1:'', hero_l2:'', hero_l3:'', hero_tag:'', hero_badge:'' }
+    },
+    contact: { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
+  };
+}
+
+/* ---------------------------------------------------------- apply */
+
+function applyContent(data){
+  if(!data) return;
+  if(Array.isArray(data.burgers) && data.burgers.length) BURGERS = data.burgers;
+  if(Array.isArray(data.sides)   && data.sides.length)   SIDES   = data.sides;
+  if(Array.isArray(data.hours)   && data.hours.length === 7){
+    HOURS = data.hours.map(function(h){
+      return { o: Number(h.o) || 0, c: Number(h.c) || 0 };
+    });
+  }
+  if(data.hero){
+    OVERRIDES.en = data.hero.en || {};
+    OVERRIDES.ar = data.hero.ar || {};
+  }
+  if(data.contact && data.contact.whatsapp){
+    WA_NUMBER = String(data.contact.whatsapp).replace(/[^\d]/g, '') || WA_NUMBER;
+  }
+  setLang(lang);          // re-renders menu, sides, hours and hero text
+  observeReveals();
+  sweepPassed();
+}
+
+/* ---------------------------------------------------------- database */
+
+function connectDb(){
+  if(!window.claude || typeof window.claude.use !== 'function'){ renderAdmin(); return; }
+
+  window.claude.use('db').then(function(db){
+    DB = db;
+    if(!DB){ renderAdmin(); return; }
+
+    /* Live: another editor's save reaches every open view. */
+    DB.doc(DOC_MENU).onSnapshot(function(snap){
+      if(snap.exists) applyContent(snap.data());
+      renderAdmin();
+    }, function(){ /* terminal; the page keeps working on defaults */ });
+
+    DB.doc(DOC_SITE).onSnapshot(function(snap){
+      if(snap.exists) applyContent(snap.data());
+      renderAdmin();
+    }, function(){});
+
+    probeAccess();
+  }).catch(function(){ DB = null; renderAdmin(); });
+}
+
+/* The only honest way to know whether this viewer may write is to try.
+   A viewer below `admin` gets invalid_argument and lands in read-only. */
+function probeAccess(){
+  if(!DB) return;
+  DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
+    canEdit = true;
+    renderAdmin();
+  }).catch(function(){
+    canEdit = false;
+    renderAdmin();
+  });
+}
+
+function loadDraft(){
+  var base = snapshotDefaults();
+  if(!DB){ draft = base; return Promise.resolve(); }
+  return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()])
+    .then(function(res){
+      var m = res[0].exists ? res[0].data() : {};
+      var st = res[1].exists ? res[1].data() : {};
+      draft = {
+        burgers: Array.isArray(m.burgers) && m.burgers.length ? m.burgers : base.burgers,
+        sides:   Array.isArray(m.sides)   && m.sides.length   ? m.sides   : base.sides,
+        hours:   Array.isArray(st.hours)  && st.hours.length === 7 ? st.hours : base.hours,
+        hero:    st.hero    || base.hero,
+        contact: st.contact || base.contact
+      };
+    })
+    .catch(function(){ draft = base; });
+}
+
+function save(){
+  if(!DB || !canEdit) return Promise.reject(new Error('read-only'));
+  return Promise.all([
+    DB.doc(DOC_MENU).set({ burgers: draft.burgers, sides: draft.sides, updatedAt: Date.now() }),
+    DB.doc(DOC_SITE).set({ hours: draft.hours, hero: draft.hero, contact: draft.contact, updatedAt: Date.now() })
+  ]);
+}
+
+/* ---------------------------------------------------------- rendering */
+
+function adminStatus(){
+  if(!DB)      return { cls:'off', text: lang === 'ar' ? 'غير متصل بقاعدة البيانات' : 'No database on this view' };
+  if(!canEdit) return { cls:'ro',  text: lang === 'ar' ? 'قراءة فقط' : 'Read-only' };
+  return { cls:'ok', text: lang === 'ar' ? 'صلاحية التعديل' : 'Editor access' };
+}
+
+function field(label, value, path, type, attrs){
+  return '<div class="ad-field' + (attrs && attrs.full ? ' full' : '') + '">'
+    + '<label for="f-' + esc(path) + '">' + esc(label) + '</label>'
+    + (type === 'textarea'
+        ? '<textarea id="f-' + esc(path) + '" data-path="' + esc(path) + '"'
+          + (attrs && attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled') + '>' + esc(value) + '</textarea>'
+        : '<input id="f-' + esc(path) + '" data-path="' + esc(path) + '" type="' + (type || 'text') + '"'
+          + (type === 'number' ? ' step="0.25" min="0"' : '')
+          + (attrs && attrs.rtl ? ' dir="rtl"' : '')
+          + (canEdit ? '' : ' disabled')
+          + ' value="' + esc(value) + '">')
+    + '</div>';
+}
+
+var BADGE_KEYS = ['best', 'chef', 'spicy', 'veg'];
+
+function tabMenu(){
+  var out = '';
+  draft.burgers.forEach(function(b, i){
+    out += '<div class="ad-card">'
+      + '<div class="ad-row-top"><strong>' + esc(b.en ? b.en.n : '') + '</strong>'
+      + '<button class="ad-mini" data-move="' + i + '" data-dir="-1"' + (canEdit ? '' : ' disabled') + '>&uarr;</button>'
+      + '<button class="ad-mini" data-move="' + i + '" data-dir="1"' + (canEdit ? '' : ' disabled') + '>&darr;</button>'
+      + '<button class="ad-mini danger" data-del="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
+      + '<div class="ad-grid">'
+      + field('Name (EN)', b.en ? b.en.n : '', 'burgers.' + i + '.en.n')
+      + field('الاسم (AR)', b.ar ? b.ar.n : '', 'burgers.' + i + '.ar.n', 'text', { rtl:1 })
+      + field('Description (EN)', b.en ? b.en.d : '', 'burgers.' + i + '.en.d', 'textarea')
+      + field('الوصف (AR)', b.ar ? b.ar.d : '', 'burgers.' + i + '.ar.d', 'textarea', { rtl:1 })
+      + field('Price (JD)', b.price, 'burgers.' + i + '.price', 'number')
+      + field('Spice 0-5', b.spice, 'burgers.' + i + '.spice', 'number')
+      + '<div class="ad-field full"><label>' + (lang === 'ar' ? 'الشارة' : 'Badge') + '</label>'
+      + '<div class="ad-chips">'
+      + BADGE_KEYS.map(function(k){
+          return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
+            + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
+            + esc(T[lang].badges[k] || k) + '</button>';
+        }).join('')
+      + '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
+      + (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
+      + '</div></div>'
+      + '</div></div>';
+  });
+  out += '<button class="ad-mini" id="addBurger"' + (canEdit ? '' : ' disabled') + '>+ '
+    + (lang === 'ar' ? 'صنف جديد' : 'Add item') + '</button>';
+  return out;
+}
+
+function tabHero(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var h = draft.hero[L] || {};
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'الواجهة' : 'Hero') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'اتركه فارغاً لاستخدام النص الأصلي. كل لغة تُحرَّر على حدة — بدّل اللغة من الأعلى.'
+        : 'Leave a field empty to keep the built-in text. Each language is edited separately — switch language in the top bar.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field('Badge line', h.hero_badge || '', 'hero.' + L + '.hero_badge', 'text', { full:1, rtl: L === 'ar' })
+    + field('Headline line 1', h.hero_l1 || '', 'hero.' + L + '.hero_l1', 'text', { rtl: L === 'ar' })
+    + field('Headline line 2', h.hero_l2 || '', 'hero.' + L + '.hero_l2', 'text', { rtl: L === 'ar' })
+    + field('Headline line 3', h.hero_l3 || '', 'hero.' + L + '.hero_l3', 'text', { rtl: L === 'ar' })
+    + field('Tagline', h.hero_tag || '', 'hero.' + L + '.hero_tag', 'textarea', { full:1, rtl: L === 'ar' })
+    + '</div></div>';
+}
+
+function tabHours(){
+  var days = T[lang].days;
+  var out = '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'أوقات العمل' : 'Opening hours') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'بتوقيت عمّان. إذا كان وقت الإغلاق قبل وقت الفتح فهو بعد منتصف الليل.'
+        : 'Amman time. A closing time earlier than the opening time is treated as after midnight.')
+    + '</p>';
+  draft.hours.forEach(function(h, i){
+    out += '<div class="ad-hours" style="margin-bottom:10px">'
+      + '<span>' + esc(days[i]) + '</span>'
+      + '<input type="time" data-hour="' + i + ':o" value="' + fmtTime(h.o) + '"' + (canEdit ? '' : ' disabled') + '>'
+      + '<input type="time" data-hour="' + i + ':c" value="' + fmtTime(h.c) + '"' + (canEdit ? '' : ' disabled') + '>'
+      + '<span style="font-size:11px;color:var(--muted)">' + (h.c > 1440 ? (lang === 'ar' ? 'اليوم التالي' : 'next day') : '') + '</span>'
+      + '</div>';
+  });
+  return out + '</div>';
+}
+
+function tabContact(){
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'التواصل' : 'Contact') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + field('WhatsApp (digits only)', draft.contact.whatsapp || '', 'contact.whatsapp')
+    + field('Phone', draft.contact.phone || '', 'contact.phone')
+    + '</div></div>';
+}
+
+function renderAdmin(){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  if(!draft){ loadDraft().then(renderAdmin); return; }
+
+  var st = adminStatus();
+  var tabs = [
+    ['menu',    lang === 'ar' ? 'المنيو' : 'Menu'],
+    ['hero',    lang === 'ar' ? 'الواجهة' : 'Hero'],
+    ['hours',   lang === 'ar' ? 'الأوقات' : 'Hours'],
+    ['contact', lang === 'ar' ? 'التواصل' : 'Contact']
+  ];
+
+  var body = adminTab === 'menu' ? tabMenu()
+           : adminTab === 'hero' ? tabHero()
+           : adminTab === 'hours' ? tabHours()
+           : tabContact();
+
+  var notice = '';
+  if(!DB){
+    notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
+      + (lang === 'ar' ? 'لا توجد قاعدة بيانات في هذا العرض.' : 'No database on this view.')
+      + '</b><br>'
+      + (lang === 'ar'
+          ? 'التعديلات لن تُحفظ. افتح النسخة المنشورة على claude.ai لاستخدام اللوحة.'
+          : 'Edits cannot be saved here. Open the published page on claude.ai to use the dashboard.')
+      + '</div>';
+  } else if(!canEdit){
+    notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
+      + (lang === 'ar' ? 'قراءة فقط.' : 'Read-only.')
+      + '</b><br>'
+      + (lang === 'ar'
+          ? 'حسابك يستطيع عرض هذه الصفحة لكن ليس تعديلها. الخادم يرفض أي حفظ — الحماية ليست في المتصفح.'
+          : 'Your account can view this page but not edit it. Saves are refused by the server, not by this browser.')
+      + '</div>';
+  }
+
+  root.innerHTML =
+      '<div class="ad-bar">'
+    +   '<h1>' + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
+    +   '<span class="ad-pill ' + st.cls + '"><i></i>' + esc(st.text) + '</span>'
+    +   '<div style="margin-inline-start:auto;display:flex;gap:8px">'
+    +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
+    +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="ad-wrap">'
+    +   notice
+    +   '<div class="ad-tabs" role="tablist">'
+    +     tabs.map(function(t){
+            return '<button class="ad-tab" role="tab" data-tab="' + t[0] + '" aria-selected="'
+              + (adminTab === t[0]) + '">' + esc(t[1]) + '</button>';
+          }).join('')
+    +   '</div>'
+    +   body
+    + '</div>'
+    + '<div class="ad-save' + (dirty && canEdit ? ' show' : '') + '">'
+    +   '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
+    +   '<button class="ad-mini" id="adRevert">' + (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
+    +   '<button class="btn" id="adSave" style="padding:9px 20px;font-size:13px">'
+    +     (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish') + '</button>'
+    + '</div>';
+}
+
+/* ---------------------------------------------------------- editing */
+
+function setPath(path, value){
+  var parts = path.split('.');
+  var node = draft;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(node[parts[i]] == null) node[parts[i]] = {};
+    node = node[parts[i]];
+  }
+  node[parts[parts.length - 1]] = value;
+  dirty = true;
+}
+
+document.addEventListener('input', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open') || !canEdit) return;
+
+  var el = e.target;
+  if(el.dataset && el.dataset.path){
+    var v = el.value;
+    if(el.type === 'number') v = Number(v) || 0;
+    setPath(el.dataset.path, v);
+    var bar = root.querySelector('.ad-save');
+    if(bar) bar.classList.add('show');
+  }
+  if(el.dataset && el.dataset.hour){
+    var bits = el.dataset.hour.split(':');
+    var idx = Number(bits[0]), which = bits[1];
+    var mins = timeToMins(el.value);
+    if(which === 'c' && mins <= draft.hours[idx].o) mins += 1440;
+    draft.hours[idx][which] = mins;
+    dirty = true;
+    var bar2 = root.querySelector('.ad-save');
+    if(bar2) bar2.classList.add('show');
+  }
+});
+
+function timeToMins(t){
+  var p = String(t || '').split(':');
+  return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+}
+
+document.addEventListener('click', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  var t = e.target.closest('button');
+  if(!t) return;
+
+  if(t.id === 'adClose'){ location.hash = ''; return; }
+  if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
+  if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
+
+  if(!canEdit) return;
+
+  if(t.dataset.badge){
+    var b = t.dataset.badge.split(':');
+    draft.burgers[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
+    dirty = true; renderAdmin(); return;
+  }
+  if(t.dataset.del){
+    draft.burgers.splice(Number(t.dataset.del), 1);
+    dirty = true; renderAdmin(); return;
+  }
+  if(t.dataset.move){
+    var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
+    if(to >= 0 && to < draft.burgers.length){
+      var moved = draft.burgers.splice(from, 1)[0];
+      draft.burgers.splice(to, 0, moved);
+      dirty = true; renderAdmin();
+    }
+    return;
+  }
+  if(t.id === 'addBurger'){
+    draft.burgers.push({
+      id: 'item-' + Date.now(), price: 5.00, spice: 0, badge: null,
+      en: { n: 'New item', d: '' }, ar: { n: 'صنف جديد', d: '' }
+    });
+    dirty = true; renderAdmin(); return;
+  }
+  if(t.id === 'adRevert'){
+    draft = null; dirty = false;
+    loadDraft().then(renderAdmin);
+    return;
+  }
+  if(t.id === 'adSave'){
+    t.disabled = true;
+    t.textContent = lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…';
+    save().then(function(){
+      dirty = false;
+      applyContent(draft);
+      renderAdmin();
+    }).catch(function(){
+      t.disabled = false;
+      t.textContent = lang === 'ar' ? 'فشل الحفظ' : 'Save refused';
+      /* A refusal here is the server enforcing access, not a bug. */
+      setTimeout(function(){ canEdit = false; renderAdmin(); }, 1400);
+    });
+    return;
+  }
+});
+
+/* ---------------------------------------------------------- routing */
+
+function syncRoute(){
+  var root = document.getElementById('admin-root');
+  if(!root) return;
+  var open = location.hash === '#admin';
+  root.classList.toggle('open', open);
+  if(open){
+    root.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    if(!draft) loadDraft().then(renderAdmin); else renderAdmin();
+  } else {
+    root.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+  }
+}
+
+window.addEventListener('hashchange', syncRoute);
+
 /* keep the open/closed indicator honest without a reload */
 setInterval(renderHours, 30000);
+
+/* Admin route + live content. Both are additive: with no database the page
+   renders exactly as before, from the defaults in this file. */
+syncRoute();
+connectDb();
 })();
 </script>
 </body>
