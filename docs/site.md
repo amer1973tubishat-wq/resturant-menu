@@ -23,8 +23,16 @@ replace the `<use href="#burger"/>` in `.card-art` and `.hero-art` with `<img>`.
 
 ## The admin route
 
-The footer's **Admin** link opens `#admin` — a dashboard built into the page for
-editing the menu, hero text, opening hours and contact details. Saved changes
+The footer's **Admin** link opens `#admin` — a dashboard built into the page,
+with tabs for **Menu** (items, prices, photos, category, badges, spice, order),
+**Categories**, **Brand** (name and logo), **Hero** (background image),
+**Text** (every headline, the hero statistics and each section heading, per
+language), **Hours** and **Contact**.
+
+Photographs are downscaled and re-encoded to WebP in the browser, then stored
+one per document — a single document caps at 256 KiB, so keeping images out of
+the menu document is what makes several photos possible. Each image field also
+accepts a pasted `https://` URL instead of an upload. Saved changes
 land in the artifact's database and appear on the public view immediately, for
 every open tab.
 
@@ -45,6 +53,14 @@ the runtime contract treats shared data as untrusted, and so does this page.
 
 Opened as a local file there is no database, so the panel reports that plainly,
 disables every input, and the public page renders from the defaults in this file.
+
+## Categories before the menu
+
+A category chooser sits between the hero and the menu. Picking one filters the
+menu below rather than making a customer scroll one long list, and each card
+shows how many items it holds. Categories are editable, and deleting one moves
+its items to the first remaining category rather than making them disappear
+from the site.
 
 ## How a few things work
 

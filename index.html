@@ -753,6 +753,79 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
 .no-js .hero-stats,.no-js .hero-burger,.no-js .scroll-cue{ opacity:1; transform:none }
 .no-js .pin{ opacity:1 }
 
+
+/* ============================================================
+   CATEGORY CHOOSER  (sits between the hero and the menu)
+   ============================================================ */
+.sec--tight{ padding-block:clamp(56px,7vw,88px) }
+.cat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+.cat{
+  position:relative; display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:24px 18px 20px; border-radius:18px; text-align:center;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line); color:var(--cream);
+  transition:transform .38s var(--ease-spring), border-color .3s, box-shadow .38s var(--ease-out);
+}
+.cat::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; opacity:0; pointer-events:none;
+  background:radial-gradient(70% 60% at 50% 0%, rgba(255,106,26,.18), transparent 70%);
+  transition:opacity .38s var(--ease-out);
+}
+.cat:hover{ transform:translateY(-8px); border-color:rgba(255,106,26,.45);
+  box-shadow:0 22px 40px -22px rgba(0,0,0,.85) }
+.cat:hover::before{ opacity:1 }
+.cat.on{ border-color:var(--flame); background:linear-gradient(165deg,rgba(255,106,26,.14),var(--char-600)) }
+.cat.on::before{ opacity:1 }
+
+.cat-ico{
+  width:62px; height:62px; display:grid; place-items:center; border-radius:16px; overflow:hidden;
+  background:linear-gradient(150deg,rgba(242,179,61,.16),rgba(255,106,26,.08));
+  transition:transform .42s var(--ease-spring); flex:none;
+}
+.cat:hover .cat-ico{ transform:rotate(-7deg) scale(1.08) }
+.cat-ico svg{ width:30px; height:30px }
+.cat-ico img{ width:100%; height:100%; object-fit:cover }
+.cat-name{ font-family:var(--f-display); font-size:19px; text-transform:uppercase; line-height:1.1 }
+html[lang="ar"] .cat-name{ text-transform:none; font-size:18px; line-height:1.4 }
+.cat-note{ font-size:11.5px; color:var(--muted) }
+.cat-count{
+  position:absolute; top:12px; inset-inline-end:14px;
+  font-size:11px; font-weight:700; color:var(--gold);
+  background:rgba(242,179,61,.14); border:1px solid rgba(242,179,61,.3);
+  border-radius:100px; padding:2px 8px; font-variant-numeric:tabular-nums;
+}
+.menu-empty{ grid-column:1/-1; padding:40px 0; text-align:center; color:var(--muted); font-size:15px }
+
+/* ---- photographs on menu cards ---- */
+.card-art.has-photo{ background:var(--char-800) }
+.card-photo{
+  width:100%; height:100%; object-fit:cover; display:block;
+  transition:transform .5s var(--ease-spring);
+}
+.card:hover .card-photo{ transform:scale(1.06) }
+
+/* ---- hero photograph, swapped in for the illustration ---- */
+.hero-photo{
+  width:min(100%,470px); border-radius:22px; position:relative; z-index:2;
+  aspect-ratio:1/.86; object-fit:cover;
+  box-shadow:0 40px 60px -28px rgba(0,0,0,.8);
+  animation:hover-float 6.5s ease-in-out 1.6s infinite;
+}
+.ready .hero-photo{ opacity:1 }
+
+/* ---- uploaded logo replaces the burger mark ---- */
+.brand-logo{
+  width:34px; height:34px; border-radius:9px; object-fit:cover; flex:none;
+  transition:transform .4s var(--ease-spring);
+}
+.brand:hover .brand-logo{ transform:rotate(-10deg) scale(1.07) }
+
+@media (max-width:520px){
+  .cat-grid{ grid-template-columns:1fr 1fr; gap:12px }
+  .cat{ padding:18px 12px 16px }
+  .cat-ico{ width:52px; height:52px }
+}
+
 /* ============================================================
    ADMIN PANEL  (route: #admin)
    Authorisation is server-side: the artifact database only accepts
@@ -863,6 +936,29 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
   background:var(--char-600); padding:1px 6px; border-radius:5px;
   font-size:12px; color:var(--gold);
 }
+
+/* ---- image picker inside the dashboard ---- */
+.ad-img{ display:flex; gap:12px; align-items:flex-start }
+.ad-img-prev{
+  width:96px; height:96px; flex:none; border-radius:12px; overflow:hidden;
+  border:1px solid var(--line); background:var(--char-900);
+  display:grid; place-items:center;
+}
+.ad-img-prev img{ width:100%; height:100%; object-fit:cover }
+.ad-img-prev span{ font-size:11px; color:var(--muted); text-align:center; padding:6px }
+.ad-img-ctl{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:0 }
+.ad-img-ctl .ad-mini{ align-self:flex-start }
+.ad-url{
+  width:100%; padding:9px 11px; border-radius:9px; font-size:12.5px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+}
+.ad-filter{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+.ad-filter label{ font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em }
+html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
+.ad-filter select{
+  padding:9px 12px; border-radius:10px; font-size:13.5px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+}
 .ad-hours{ display:grid; grid-template-columns:auto 1fr 1fr auto; gap:10px; align-items:center }
 .ad-hours > span{ font-size:13px; color:var(--cream-dim) }
 .ad-hours input[type="time"]{ color-scheme:dark }
@@ -969,7 +1065,7 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
     </a>
     <nav class="nav-links" id="navLinks" aria-label="Main">
       <a href="#menu"  data-i18n="nav_menu">Menu</a>
-      <a href="#sides" data-i18n="nav_sides">Sides</a>
+      <a href="#categories" data-i18n="nav_sides">Categories</a>
       <a href="#build" data-i18n="nav_build">Build Yours</a>
       <a href="#story" data-i18n="nav_story">Our Story</a>
       <a href="#visit" data-i18n="nav_visit">Visit</a>
@@ -1008,13 +1104,25 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
         <div class="hstat"><b data-i18n="stat3v">4.9★</b><span data-i18n="stat3">1,200+ reviews</span></div>
       </div>
     </div>
-    <div class="hero-art">
+    <div class="hero-art" id="heroArt">
       <div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
       <svg class="hero-burger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger"><use href="#burger"/></svg>
       <div class="flame-wrap" aria-hidden="true"><span class="flame"></span><span class="flame"></span><span class="flame"></span><span class="flame"></span></div>
     </div>
   </div>
   <div class="scroll-cue" aria-hidden="true"><span data-i18n="scroll">SCROLL</span><i></i></div>
+</section>
+
+<!-- ========== CATEGORIES — pick a section before the menu ========== -->
+<section id="categories" class="sec sec--tight">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_cats">Choose a section</p>
+      <h2 class="title" data-i18n="cats_title">WHAT ARE YOU<br>IN THE MOOD FOR?</h2>
+      <p class="lede" data-i18n="cats_lede">Pick a category and the menu below follows.</p>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
 </section>
 
 <!-- ========== SIGNATURE MENU ========== -->
@@ -1029,16 +1137,6 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
   </div>
 </section>
 
-<!-- ========== SIDES & DRINKS ========== -->
-<section id="sides" class="sec">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <p class="eyebrow" data-i18n="eyebrow_sides">Sides &amp; Drinks</p>
-      <h2 class="title" data-i18n="sides_title">THE SUPPORTING CAST</h2>
-    </div>
-    <div class="side-grid" id="sideGrid"></div>
-  </div>
-</section>
 
 <!-- ========== BUILD YOUR OWN ========== -->
 <section id="build" class="sec">
@@ -1177,7 +1275,7 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
         <h4 data-i18n="foot_menu">Menu</h4>
         <ul>
           <li><a href="#menu" data-i18n="nav_menu">Menu</a></li>
-          <li><a href="#sides" data-i18n="nav_sides">Sides</a></li>
+          <li><a href="#categories" data-i18n="nav_sides">Categories</a></li>
           <li><a href="#build" data-i18n="nav_build">Build Yours</a></li>
         </ul>
       </div>
@@ -1220,35 +1318,70 @@ var reduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
    ============================================================ */
 var WA_NUMBER = '962790000000'; /* placeholder — swap for the real number */
 
-var BURGERS = [
-  { id:'petra',   price:6.50, spice:1, badge:'best',
-    en:{n:"Petra Smash",            d:"Two smashed local beef patties, aged cheddar, house pickles and smash sauce on a sesame brioche."},
-    ar:{n:"سماش البتراء",           d:"قطعتا لحم بلدي مضغوطتان، شيدر معتّق، مخلل البيت وصوص السماش على خبز بريوش بالسمسم."} },
-  { id:'rainbow', price:5.75, spice:0, badge:null,
-    en:{n:"Rainbow Street Classic", d:"Single patty, crisp lettuce, tomato, raw onion and the sauce we have not changed since 2016."},
-    ar:{n:"كلاسيك الرينبو",         d:"قطعة لحم واحدة، خس مقرمش، بندورة، بصل طازج، والصوص الذي لم نغيّره منذ ٢٠١٦."} },
-  { id:'zaatar',  price:6.25, spice:2, badge:'chef',
-    en:{n:"Za'atar Crunch",         d:"Za'atar-crusted patty, grilled halloumi, sumac onions and a lemon-tahini drizzle."},
-    ar:{n:"زعتر كرانش",             d:"لحم بقشرة زعتر، حلوم مشوي، بصل بالسماق، ورشّة طحينة بالليمون."} },
-  { id:'jabal',   price:7.50, spice:1, badge:null,
-    en:{n:"Jabal Amman Double",     d:"Double beef, double cheddar, caramelised onion and garlic toum. Built for a long night."},
-    ar:{n:"دوبل جبل عمّان",         d:"لحم مزدوج، شيدر مضاعف، بصل مكرمل وثوم. مصنوع لليالي الطويلة."} },
-  { id:'shatta',  price:7.00, spice:4, badge:'spicy',
-    en:{n:"Shatta Fire",            d:"House shatta, pickled jalapeño, pepper jack and charred green chilli. It bites back."},
-    ar:{n:"نار الشطة",              d:"شطة البيت، هالابينو مخلل، جبنة حارة وفلفل أخضر مشوي. لاذع فعلاً."} },
-  { id:'halloumi',price:5.50, spice:0, badge:'veg',
-    en:{n:"Halloumi Garden",        d:"Thick-cut grilled halloumi, olive tapenade, rocket and roasted red pepper. No beef, no apology."},
-    ar:{n:"حديقة الحلوم",           d:"حلوم مشوي سميك، تابيناد زيتون، جرجير وفلفل أحمر مشوي. بلا لحم وبلا اعتذار."} }
+/* Categories shown before the menu, so a customer picks a section
+   instead of scrolling one long list. */
+var CATEGORIES = [
+  { id:'burgers',    icon:'burger',  en:{ n:'Burgers',        t:'Smashed to order' },   ar:{ n:'برجر',              t:'مضغوط عند الطلب' } },
+  { id:'sandwiches', icon:'i-cheese',en:{ n:'Sandwiches',     t:'Saj-wrapped'      },   ar:{ n:'سندويشات',          t:'ملفوف على الصاج' } },
+  { id:'sides',      icon:'i-fries', en:{ n:'Sides',          t:'Fries and more'   },   ar:{ n:'الإضافات',          t:'بطاطا وغيرها' } },
+  { id:'drinks',     icon:'i-juice', en:{ n:'Juices & Drinks',t:'Pressed fresh'    },   ar:{ n:'العصائر والمشروبات', t:'تُعصر طازجة' } }
 ];
 
-var SIDES = [
-  { icon:'i-fries',  price:2.00, en:{n:"Sumac Fries",       t:"Skin-on, sumac salt"},   ar:{n:"بطاطا بالسماق",     t:"بالقشرة، ملح السماق"} },
-  { icon:'i-cheese', price:3.50, en:{n:"Halloumi Bites",    t:"Honey + za'atar"},       ar:{n:"قطع الحلوم",        t:"عسل وزعتر"} },
-  { icon:'i-rings',  price:2.75, en:{n:"Za'atar Onion Rings",t:"Six per basket"},       ar:{n:"حلقات بصل بالزعتر", t:"ستة في السلة"} },
-  { icon:'i-ayran',  price:1.25, en:{n:"Laban Ayran",       t:"Salted, ice cold"},      ar:{n:"لبن عيران",         t:"مملّح ومثلّج"} },
-  { icon:'i-juice',  price:2.00, en:{n:"Lemon & Mint",      t:"Pressed to order"},      ar:{n:"ليمون ونعناع",      t:"يُعصر عند الطلب"} },
-  { icon:'i-tamr',   price:1.75, en:{n:"Tamarind",          t:"Ramadan all year"},      ar:{n:"تمر هندي",          t:"رمضان طوال السنة"} }
+/* One flat list; `cat` decides which category tab an item appears under.
+   `img` is optional — a URL or a stored image id; without one the card
+   falls back to the inline burger illustration. */
+var ITEMS = [
+  { id:'petra',   cat:'burgers', price:6.50, spice:1, badge:'best', img:'',
+    en:{n:"Petra Smash",             d:"Two smashed local beef patties, aged cheddar, house pickles and smash sauce on a sesame brioche."},
+    ar:{n:"سماش البتراء",            d:"قطعتا لحم بلدي مضغوطتان، شيدر معتّق، مخلل البيت وصوص السماش على خبز بريوش بالسمسم."} },
+  { id:'rainbow', cat:'burgers', price:5.75, spice:0, badge:null, img:'',
+    en:{n:"Rainbow Street Classic",  d:"Single patty, crisp lettuce, tomato, raw onion and the sauce we have not changed since 2016."},
+    ar:{n:"كلاسيك الرينبو",          d:"قطعة لحم واحدة، خس مقرمش، بندورة، بصل طازج، والصوص الذي لم نغيّره منذ ٢٠١٦."} },
+  { id:'zaatar',  cat:'burgers', price:6.25, spice:2, badge:'chef', img:'',
+    en:{n:"Za'atar Crunch",          d:"Za'atar-crusted patty, grilled halloumi, sumac onions and a lemon-tahini drizzle."},
+    ar:{n:"زعتر كرانش",              d:"لحم بقشرة زعتر، حلوم مشوي، بصل بالسماق، ورشّة طحينة بالليمون."} },
+  { id:'jabal',   cat:'burgers', price:7.50, spice:1, badge:null, img:'',
+    en:{n:"Jabal Amman Double",      d:"Double beef, double cheddar, caramelised onion and garlic toum. Built for a long night."},
+    ar:{n:"دوبل جبل عمّان",          d:"لحم مزدوج، شيدر مضاعف، بصل مكرمل وثوم. مصنوع لليالي الطويلة."} },
+  { id:'shatta',  cat:'burgers', price:7.00, spice:4, badge:'spicy', img:'',
+    en:{n:"Shatta Fire",             d:"House shatta, pickled jalapeño, pepper jack and charred green chilli. It bites back."},
+    ar:{n:"نار الشطة",               d:"شطة البيت، هالابينو مخلل، جبنة حارة وفلفل أخضر مشوي. لاذع فعلاً."} },
+  { id:'halloumi',cat:'burgers', price:5.50, spice:0, badge:'veg', img:'',
+    en:{n:"Halloumi Garden",         d:"Thick-cut grilled halloumi, olive tapenade, rocket and roasted red pepper. No beef, no apology."},
+    ar:{n:"حديقة الحلوم",            d:"حلوم مشوي سميك، تابيناد زيتون، جرجير وفلفل أحمر مشوي. بلا لحم وبلا اعتذار."} },
+
+  { id:'sajchicken', cat:'sandwiches', price:4.75, spice:1, badge:null, img:'',
+    en:{n:"Saj Chicken Wrap",        d:"Marinated thigh, garlic toum, pickles and sumac onions in warm saj bread."},
+    ar:{n:"شاورما دجاج بالصاج",      d:"فخذ متبّل، ثوم، مخلل وبصل بالسماق في خبز صاج دافئ."} },
+  { id:'sajhalloumi',cat:'sandwiches', price:4.25, spice:0, badge:'veg', img:'',
+    en:{n:"Halloumi Saj",            d:"Grilled halloumi, tomato, mint and olive oil, rolled and pressed."},
+    ar:{n:"صاج الحلوم",              d:"حلوم مشوي، بندورة، نعناع وزيت زيتون، ملفوف ومضغوط."} },
+
+  { id:'fries',   cat:'sides',  price:2.00, spice:0, badge:null, img:'', icon:'i-fries',
+    en:{n:"Sumac Fries",             d:"Skin-on, sumac salt."},
+    ar:{n:"بطاطا بالسماق",           d:"بالقشرة، ملح السماق."} },
+  { id:'bites',   cat:'sides',  price:3.50, spice:0, badge:null, img:'', icon:'i-cheese',
+    en:{n:"Halloumi Bites",          d:"Honey and za'atar."},
+    ar:{n:"قطع الحلوم",              d:"عسل وزعتر."} },
+  { id:'rings',   cat:'sides',  price:2.75, spice:0, badge:null, img:'', icon:'i-rings',
+    en:{n:"Za'atar Onion Rings",     d:"Six per basket."},
+    ar:{n:"حلقات بصل بالزعتر",       d:"ستة في السلة."} },
+
+  { id:'ayran',   cat:'drinks', price:1.25, spice:0, badge:null, img:'', icon:'i-ayran',
+    en:{n:"Laban Ayran",             d:"Salted, ice cold."},
+    ar:{n:"لبن عيران",               d:"مملّح ومثلّج."} },
+  { id:'lemon',   cat:'drinks', price:2.00, spice:0, badge:null, img:'', icon:'i-juice',
+    en:{n:"Lemon & Mint",            d:"Pressed to order."},
+    ar:{n:"ليمون ونعناع",            d:"يُعصر عند الطلب."} },
+  { id:'tamr',    cat:'drinks', price:1.75, spice:0, badge:null, img:'', icon:'i-tamr',
+    en:{n:"Tamarind",                d:"Ramadan all year."},
+    ar:{n:"تمر هندي",                d:"رمضان طوال السنة."} }
 ];
+
+/* Brand name and hero/logo art, all editable from the dashboard. */
+var BRAND = { en:{ a:'BAYTNA', b:'BURGER' }, ar:{ a:'بيتنا', b:'برجر' }, logo:'' };
+var HERO_IMAGE = '';
+var MEDIA = {};   /* id -> data URL, loaded from the database */
 
 var STEPS = [
   { key:'bun',      multi:false, en:"Bun",      ar:"الخبز",
@@ -1289,7 +1422,7 @@ var HOURS = [
 var T = {
   en:{
     brand:'BAYTNA <b>BURGER</b>', loading:'FIRING UP THE GRILL',
-    nav_menu:'Menu', nav_sides:'Sides', nav_build:'Build Yours', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
+    nav_menu:'Menu', nav_sides:'Categories', nav_build:'Build Yours', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
     hero_badge:'Rainbow Street · Jabal Amman',
     hero_l1:'SMASHED', hero_l2:'OVER FIRE', hero_l3:'SINCE 2016',
     hero_tag:"Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.",
@@ -1298,7 +1431,8 @@ var T = {
     stat1v:'100%', stat2v:'7 min', stat3v:'4.9★',
     eyebrow_menu:'The Signatures', menu_title:'SIX BURGERS.<br>NO FILLER.',
     menu_lede:'Every patty is smashed to order on a 260°C flat-top. Prices in Jordanian Dinar, taxes included.',
-    eyebrow_sides:'Sides &amp; Drinks', sides_title:'THE SUPPORTING CAST',
+    eyebrow_cats:'Choose a section', cats_title:'WHAT ARE YOU<br>IN THE MOOD FOR?',
+    cats_lede:'Pick a category and the menu below follows.', no_items:'Nothing in this section yet.',
     eyebrow_build:'Build Your Own', build_title:'FOUR STEPS<br>TO YOUR BURGER',
     build_lede:'Pick a bun, a patty, your toppings and a sauce. The price updates as you go.',
     receipt_title:'Your Burger', receipt_sub:'Baytna Burger · Rainbow Street', total:'Total',
@@ -1326,7 +1460,7 @@ var T = {
   },
   ar:{
     brand:'بيتنا <b>برجر</b>', loading:'نُشعل الشوّاية',
-    nav_menu:'المنيو', nav_sides:'الإضافات', nav_build:'اصنع برجرك', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
+    nav_menu:'المنيو', nav_sides:'الأقسام', nav_build:'اصنع برجرك', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
     hero_badge:'شارع الرينبو · جبل عمّان',
     hero_l1:'سماش', hero_l2:'على النار', hero_l3:'منذ ٢٠١٦',
     hero_tag:'مشوي في عمّان، محبوب في كل مكان. لحم بلدي، خبز مضغوط على الصاج، وقشرة زعتر ستفكر فيها طوال الطريق إلى البيت.',
@@ -1335,7 +1469,8 @@ var T = {
     stat1v:'٪١٠٠', stat2v:'٧ دقائق', stat3v:'★٤٫٩',
     eyebrow_menu:'الأطباق المميّزة', menu_title:'ستة برجرات.<br>بلا حشو.',
     menu_lede:'كل قطعة لحم تُضغط عند الطلب على صاج بحرارة ٢٦٠ درجة. الأسعار بالدينار الأردني شاملة الضريبة.',
-    eyebrow_sides:'الإضافات والمشروبات', sides_title:'الطاقم المساند',
+    eyebrow_cats:'اختر القسم', cats_title:'شو نفسك<br>تاكل اليوم؟',
+    cats_lede:'اختر قسماً وسيتبعه المنيو في الأسفل.', no_items:'لا يوجد شيء في هذا القسم بعد.',
     eyebrow_build:'اصنع برجرك', build_title:'أربع خطوات<br>إلى برجرك',
     build_lede:'اختر الخبز واللحم والإضافات والصوص. السعر يتحدّث مع كل اختيار.',
     receipt_title:'برجرك', receipt_sub:'بيتنا برجر · شارع الرينبو', total:'المجموع',
@@ -1385,43 +1520,130 @@ var fmtTime = function(m){ return pad(Math.floor(m/60)%24) + ':' + pad(m%60); };
 /* ============================================================
    RENDER: menu + sides
    ============================================================ */
+var activeCat = 'burgers';
+
+/* An image is either a pasted https URL, an inline data URL, or an id
+   pointing at a stored image document. Anything else means "no image",
+   and the card falls back to the built-in illustration. */
+function imgSrc(v){
+  if(!v) return '';
+  if(/^https?:\/\//i.test(v) || /^data:image\//i.test(v)) return v;
+  return MEDIA[v] || '';
+}
+
+function renderCategories(){
+  var grid = $('#catGrid');
+  if(!grid) return;
+  grid.innerHTML = CATEGORIES.map(function(c, i){
+    var L = c[lang] || c.en || {};
+    var count = ITEMS.filter(function(it){ return it.cat === c.id; }).length;
+    var pic = imgSrc(c.img);
+    return '<button class="cat rv rv-d' + ((i % 4) + 1) + (activeCat === c.id ? ' on' : '') + '"'
+      + ' data-cat="' + esc(c.id) + '" aria-pressed="' + (activeCat === c.id) + '">'
+      +   '<span class="cat-ico">'
+      +     (pic
+            ? '<img src="' + esc(pic) + '" alt="" loading="lazy">'
+            : '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#' + esc(c.icon || 'i-fries') + '"/></svg>')
+      +   '</span>'
+      +   '<span class="cat-name">' + esc(L.n || c.id) + '</span>'
+      +   '<span class="cat-note">' + esc(L.t || '') + '</span>'
+      +   '<span class="cat-count">' + count + '</span>'
+      + '</button>';
+  }).join('');
+  observeReveals(grid);
+}
+
 function renderMenu(){
   var t = T[lang];
-  $('#menuGrid').innerHTML = BURGERS.map(function(b,i){
-    var L = b[lang];
+  var list = ITEMS.filter(function(it){ return it.cat === activeCat; });
+  var grid = $('#menuGrid');
+  if(!grid) return;
+
+  if(list.length === 0){
+    grid.innerHTML = '<p class="menu-empty">' + esc(t.no_items) + '</p>';
+    return;
+  }
+
+  var tints = ['#3A2418','#2E2A18','#38221C','#2B2620','#3E1E14','#22301F'];
+
+  grid.innerHTML = list.map(function(b, i){
+    var L = b[lang] || b.en || {};
     var badge = b.badge
-      ? '<span class="card-badge' + (b.badge==='best'||b.badge==='chef' ? ' gold':'') + '">' + t.badges[b.badge] + '</span>'
+      ? '<span class="card-badge' + (b.badge === 'best' || b.badge === 'chef' ? ' gold' : '') + '">'
+        + esc(t.badges[b.badge] || b.badge) + '</span>'
       : '';
     var dots = '';
-    for(var s=0; s<5; s++) dots += '<i class="' + (s < b.spice ? 'on':'') + '"></i>';
-    var tints=['#3A2418','#2E2A18','#38221C','#2B2620','#3E1E14','#22301F'];
-    return '<article class="card rv rv-d' + ((i%3)+1) + '" tabindex="0">'
-      +   '<div class="card-art" style="--art:' + tints[i%tints.length] + '">' + badge
-      +     '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>'
+    for(var sp = 0; sp < 5; sp++) dots += '<i class="' + (sp < (b.spice || 0) ? 'on' : '') + '"></i>';
+
+    var pic = imgSrc(b.img);
+    var art = pic
+      ? '<img class="card-photo" src="' + esc(pic) + '" alt="' + esc(L.n || '') + '" loading="lazy">'
+      : '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#' + esc(b.icon || 'burger') + '"/></svg>';
+
+    return '<article class="card rv rv-d' + ((i % 3) + 1) + '" tabindex="0">'
+      +   '<div class="card-art' + (pic ? ' has-photo' : '') + '" style="--art:' + tints[i % tints.length] + '">'
+      +     badge + art
       +   '</div>'
       +   '<div class="card-top"><h3 class="card-name">' + esc(L.n) + '</h3>'
-      +     '<span class="price">' + b.price.toFixed(2) + '<small>' + t.cur + '</small></span></div>'
+      +     '<span class="price">' + Number(b.price || 0).toFixed(2) + '<small>' + t.cur + '</small></span></div>'
       +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
       +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
-      +     '<button class="add-btn" type="button" data-add="' + b.id + '">' + t.add + '</button>'
+      +     '<button class="add-btn" type="button" data-add="' + esc(b.id) + '">' + t.add + '</button>'
       +   '</div>'
       + '</article>';
   }).join('');
-  observeReveals($('#menuGrid'));
+  observeReveals(grid);
 }
 
-function renderSides(){
-  $('#sideGrid').innerHTML = SIDES.map(function(s,i){
-    var L = s[lang];
-    return '<div class="side rv rv-d' + ((i%6)+1) + '">'
-      +   '<span class="side-ico"><svg width="28" height="28" aria-hidden="true"><use href="#' + s.icon + '"/></svg></span>'
-      +   '<p class="side-name">' + esc(L.n) + '</p>'
-      +   '<span class="side-price">' + s.price.toFixed(2) + ' ' + T[lang].cur + '</span>'
-      +   '<p class="side-note">' + esc(L.t) + '</p>'
-      + '</div>';
-  }).join('');
-  observeReveals($('#sideGrid'));
+/* Brand wordmark and logo, both editable from the dashboard. */
+function renderBrand(){
+  var L = BRAND[lang] || BRAND.en;
+  $$('.brand-name').forEach(function(el){
+    el.innerHTML = esc(L.a) + ' <b>' + esc(L.b) + '</b>';
+  });
+  var logo = imgSrc(BRAND.logo);
+  $$('.brand-mark').forEach(function(el){
+    var holder = el.parentElement;
+    if(!holder) return;
+    var existing = holder.querySelector('.brand-logo');
+    if(logo){
+      if(!existing){
+        existing = document.createElement('img');
+        existing.className = 'brand-logo';
+        existing.alt = '';
+        holder.insertBefore(existing, el);
+      }
+      existing.src = logo;
+      existing.hidden = false;
+      el.style.display = 'none';
+    } else {
+      if(existing) existing.hidden = true;
+      el.style.display = '';
+    }
+  });
+}
+
+function renderHeroImage(){
+  var wrap = $('#heroArt');
+  if(!wrap) return;
+  var pic = imgSrc(HERO_IMAGE);
+  var svg = wrap.querySelector('.hero-burger');
+  var img = wrap.querySelector('.hero-photo');
+  if(pic){
+    if(!img){
+      img = document.createElement('img');
+      img.className = 'hero-photo';
+      img.alt = '';
+      wrap.insertBefore(img, wrap.querySelector('.flame-wrap'));
+    }
+    img.src = pic;
+    img.hidden = false;
+    if(svg) svg.style.display = 'none';
+  } else {
+    if(img) img.hidden = true;
+    if(svg) svg.style.display = '';
+  }
 }
 
 function renderIngredients(){
@@ -1554,7 +1776,7 @@ $('#stepPanel').addEventListener('click', function(e){
 /* "Add" on a signature card seeds the builder */
 document.addEventListener('click', function(e){
   var b = e.target.closest('[data-add]'); if(!b) return;
-  var burger = BURGERS.filter(function(x){ return x.id === b.dataset.add; })[0];
+  var burger = ITEMS.filter(function(x){ return x.id === b.dataset.add; })[0];
   if(!burger) return;
   pick.bun = 'brioche';
   pick.patty = (burger.id === 'halloumi') ? 'halloumi' : (burger.id === 'jabal' || burger.id === 'petra' ? 'double' : 'single');
@@ -1563,6 +1785,17 @@ document.addEventListener('click', function(e){
   activeStep = 3;
   renderSteps(); renderOptions(); renderReceipt();
   $('#build').scrollIntoView({ behavior: reduced ? 'auto':'smooth', block:'start' });
+});
+
+/* Category chooser drives the menu below it. */
+document.addEventListener('click', function(e){
+  var b = e.target.closest('[data-cat]');
+  if(!b) return;
+  activeCat = b.dataset.cat;
+  renderCategories();
+  renderMenu();
+  var menu = document.getElementById('menu');
+  if(menu) menu.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
 });
 
 /* ============================================================
@@ -1639,7 +1872,16 @@ function setLang(next){
     var over = OVERRIDES[lang] ? OVERRIDES[lang][key] : null;
     /* Admin-supplied text goes in as text, never markup. The built-in strings
        are authored in this file and may legitimately carry <br>. */
-    if(over != null && over !== ''){ el.textContent = over; return; }
+    if(over != null && over !== ''){
+      /* Built as text nodes plus <br>, never innerHTML, so a stored line
+         break renders as a line break and stored markup never executes. */
+      el.textContent = '';
+      String(over).split(/\r?\n/).forEach(function(line, i){
+        if(i) el.appendChild(document.createElement('br'));
+        el.appendChild(document.createTextNode(line));
+      });
+      return;
+    }
     var v = T[lang][key];
     if(v != null) el.innerHTML = v;
   });
@@ -1648,7 +1890,8 @@ function setLang(next){
     b.setAttribute('aria-pressed', String(b.dataset.lang === next));
   });
 
-  renderMenu(); renderSides(); renderIngredients();
+  renderBrand(); renderCategories(); renderMenu(); renderIngredients();
+  renderHeroImage();
   renderSteps(); renderOptions(); renderReceipt(); renderHours();
   buildWaLink();
   try{ localStorage.setItem('baytna-lang', next); }catch(e){}
@@ -1736,7 +1979,7 @@ if(revealIO){
       });
     });
   }, { rootMargin:'-45% 0px -50% 0px' });
-  ['menu','sides','build','story','visit'].forEach(function(id){
+  ['categories','menu','build','story','visit'].forEach(function(id){
     var s = document.getElementById(id); if(s) linkIO.observe(s);
   });
 }
@@ -1829,74 +2072,158 @@ setTimeout(once, 2600);
    ADMIN DASHBOARD  —  route: #admin
    ------------------------------------------------------------
    Authorisation is NOT done in this file. The page declares the `db`
-   capability with a rule of { read: "interact", write: "admin" }, so the
-   platform only accepts writes from viewers who have EDIT access to this
-   artifact. A visitor with the link can open this panel and read it, but
-   every save is refused server-side. That is why there is no password
-   here: a password checked in client JavaScript is visible in view-source
-   and would protect nothing.
+   capability with { read: "interact", write: "admin" }, so the platform
+   accepts writes only from viewers with EDIT access to this artifact.
+   A visitor with the link can open this panel and read it; every save is
+   refused server-side. There is deliberately no password here — one
+   checked in client JavaScript is visible in view-source and protects
+   nothing.
    ============================================================ */
-var DB = null;          // db namespace, or null when unavailable
-var canEdit = false;    // proven by a real write, never assumed
+var DB = null;
+var canEdit = false;
 var adminTab = 'menu';
-var draft = null;       // working copy; committed on Save
+var draft = null;
 var dirty = false;
+var pendingMedia = {};   /* id -> data URL, written on save */
 
 var DOC_MENU = 'content/menu';
 var DOC_SITE = 'content/site';
 
-/* Defaults double as the seed and as the fallback when there is no
-   database (opened as a local file, or capability not granted). */
+/* Text keys the dashboard exposes, grouped as they appear on the page. */
+var TEXT_GROUPS = [
+  { title:{en:'Hero',            ar:'الواجهة'},
+    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag'] },
+  { title:{en:'Hero statistics', ar:'أرقام الواجهة'},
+    keys:['stat1v','stat1','stat2v','stat2','stat3v','stat3'] },
+  { title:{en:'Section headings',ar:'عناوين الأقسام'},
+    keys:['eyebrow_cats','cats_title','cats_lede','eyebrow_menu','menu_title','menu_lede',
+          'eyebrow_build','build_title','eyebrow_story','story_title','eyebrow_visit','visit_title'] }
+];
+
+var TEXT_LABEL = {
+  hero_badge:'Badge line', hero_l1:'Headline 1', hero_l2:'Headline 2 (flame)',
+  hero_l3:'Headline 3', hero_tag:'Tagline',
+  stat1v:'Stat 1 value', stat1:'Stat 1 label',
+  stat2v:'Stat 2 value', stat2:'Stat 2 label',
+  stat3v:'Stat 3 value', stat3:'Stat 3 label',
+  eyebrow_cats:'Categories eyebrow', cats_title:'Categories title', cats_lede:'Categories intro',
+  eyebrow_menu:'Menu eyebrow', menu_title:'Menu title', menu_lede:'Menu intro',
+  eyebrow_build:'Builder eyebrow', build_title:'Builder title',
+  eyebrow_story:'Story eyebrow', story_title:'Story title',
+  eyebrow_visit:'Visit eyebrow', visit_title:'Visit title'
+};
+
 function snapshotDefaults(){
+  var clone = function(x){ return JSON.parse(JSON.stringify(x)); };
   return {
-    burgers: BURGERS.map(function(b){ return JSON.parse(JSON.stringify(b)); }),
-    sides:   SIDES.map(function(x){ return JSON.parse(JSON.stringify(x)); }),
-    hours:   HOURS.map(function(h){ return { o:h.o, c:h.c }; }),
-    hero: {
-      en: { hero_l1:'', hero_l2:'', hero_l3:'', hero_tag:'', hero_badge:'' },
-      ar: { hero_l1:'', hero_l2:'', hero_l3:'', hero_tag:'', hero_badge:'' }
-    },
-    contact: { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
+    categories: CATEGORIES.map(clone),
+    items:      ITEMS.map(clone),
+    hours:      HOURS.map(function(h){ return { o:h.o, c:h.c }; }),
+    text:       { en:{}, ar:{} },
+    brand:      clone(BRAND),
+    heroImage:  HERO_IMAGE,
+    contact:    { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
   };
 }
 
 /* ---------------------------------------------------------- apply */
 
-function applyContent(data){
-  if(!data) return;
-  if(Array.isArray(data.burgers) && data.burgers.length) BURGERS = data.burgers;
-  if(Array.isArray(data.sides)   && data.sides.length)   SIDES   = data.sides;
-  if(Array.isArray(data.hours)   && data.hours.length === 7){
-    HOURS = data.hours.map(function(h){
-      return { o: Number(h.o) || 0, c: Number(h.c) || 0 };
-    });
+function applyContent(d){
+  if(!d) return;
+  if(Array.isArray(d.categories) && d.categories.length) CATEGORIES = d.categories;
+  if(Array.isArray(d.items) && d.items.length) ITEMS = d.items;
+  if(Array.isArray(d.hours) && d.hours.length === 7){
+    HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
   }
-  if(data.hero){
-    OVERRIDES.en = data.hero.en || {};
-    OVERRIDES.ar = data.hero.ar || {};
+  if(d.text){ OVERRIDES.en = d.text.en || {}; OVERRIDES.ar = d.text.ar || {}; }
+  if(d.brand) BRAND = d.brand;
+  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
+  if(d.contact && d.contact.whatsapp){
+    WA_NUMBER = String(d.contact.whatsapp).replace(/[^\d]/g, '') || WA_NUMBER;
   }
-  if(data.contact && data.contact.whatsapp){
-    WA_NUMBER = String(data.contact.whatsapp).replace(/[^\d]/g, '') || WA_NUMBER;
+  /* keep the selected category valid after an edit */
+  if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
+    activeCat = (CATEGORIES[0] || {}).id || 'burgers';
   }
-  setLang(lang);          // re-renders menu, sides, hours and hero text
+  setLang(lang);
   observeReveals();
   sweepPassed();
+}
+
+/* ---------------------------------------------------------- images */
+
+/* Images are downscaled and re-encoded in the browser, then stored one
+   per document — a single document caps at 256 KiB, so keeping them out
+   of the menu document is what makes several photos possible at all. */
+function readImage(file, cb){
+  if(!file || !/^image\//.test(file.type)){ cb(null, 'Not an image file'); return; }
+  var reader = new FileReader();
+  reader.onerror = function(){ cb(null, 'Could not read that file'); };
+  reader.onload = function(){
+    var img = new Image();
+    img.onerror = function(){ cb(null, 'That file is not a readable image'); };
+    img.onload = function(){
+      var max = 900, w = img.width, h = img.height;
+      if(w > max || h > max){
+        var r = Math.min(max / w, max / h);
+        w = Math.round(w * r); h = Math.round(h * r);
+      }
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      var out = '';
+      var qualities = [0.72, 0.58, 0.45, 0.34];
+      for(var i = 0; i < qualities.length; i++){
+        out = c.toDataURL('image/webp', qualities[i]);
+        if(out.length < 190000) break;
+      }
+      if(out.length >= 190000){ cb(null, 'That image is too large even after compression'); return; }
+      cb(out, null);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function pickImage(onDone){
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/png,image/jpeg,image/webp,image/gif,image/avif';
+  inp.addEventListener('change', function(){
+    var f = inp.files && inp.files[0];
+    if(!f) return;
+    readImage(f, function(dataUrl, err){
+      if(err || !dataUrl){ alert(err || 'Could not use that image'); return; }
+      var id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      pendingMedia[id] = dataUrl;
+      MEDIA[id] = dataUrl;
+      onDone(id);
+    });
+  });
+  inp.click();
 }
 
 /* ---------------------------------------------------------- database */
 
 function connectDb(){
   if(!window.claude || typeof window.claude.use !== 'function'){ renderAdmin(); return; }
-
   window.claude.use('db').then(function(db){
     DB = db;
     if(!DB){ renderAdmin(); return; }
 
-    /* Live: another editor's save reaches every open view. */
+    DB.collection('media').get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if(d && typeof d.url === 'string') MEDIA[doc.id] = d.url;
+      });
+      setLang(lang);
+    }).catch(function(){});
+
     DB.doc(DOC_MENU).onSnapshot(function(snap){
       if(snap.exists) applyContent(snap.data());
       renderAdmin();
-    }, function(){ /* terminal; the page keeps working on defaults */ });
+    }, function(){});
 
     DB.doc(DOC_SITE).onSnapshot(function(snap){
       if(snap.exists) applyContent(snap.data());
@@ -1907,17 +2234,12 @@ function connectDb(){
   }).catch(function(){ DB = null; renderAdmin(); });
 }
 
-/* The only honest way to know whether this viewer may write is to try.
-   A viewer below `admin` gets invalid_argument and lands in read-only. */
+/* The only honest way to learn whether this viewer may write is to try. */
 function probeAccess(){
   if(!DB) return;
-  DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
-    canEdit = true;
-    renderAdmin();
-  }).catch(function(){
-    canEdit = false;
-    renderAdmin();
-  });
+  DB.doc('meta/access-probe').set({ at: Date.now() })
+    .then(function(){ canEdit = true;  renderAdmin(); })
+    .catch(function(){ canEdit = false; renderAdmin(); });
 }
 
 function loadDraft(){
@@ -1925,28 +2247,45 @@ function loadDraft(){
   if(!DB){ draft = base; return Promise.resolve(); }
   return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()])
     .then(function(res){
-      var m = res[0].exists ? res[0].data() : {};
+      var m  = res[0].exists ? res[0].data() : {};
       var st = res[1].exists ? res[1].data() : {};
       draft = {
-        burgers: Array.isArray(m.burgers) && m.burgers.length ? m.burgers : base.burgers,
-        sides:   Array.isArray(m.sides)   && m.sides.length   ? m.sides   : base.sides,
-        hours:   Array.isArray(st.hours)  && st.hours.length === 7 ? st.hours : base.hours,
-        hero:    st.hero    || base.hero,
-        contact: st.contact || base.contact
+        categories: Array.isArray(m.categories) && m.categories.length ? m.categories : base.categories,
+        items:      Array.isArray(m.items) && m.items.length ? m.items : base.items,
+        hours:      Array.isArray(st.hours) && st.hours.length === 7 ? st.hours : base.hours,
+        text:       st.text  || base.text,
+        brand:      st.brand || base.brand,
+        heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+        contact:    st.contact || base.contact
       };
+      if(!draft.text.en) draft.text.en = {};
+      if(!draft.text.ar) draft.text.ar = {};
     })
     .catch(function(){ draft = base; });
 }
 
 function save(){
   if(!DB || !canEdit) return Promise.reject(new Error('read-only'));
-  return Promise.all([
-    DB.doc(DOC_MENU).set({ burgers: draft.burgers, sides: draft.sides, updatedAt: Date.now() }),
-    DB.doc(DOC_SITE).set({ hours: draft.hours, hero: draft.hero, contact: draft.contact, updatedAt: Date.now() })
-  ]);
+  /* Images first: a menu document referencing an image id that was never
+     written would render as a missing picture. */
+  var media = Object.keys(pendingMedia).map(function(id){
+    return DB.doc('media/' + id).set({ url: pendingMedia[id], at: Date.now() });
+  });
+  return Promise.all(media).then(function(){
+    pendingMedia = {};
+    return Promise.all([
+      DB.doc(DOC_MENU).set({
+        categories: draft.categories, items: draft.items, updatedAt: Date.now()
+      }),
+      DB.doc(DOC_SITE).set({
+        hours: draft.hours, text: draft.text, brand: draft.brand,
+        heroImage: draft.heroImage, contact: draft.contact, updatedAt: Date.now()
+      })
+    ]);
+  });
 }
 
-/* ---------------------------------------------------------- rendering */
+/* ---------------------------------------------------------- widgets */
 
 function adminStatus(){
   if(!DB)      return { cls:'off', text: lang === 'ar' ? 'غير متصل بقاعدة البيانات' : 'No database on this view' };
@@ -1955,71 +2294,182 @@ function adminStatus(){
 }
 
 function field(label, value, path, type, attrs){
-  return '<div class="ad-field' + (attrs && attrs.full ? ' full' : '') + '">'
-    + '<label for="f-' + esc(path) + '">' + esc(label) + '</label>'
+  attrs = attrs || {};
+  var id = 'f-' + path.replace(/[^\w-]/g, '_');
+  return '<div class="ad-field' + (attrs.full ? ' full' : '') + '">'
+    + '<label for="' + id + '">' + esc(label) + '</label>'
     + (type === 'textarea'
-        ? '<textarea id="f-' + esc(path) + '" data-path="' + esc(path) + '"'
-          + (attrs && attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled') + '>' + esc(value) + '</textarea>'
-        : '<input id="f-' + esc(path) + '" data-path="' + esc(path) + '" type="' + (type || 'text') + '"'
-          + (type === 'number' ? ' step="0.25" min="0"' : '')
-          + (attrs && attrs.rtl ? ' dir="rtl"' : '')
-          + (canEdit ? '' : ' disabled')
+        ? '<textarea id="' + id + '" data-path="' + esc(path) + '"'
+          + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
+          + (attrs.rows ? ' rows="' + attrs.rows + '"' : '') + '>' + esc(value) + '</textarea>'
+        : '<input id="' + id + '" data-path="' + esc(path) + '" type="' + (type || 'text') + '"'
+          + (type === 'number' ? ' step="' + (attrs.step || '0.25') + '" min="0"' : '')
+          + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
+          + (attrs.placeholder ? ' placeholder="' + esc(attrs.placeholder) + '"' : '')
           + ' value="' + esc(value) + '">')
     + '</div>';
+}
+
+/* Upload / paste-a-URL / clear, for any image field in the draft. */
+function imageField(label, value, path){
+  var pic = imgSrc(value);
+  return '<div class="ad-field full"><label>' + esc(label) + '</label>'
+    + '<div class="ad-img">'
+    +   '<div class="ad-img-prev">'
+    +     (pic ? '<img src="' + esc(pic) + '" alt="">'
+                : '<span>' + (lang === 'ar' ? 'لا صورة' : 'No image') + '</span>')
+    +   '</div>'
+    +   '<div class="ad-img-ctl">'
+    +     '<button class="ad-mini" data-upload="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
+    +       (lang === 'ar' ? 'رفع صورة' : 'Upload') + '</button>'
+    +     '<button class="ad-mini danger" data-clearimg="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
+    +       (lang === 'ar' ? 'إزالة' : 'Clear') + '</button>'
+    +     '<input class="ad-url" data-path="' + esc(path) + '" value="' + esc(value || '') + '"'
+    +       (canEdit ? '' : ' disabled')
+    +       ' placeholder="' + (lang === 'ar' ? 'أو الصق رابط صورة' : 'or paste an image URL') + '">'
+    +   '</div>'
+    + '</div></div>';
+}
+
+/* ---------------------------------------------------------- tabs */
+
+function tabBrand(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var b = draft.brand[L] || { a:'', b:'' };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'اسم المطعم وشعاره' : 'Restaurant name & logo') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'الاسم مكوّن من جزأين: الأول أبيض والثاني بلون اللهب. بدّل اللغة من الأعلى لتحرير النسخة العربية.'
+        : 'The name is two parts: the first renders white, the second in flame orange. Switch language in the top bar to edit the other version.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field(lang === 'ar' ? 'الجزء الأول' : 'First part', b.a || '', 'brand.' + L + '.a', 'text', { rtl: L === 'ar' })
+    + field(lang === 'ar' ? 'الجزء الثاني (ملوّن)' : 'Second part (accent)', b.b || '', 'brand.' + L + '.b', 'text', { rtl: L === 'ar' })
+    + imageField(lang === 'ar' ? 'شعار المطعم' : 'Logo', draft.brand.logo, 'brand.logo')
+    + '</div></div>';
+}
+
+function tabHero(){
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'صورة الواجهة' : 'Hero image') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'تحلّ محل رسمة البرجر الكبيرة. اتركها فارغة للعودة إلى الرسمة.'
+        : 'Replaces the large burger illustration. Leave it empty to go back to the illustration.')
+    + '</p>'
+    + '<div class="ad-grid">' + imageField(lang === 'ar' ? 'الصورة' : 'Image', draft.heroImage, 'heroImage') + '</div>'
+    + '</div>'
+    + '<div class="ad-note">'
+    + (lang === 'ar'
+        ? 'نصوص الواجهة والعناوين تُحرَّر في تبويب <b>النصوص</b>.'
+        : 'Hero wording and headlines are edited in the <b>Text</b> tab.')
+    + '</div>';
+}
+
+function tabCats(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var out = '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'هذه الأقسام تظهر قبل المنيو ليختار الزبون قسماً بدل تصفّح القائمة كاملة.'
+        : 'These appear before the menu so a customer picks a section instead of scrolling the whole list.')
+    + '</p>';
+  draft.categories.forEach(function(c, i){
+    var CL = c[L] || {};
+    out += '<div class="ad-card">'
+      + '<div class="ad-row-top"><strong>' + esc(CL.n || c.id) + '</strong>'
+      + '<button class="ad-mini" data-cmove="' + i + '" data-dir="-1"' + (canEdit ? '' : ' disabled') + '>&uarr;</button>'
+      + '<button class="ad-mini" data-cmove="' + i + '" data-dir="1"' + (canEdit ? '' : ' disabled') + '>&darr;</button>'
+      + '<button class="ad-mini danger" data-cdel="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
+      + '<div class="ad-grid">'
+      + field(lang === 'ar' ? 'الاسم' : 'Name', CL.n || '', 'categories.' + i + '.' + L + '.n', 'text', { rtl: L === 'ar' })
+      + field(lang === 'ar' ? 'سطر وصف' : 'Small note', CL.t || '', 'categories.' + i + '.' + L + '.t', 'text', { rtl: L === 'ar' })
+      + imageField(lang === 'ar' ? 'صورة القسم' : 'Category image', c.img, 'categories.' + i + '.img')
+      + '</div></div>';
+  });
+  out += '<button class="ad-mini" id="addCat"' + (canEdit ? '' : ' disabled') + '>+ '
+    + (lang === 'ar' ? 'قسم جديد' : 'Add category') + '</button>';
+  return out;
 }
 
 var BADGE_KEYS = ['best', 'chef', 'spicy', 'veg'];
 
 function tabMenu(){
-  var out = '';
-  draft.burgers.forEach(function(b, i){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var out = '<div class="ad-filter">'
+    + '<label>' + (lang === 'ar' ? 'القسم' : 'Category') + '</label>'
+    + '<select id="adCatFilter"' + (canEdit ? '' : ' disabled') + '>'
+    + draft.categories.map(function(c){
+        var CL = c[L] || {};
+        return '<option value="' + esc(c.id) + '"' + (adminCat === c.id ? ' selected' : '') + '>'
+          + esc(CL.n || c.id) + '</option>';
+      }).join('')
+    + '</select></div>';
+
+  var any = false;
+  draft.items.forEach(function(b, i){
+    if(b.cat !== adminCat) return;
+    any = true;
+    var IL = b[L] || {};
     out += '<div class="ad-card">'
-      + '<div class="ad-row-top"><strong>' + esc(b.en ? b.en.n : '') + '</strong>'
+      + '<div class="ad-row-top"><strong>' + esc(IL.n || b.id) + '</strong>'
       + '<button class="ad-mini" data-move="' + i + '" data-dir="-1"' + (canEdit ? '' : ' disabled') + '>&uarr;</button>'
       + '<button class="ad-mini" data-move="' + i + '" data-dir="1"' + (canEdit ? '' : ' disabled') + '>&darr;</button>'
       + '<button class="ad-mini danger" data-del="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
       + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
       + '<div class="ad-grid">'
-      + field('Name (EN)', b.en ? b.en.n : '', 'burgers.' + i + '.en.n')
-      + field('الاسم (AR)', b.ar ? b.ar.n : '', 'burgers.' + i + '.ar.n', 'text', { rtl:1 })
-      + field('Description (EN)', b.en ? b.en.d : '', 'burgers.' + i + '.en.d', 'textarea')
-      + field('الوصف (AR)', b.ar ? b.ar.d : '', 'burgers.' + i + '.ar.d', 'textarea', { rtl:1 })
-      + field('Price (JD)', b.price, 'burgers.' + i + '.price', 'number')
-      + field('Spice 0-5', b.spice, 'burgers.' + i + '.spice', 'number')
+      + field(lang === 'ar' ? 'الاسم' : 'Name', IL.n || '', 'items.' + i + '.' + L + '.n', 'text', { rtl: L === 'ar' })
+      + field(lang === 'ar' ? 'السعر' : 'Price (JD)', b.price, 'items.' + i + '.price', 'number')
+      + field(lang === 'ar' ? 'الوصف' : 'Description', IL.d || '', 'items.' + i + '.' + L + '.d', 'textarea', { full:1, rtl: L === 'ar' })
+      + '<div class="ad-field"><label>' + (lang === 'ar' ? 'القسم' : 'Category') + '</label>'
+      +   '<select data-catof="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      +   draft.categories.map(function(c){
+            var CL2 = c[L] || {};
+            return '<option value="' + esc(c.id) + '"' + (b.cat === c.id ? ' selected' : '') + '>'
+              + esc(CL2.n || c.id) + '</option>';
+          }).join('')
+      +   '</select></div>'
+      + field(lang === 'ar' ? 'الحرارة ٠-٥' : 'Spice 0-5', b.spice || 0, 'items.' + i + '.spice', 'number', { step:'1' })
       + '<div class="ad-field full"><label>' + (lang === 'ar' ? 'الشارة' : 'Badge') + '</label>'
-      + '<div class="ad-chips">'
-      + BADGE_KEYS.map(function(k){
-          return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
-            + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
-            + esc(T[lang].badges[k] || k) + '</button>';
-        }).join('')
-      + '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
-      + (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
-      + '</div></div>'
+      +   '<div class="ad-chips">'
+      +   BADGE_KEYS.map(function(k){
+            return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
+              + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
+              + esc(T[lang].badges[k] || k) + '</button>';
+          }).join('')
+      +   '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
+      +   (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
+      +   '</div></div>'
+      + imageField(lang === 'ar' ? 'صورة الصنف' : 'Item photo', b.img, 'items.' + i + '.img')
       + '</div></div>';
   });
-  out += '<button class="ad-mini" id="addBurger"' + (canEdit ? '' : ' disabled') + '>+ '
+
+  if(!any) out += '<p class="ad-note">' + (lang === 'ar' ? 'لا أصناف في هذا القسم.' : 'No items in this category yet.') + '</p>';
+  out += '<button class="ad-mini" id="addItem"' + (canEdit ? '' : ' disabled') + '>+ '
     + (lang === 'ar' ? 'صنف جديد' : 'Add item') + '</button>';
   return out;
 }
 
-function tabHero(){
+function tabText(){
   var L = lang === 'ar' ? 'ar' : 'en';
-  var h = draft.hero[L] || {};
-  return '<div class="ad-card"><div class="ad-head"><h2>'
-    + (lang === 'ar' ? 'الواجهة' : 'Hero') + '</h2></div>'
-    + '<p class="ad-note" style="margin-bottom:14px">'
+  var out = '<p class="ad-note" style="margin-bottom:14px">'
     + (lang === 'ar'
-        ? 'اتركه فارغاً لاستخدام النص الأصلي. كل لغة تُحرَّر على حدة — بدّل اللغة من الأعلى.'
-        : 'Leave a field empty to keep the built-in text. Each language is edited separately — switch language in the top bar.')
-    + '</p>'
-    + '<div class="ad-grid">'
-    + field('Badge line', h.hero_badge || '', 'hero.' + L + '.hero_badge', 'text', { full:1, rtl: L === 'ar' })
-    + field('Headline line 1', h.hero_l1 || '', 'hero.' + L + '.hero_l1', 'text', { rtl: L === 'ar' })
-    + field('Headline line 2', h.hero_l2 || '', 'hero.' + L + '.hero_l2', 'text', { rtl: L === 'ar' })
-    + field('Headline line 3', h.hero_l3 || '', 'hero.' + L + '.hero_l3', 'text', { rtl: L === 'ar' })
-    + field('Tagline', h.hero_tag || '', 'hero.' + L + '.hero_tag', 'textarea', { full:1, rtl: L === 'ar' })
-    + '</div></div>';
+        ? 'اتركه فارغاً لاستخدام النص الأصلي. كل لغة تُحرَّر على حدة — بدّل اللغة من الأعلى. الأسطر الجديدة تُحترم في العناوين.'
+        : 'Leave a field empty to keep the built-in text. Each language is edited separately — switch language in the top bar. Line breaks are kept in headings.')
+    + '</p>';
+  TEXT_GROUPS.forEach(function(g){
+    out += '<div class="ad-card"><div class="ad-head"><h2>' + esc(g.title[lang] || g.title.en) + '</h2></div>'
+      + '<div class="ad-grid">'
+      + g.keys.map(function(k){
+          var big = /title|tag|lede/.test(k);
+          return field(TEXT_LABEL[k] || k, (draft.text[L] || {})[k] || '',
+            'text.' + L + '.' + k, big ? 'textarea' : 'text',
+            { full: big, rtl: L === 'ar', rows: 2 });
+        }).join('')
+      + '</div></div>';
+  });
+  return out;
 }
 
 function tabHours(){
@@ -2028,15 +2478,16 @@ function tabHours(){
     + (lang === 'ar' ? 'أوقات العمل' : 'Opening hours') + '</h2></div>'
     + '<p class="ad-note" style="margin-bottom:14px">'
     + (lang === 'ar'
-        ? 'بتوقيت عمّان. إذا كان وقت الإغلاق قبل وقت الفتح فهو بعد منتصف الليل.'
-        : 'Amman time. A closing time earlier than the opening time is treated as after midnight.')
+        ? 'بتوقيت عمّان. وقت إغلاق أبكر من وقت الفتح يعني بعد منتصف الليل.'
+        : 'Amman time. A closing time earlier than the opening time means after midnight.')
     + '</p>';
   draft.hours.forEach(function(h, i){
     out += '<div class="ad-hours" style="margin-bottom:10px">'
       + '<span>' + esc(days[i]) + '</span>'
       + '<input type="time" data-hour="' + i + ':o" value="' + fmtTime(h.o) + '"' + (canEdit ? '' : ' disabled') + '>'
       + '<input type="time" data-hour="' + i + ':c" value="' + fmtTime(h.c) + '"' + (canEdit ? '' : ' disabled') + '>'
-      + '<span style="font-size:11px;color:var(--muted)">' + (h.c > 1440 ? (lang === 'ar' ? 'اليوم التالي' : 'next day') : '') + '</span>'
+      + '<span style="font-size:11px;color:var(--muted)">'
+      + (h.c > 1440 ? (lang === 'ar' ? 'اليوم التالي' : 'next day') : '') + '</span>'
       + '</div>';
   });
   return out + '</div>';
@@ -2046,42 +2497,54 @@ function tabContact(){
   return '<div class="ad-card"><div class="ad-head"><h2>'
     + (lang === 'ar' ? 'التواصل' : 'Contact') + '</h2></div>'
     + '<div class="ad-grid">'
-    + field('WhatsApp (digits only)', draft.contact.whatsapp || '', 'contact.whatsapp')
-    + field('Phone', draft.contact.phone || '', 'contact.phone')
+    + field(lang === 'ar' ? 'واتساب (أرقام فقط)' : 'WhatsApp (digits only)', draft.contact.whatsapp || '', 'contact.whatsapp')
+    + field(lang === 'ar' ? 'الهاتف' : 'Phone', draft.contact.phone || '', 'contact.phone')
     + '</div></div>';
 }
+
+/* ---------------------------------------------------------- shell */
+
+var adminCat = 'burgers';
 
 function renderAdmin(){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open')) return;
   if(!draft){ loadDraft().then(renderAdmin); return; }
 
+  if(!draft.categories.some(function(c){ return c.id === adminCat; })){
+    adminCat = (draft.categories[0] || {}).id || 'burgers';
+  }
+
   var st = adminStatus();
   var tabs = [
-    ['menu',    lang === 'ar' ? 'المنيو' : 'Menu'],
-    ['hero',    lang === 'ar' ? 'الواجهة' : 'Hero'],
-    ['hours',   lang === 'ar' ? 'الأوقات' : 'Hours'],
-    ['contact', lang === 'ar' ? 'التواصل' : 'Contact']
+    ['menu',    lang === 'ar' ? 'المنيو'   : 'Menu'],
+    ['cats',    lang === 'ar' ? 'الأقسام'  : 'Categories'],
+    ['brand',   lang === 'ar' ? 'الاسم'    : 'Brand'],
+    ['hero',    lang === 'ar' ? 'الواجهة'  : 'Hero'],
+    ['text',    lang === 'ar' ? 'النصوص'   : 'Text'],
+    ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
+    ['contact', lang === 'ar' ? 'التواصل'  : 'Contact']
   ];
 
-  var body = adminTab === 'menu' ? tabMenu()
-           : adminTab === 'hero' ? tabHero()
+  var body = adminTab === 'menu'  ? tabMenu()
+           : adminTab === 'cats'  ? tabCats()
+           : adminTab === 'brand' ? tabBrand()
+           : adminTab === 'hero'  ? tabHero()
+           : adminTab === 'text'  ? tabText()
            : adminTab === 'hours' ? tabHours()
            : tabContact();
 
   var notice = '';
   if(!DB){
     notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
-      + (lang === 'ar' ? 'لا توجد قاعدة بيانات في هذا العرض.' : 'No database on this view.')
-      + '</b><br>'
+      + (lang === 'ar' ? 'لا توجد قاعدة بيانات في هذا العرض.' : 'No database on this view.') + '</b><br>'
       + (lang === 'ar'
           ? 'التعديلات لن تُحفظ. افتح النسخة المنشورة على claude.ai لاستخدام اللوحة.'
           : 'Edits cannot be saved here. Open the published page on claude.ai to use the dashboard.')
       + '</div>';
   } else if(!canEdit){
     notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
-      + (lang === 'ar' ? 'قراءة فقط.' : 'Read-only.')
-      + '</b><br>'
+      + (lang === 'ar' ? 'قراءة فقط.' : 'Read-only.') + '</b><br>'
       + (lang === 'ar'
           ? 'حسابك يستطيع عرض هذه الصفحة لكن ليس تعديلها. الخادم يرفض أي حفظ — الحماية ليست في المتصفح.'
           : 'Your account can view this page but not edit it. Saves are refused by the server, not by this browser.')
@@ -2128,17 +2591,21 @@ function setPath(path, value){
   dirty = true;
 }
 
+function markDirty(){
+  var bar = document.querySelector('#admin-root .ad-save');
+  if(bar && canEdit) bar.classList.add('show');
+}
+
 document.addEventListener('input', function(e){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open') || !canEdit) return;
-
   var el = e.target;
+
   if(el.dataset && el.dataset.path){
     var v = el.value;
     if(el.type === 'number') v = Number(v) || 0;
     setPath(el.dataset.path, v);
-    var bar = root.querySelector('.ad-save');
-    if(bar) bar.classList.add('show');
+    markDirty();
   }
   if(el.dataset && el.dataset.hour){
     var bits = el.dataset.hour.split(':');
@@ -2146,9 +2613,18 @@ document.addEventListener('input', function(e){
     var mins = timeToMins(el.value);
     if(which === 'c' && mins <= draft.hours[idx].o) mins += 1440;
     draft.hours[idx][which] = mins;
-    dirty = true;
-    var bar2 = root.querySelector('.ad-save');
-    if(bar2) bar2.classList.add('show');
+    dirty = true; markDirty();
+  }
+});
+
+document.addEventListener('change', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open') || !canEdit) return;
+  var el = e.target;
+  if(el.id === 'adCatFilter'){ adminCat = el.value; renderAdmin(); return; }
+  if(el.dataset && el.dataset.catof){
+    draft.items[Number(el.dataset.catof)].cat = el.value;
+    dirty = true; renderAdmin();
   }
 });
 
@@ -2166,39 +2642,64 @@ document.addEventListener('click', function(e){
   if(t.id === 'adClose'){ location.hash = ''; return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
   if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
-
   if(!canEdit) return;
+
+  if(t.dataset.upload){
+    var target = t.dataset.upload;
+    pickImage(function(id){ setPath(target, id); renderAdmin(); markDirty(); });
+    return;
+  }
+  if(t.dataset.clearimg){ setPath(t.dataset.clearimg, ''); renderAdmin(); markDirty(); return; }
 
   if(t.dataset.badge){
     var b = t.dataset.badge.split(':');
-    draft.burgers[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
+    draft.items[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
     dirty = true; renderAdmin(); return;
   }
-  if(t.dataset.del){
-    draft.burgers.splice(Number(t.dataset.del), 1);
+  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); dirty = true; renderAdmin(); return; }
+  if(t.dataset.cdel){
+    var gone = draft.categories.splice(Number(t.dataset.cdel), 1)[0];
+    /* Items of a deleted category would vanish from the site, so move
+       them to the first remaining category instead of dropping them. */
+    var fallback = (draft.categories[0] || {}).id;
+    if(gone && fallback){
+      draft.items.forEach(function(it){ if(it.cat === gone.id) it.cat = fallback; });
+    }
     dirty = true; renderAdmin(); return;
   }
   if(t.dataset.move){
     var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
-    if(to >= 0 && to < draft.burgers.length){
-      var moved = draft.burgers.splice(from, 1)[0];
-      draft.burgers.splice(to, 0, moved);
+    if(to >= 0 && to < draft.items.length){
+      draft.items.splice(to, 0, draft.items.splice(from, 1)[0]);
       dirty = true; renderAdmin();
     }
     return;
   }
-  if(t.id === 'addBurger'){
-    draft.burgers.push({
-      id: 'item-' + Date.now(), price: 5.00, spice: 0, badge: null,
-      en: { n: 'New item', d: '' }, ar: { n: 'صنف جديد', d: '' }
+  if(t.dataset.cmove){
+    var cf = Number(t.dataset.cmove), ct = cf + Number(t.dataset.dir);
+    if(ct >= 0 && ct < draft.categories.length){
+      draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
+      dirty = true; renderAdmin();
+    }
+    return;
+  }
+  if(t.id === 'addItem'){
+    draft.items.push({
+      id: 'item-' + Date.now().toString(36), cat: adminCat, price: 5.00,
+      spice: 0, badge: null, img: '',
+      en: { n:'New item', d:'' }, ar: { n:'صنف جديد', d:'' }
     });
     dirty = true; renderAdmin(); return;
   }
-  if(t.id === 'adRevert'){
-    draft = null; dirty = false;
-    loadDraft().then(renderAdmin);
-    return;
+  if(t.id === 'addCat'){
+    draft.categories.push({
+      id: 'cat-' + Date.now().toString(36), icon: 'i-fries', img: '',
+      en: { n:'New category', t:'' }, ar: { n:'قسم جديد', t:'' }
+    });
+    dirty = true; renderAdmin(); return;
   }
+  if(t.id === 'adRevert'){ draft = null; dirty = false; pendingMedia = {}; loadDraft().then(renderAdmin); return; }
+
   if(t.id === 'adSave'){
     t.disabled = true;
     t.textContent = lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…';
@@ -2209,7 +2710,6 @@ document.addEventListener('click', function(e){
     }).catch(function(){
       t.disabled = false;
       t.textContent = lang === 'ar' ? 'فشل الحفظ' : 'Save refused';
-      /* A refusal here is the server enforcing access, not a bug. */
       setTimeout(function(){ canEdit = false; renderAdmin(); }, 1400);
     });
     return;
