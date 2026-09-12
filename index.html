@@ -927,6 +927,15 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
 .ad-save.show{ transform:none }
 .ad-save p{ margin:0; flex:1; font-size:13px; color:var(--cream-dim) }
 
+
+.ad-bad{ color:#FF6B7E !important }
+.ad-warn{ color:var(--gold) !important }
+.ad-ok{
+  position:fixed; inset-inline-end:20px; bottom:74px; z-index:12;
+  padding:10px 16px; border-radius:100px; font-size:12.5px; font-weight:700;
+  background:rgba(61,220,138,.14); color:#3DDC8A; border:1px solid rgba(61,220,138,.4);
+  animation:adminIn .3s var(--ease-out);
+}
 .ad-note{
   border:1px solid var(--line); border-radius:12px; padding:14px 16px;
   background:var(--char-800); color:var(--cream-dim); font-size:13.5px; line-height:1.6;
@@ -2080,7 +2089,13 @@ setTimeout(once, 2600);
    nothing.
    ============================================================ */
 var DB = null;
+var dbReady = null;       /* single in-flight connection promise */
 var canEdit = false;
+var saving = false;       /* guards concurrent saves; the button is re-rendered */
+var lastError = '';       /* shown to the user; never swallowed */
+var lastSaved = 0;
+var storeMoved = false;   /* another editor wrote while this draft was open */
+var touched = Object.create(null);  /* dot-paths the user actually changed */
 var adminTab = 'menu';
 var draft = null;
 var dirty = false;
@@ -2113,6 +2128,49 @@ var TEXT_LABEL = {
   eyebrow_visit:'Visit eyebrow', visit_title:'Visit title'
 };
 
+/* Which document a top-level field belongs to. */
+function docOf(path){
+  var head = path.split('.')[0];
+  return (head === 'items' || head === 'categories') ? 'menu' : 'site';
+}
+
+/* Items and categories are edited by position, so a partial merge by index
+   would corrupt the list if someone else reordered it. Any edit inside one
+   of those arrays therefore claims the whole array; every other field merges
+   on its own path and leaves a colleague's untouched fields alone. */
+function normalisePath(path){
+  var head = path.split('.')[0];
+  if(head === 'items' || head === 'categories' || head === 'hours') return head;
+  return path;
+}
+
+function markTouched(path){
+  touched[normalisePath(path)] = true;
+  dirty = true;
+}
+
+function getPath(obj, path){
+  var parts = path.split('.'), node = obj;
+  for(var i = 0; i < parts.length; i++){
+    if(node == null) return undefined;
+    node = node[parts[i]];
+  }
+  return node;
+}
+
+function setPathOn(obj, path, value){
+  var parts = path.split('.'), node = obj;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(node[parts[i]] == null || typeof node[parts[i]] !== 'object') node[parts[i]] = {};
+    node = node[parts[i]];
+  }
+  node[parts[parts.length - 1]] = value;
+}
+
+function sameJson(a, b){
+  try { return JSON.stringify(a) === JSON.stringify(b); } catch(e){ return false; }
+}
+
 function snapshotDefaults(){
   var clone = function(x){ return JSON.parse(JSON.stringify(x)); };
   return {
@@ -2130,20 +2188,25 @@ function snapshotDefaults(){
 
 function applyContent(d){
   if(!d) return;
-  if(Array.isArray(d.categories) && d.categories.length) CATEGORIES = d.categories;
-  if(Array.isArray(d.items) && d.items.length) ITEMS = d.items;
+  /* Presence checks, never truthiness: an empty menu, a cleared phone number
+     and a blank heading are all legitimate saved states. Treating them as
+     "missing" was silently reverting deletions to the built-in defaults. */
+  if(Array.isArray(d.categories)) CATEGORIES = d.categories;
+  if(Array.isArray(d.items))      ITEMS = d.items;
   if(Array.isArray(d.hours) && d.hours.length === 7){
     HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
   }
-  if(d.text){ OVERRIDES.en = d.text.en || {}; OVERRIDES.ar = d.text.ar || {}; }
-  if(d.brand) BRAND = d.brand;
-  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
-  if(d.contact && d.contact.whatsapp){
-    WA_NUMBER = String(d.contact.whatsapp).replace(/[^\d]/g, '') || WA_NUMBER;
+  if(d.text && typeof d.text === 'object'){
+    OVERRIDES.en = d.text.en || {};
+    OVERRIDES.ar = d.text.ar || {};
   }
-  /* keep the selected category valid after an edit */
+  if(d.brand && typeof d.brand === 'object') BRAND = d.brand;
+  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
+  if(d.contact && typeof d.contact.whatsapp === 'string'){
+    WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
+  }
   if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
-    activeCat = (CATEGORIES[0] || {}).id || 'burgers';
+    activeCat = (CATEGORIES[0] || {}).id || '';
   }
   setLang(lang);
   observeReveals();
@@ -2206,32 +2269,53 @@ function pickImage(onDone){
 
 /* ---------------------------------------------------------- database */
 
-function connectDb(){
-  if(!window.claude || typeof window.claude.use !== 'function'){ renderAdmin(); return; }
-  window.claude.use('db').then(function(db){
-    DB = db;
-    if(!DB){ renderAdmin(); return; }
+/* One connection promise for the whole page. Everything that needs the store
+   awaits this instead of reading `DB`, which is null until the capability
+   resolves — the contract guarantees that never happens synchronously. */
+function ensureDb(){
+  if(dbReady) return dbReady;
+  if(!window.claude || typeof window.claude.use !== 'function'){
+    dbReady = Promise.resolve(null);
+  } else {
+    dbReady = window.claude.use('db')
+      .then(function(db){ DB = db || null; return DB; })
+      .catch(function(){ DB = null; return null; });
+  }
+  return dbReady;
+}
 
-    DB.collection('media').get().then(function(snap){
+function connectDb(){
+  ensureDb().then(function(db){
+    if(!db){ renderAdmin(); return; }
+
+    db.collection('media').get().then(function(snap){
       snap.forEach(function(doc){
         var d = doc.data();
         if(d && typeof d.url === 'string') MEDIA[doc.id] = d.url;
       });
       setLang(lang);
+      renderAdmin();
     }).catch(function(){});
 
-    DB.doc(DOC_MENU).onSnapshot(function(snap){
-      if(snap.exists) applyContent(snap.data());
-      renderAdmin();
-    }, function(){});
-
-    DB.doc(DOC_SITE).onSnapshot(function(snap){
-      if(snap.exists) applyContent(snap.data());
-      renderAdmin();
-    }, function(){});
+    [DOC_MENU, DOC_SITE].forEach(function(path){
+      db.doc(path).onSnapshot(function(snap){
+        if(snap.exists) applyContent(snap.data());
+        /* Keep the editor's working copy in step with the store. With nothing
+           unsaved it is simply refreshed; with unsaved edits the user's typing
+           is left alone and the save merges onto whatever is stored then. */
+        if(!dirty) { draft = null; }
+        else { storeMoved = true; }
+        renderAdmin();
+      }, function(e){
+        lastError = (e && e.code === 'revoked')
+          ? 'Access to the database was withdrawn. Reload the page.'
+          : 'Lost the live connection to the database.';
+        renderAdmin();
+      });
+    });
 
     probeAccess();
-  }).catch(function(){ DB = null; renderAdmin(); });
+  });
 }
 
 /* The only honest way to learn whether this viewer may write is to try. */
@@ -2242,47 +2326,136 @@ function probeAccess(){
     .catch(function(){ canEdit = false; renderAdmin(); });
 }
 
+/* Never builds a draft before the store has answered. Doing so was the root
+   cause: the editor filled with the page's built-in defaults, and saving wrote
+   those defaults over everything the owner had stored. */
 function loadDraft(){
-  var base = snapshotDefaults();
-  if(!DB){ draft = base; return Promise.resolve(); }
-  return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()])
-    .then(function(res){
-      var m  = res[0].exists ? res[0].data() : {};
-      var st = res[1].exists ? res[1].data() : {};
-      draft = {
-        categories: Array.isArray(m.categories) && m.categories.length ? m.categories : base.categories,
-        items:      Array.isArray(m.items) && m.items.length ? m.items : base.items,
-        hours:      Array.isArray(st.hours) && st.hours.length === 7 ? st.hours : base.hours,
-        text:       st.text  || base.text,
-        brand:      st.brand || base.brand,
-        heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
-        contact:    st.contact || base.contact
-      };
-      if(!draft.text.en) draft.text.en = {};
-      if(!draft.text.ar) draft.text.ar = {};
-    })
-    .catch(function(){ draft = base; });
+  return ensureDb().then(function(db){
+    var base = snapshotDefaults();
+    if(!db){ draft = base; return; }
+    return Promise.all([db.doc(DOC_MENU).get(), db.doc(DOC_SITE).get()])
+      .then(function(res){
+        var m  = res[0].exists ? res[0].data() : {};
+        var st = res[1].exists ? res[1].data() : {};
+        draft = {
+          categories: Array.isArray(m.categories) ? m.categories : base.categories,
+          items:      Array.isArray(m.items)      ? m.items      : base.items,
+          hours:      (Array.isArray(st.hours) && st.hours.length === 7) ? st.hours : base.hours,
+          text:       (st.text && typeof st.text === 'object')   ? st.text   : base.text,
+          brand:      (st.brand && typeof st.brand === 'object') ? st.brand  : base.brand,
+          heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+          contact:    (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
+        };
+        if(!draft.text.en) draft.text.en = {};
+        if(!draft.text.ar) draft.text.ar = {};
+        touched = Object.create(null);
+        storeMoved = false;
+      })
+      .catch(function(){
+        draft = base;
+        lastError = 'Could not read the saved content. Reload before editing.';
+      });
+  });
 }
 
+/**
+ * Saves only what the user actually changed, onto whatever the store holds
+ * right now, and confirms the write by reading it back.
+ *
+ * Writing the whole draft was destructive: a draft is a snapshot from some
+ * earlier moment, so a full replace threw away both other people's edits and
+ * anything the draft never knew about. Merging touched paths onto freshly
+ * read documents removes that whole class of failure.
+ */
 function save(){
-  if(!DB || !canEdit) return Promise.reject(new Error('read-only'));
-  /* Images first: a menu document referencing an image id that was never
-     written would render as a missing picture. */
-  var media = Object.keys(pendingMedia).map(function(id){
-    return DB.doc('media/' + id).set({ url: pendingMedia[id], at: Date.now() });
-  });
-  return Promise.all(media).then(function(){
-    pendingMedia = {};
-    return Promise.all([
-      DB.doc(DOC_MENU).set({
-        categories: draft.categories, items: draft.items, updatedAt: Date.now()
-      }),
-      DB.doc(DOC_SITE).set({
-        hours: draft.hours, text: draft.text, brand: draft.brand,
-        heroImage: draft.heroImage, contact: draft.contact, updatedAt: Date.now()
-      })
-    ]);
-  });
+  if(!DB) return Promise.reject({ kind:'nodb', message:'No database on this view.' });
+  if(!canEdit) return Promise.reject({ kind:'denied', message:'Your account cannot edit this page.' });
+
+  var paths = Object.keys(touched);
+  if(paths.length === 0) return Promise.resolve({ nothing:true });
+
+  var mediaIds = Object.keys(pendingMedia);
+
+  /* Images first: a menu document naming an image id that was never written
+     would render as a broken picture. */
+  return Promise.all(mediaIds.map(function(id){
+      return DB.doc('media/' + id).set({ url: pendingMedia[id], at: Date.now() });
+    }))
+    .then(function(){
+      return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
+    })
+    .then(function(res){
+      var base = snapshotDefaults();
+      var m  = res[0].exists ? res[0].data() : {};
+      var st = res[1].exists ? res[1].data() : {};
+
+      var menuDoc = {
+        categories: Array.isArray(m.categories) ? m.categories : base.categories,
+        items:      Array.isArray(m.items)      ? m.items      : base.items
+      };
+      var siteDoc = {
+        hours:     (Array.isArray(st.hours) && st.hours.length === 7) ? st.hours : base.hours,
+        text:      (st.text && typeof st.text === 'object')   ? st.text  : base.text,
+        brand:     (st.brand && typeof st.brand === 'object') ? st.brand : base.brand,
+        heroImage: typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+        contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
+      };
+
+      var wantMenu = false, wantSite = false;
+      paths.forEach(function(path){
+        var value = getPath(draft, path);
+        if(value === undefined) return;
+        if(docOf(path) === 'menu'){ setPathOn(menuDoc, path, value); wantMenu = true; }
+        else                      { setPathOn(siteDoc, path, value); wantSite = true; }
+      });
+
+      var writes = [];
+      if(wantMenu) writes.push(DB.doc(DOC_MENU).set({
+        categories: menuDoc.categories, items: menuDoc.items, updatedAt: Date.now()
+      }));
+      if(wantSite) writes.push(DB.doc(DOC_SITE).set({
+        hours: siteDoc.hours, text: siteDoc.text, brand: siteDoc.brand,
+        heroImage: siteDoc.heroImage, contact: siteDoc.contact, updatedAt: Date.now()
+      }));
+
+      return Promise.all(writes).then(function(){
+        /* Read back and compare. A resolved write is the store's word for it;
+           this is the check that the values really landed, which is what lets
+           the page claim success honestly. */
+        return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
+      }).then(function(after){
+        var savedMenu = after[0].exists ? after[0].data() : {};
+        var savedSite = after[1].exists ? after[1].data() : {};
+        var bad = paths.filter(function(path){
+          var wanted = getPath(draft, path);
+          if(wanted === undefined) return false;
+          var got = getPath(docOf(path) === 'menu' ? savedMenu : savedSite, path);
+          return !sameJson(wanted, got);
+        });
+        if(bad.length){
+          throw { kind:'verify', message:'The database did not keep: ' + bad.join(', ') };
+        }
+        pendingMedia = {};
+        touched = Object.create(null);
+        storeMoved = false;
+        return { verified:true, fields:paths.length };
+      });
+    });
+}
+
+/* A refused write is not the same as a broken one. Only a permission refusal
+   should demote the editor to read-only; anything else stays retryable with
+   the user's work still on screen. */
+function classifyError(e){
+  var code = e && e.code;
+  if(e && e.kind === 'denied') return { readOnly:true,  message:e.message };
+  if(e && e.kind === 'nodb')   return { readOnly:false, message:e.message };
+  if(e && e.kind === 'verify') return { readOnly:false, message:e.message };
+  if(code === 'invalid_argument') return { readOnly:true, message:'The server refused the write. Your account may not have edit access.' };
+  if(code === 'revoked')          return { readOnly:true, message:'Access was withdrawn while you were editing. Reload the page.' };
+  if(code === 'quota_exceeded')   return { readOnly:false, message:'The database is full. Remove some images and try again.' };
+  if(code === 'resource_exhausted') return { readOnly:false, message:'Too many writes at once. Wait a moment and try again.' };
+  return { readOnly:false, message:'Could not reach the database. Your changes are still here — try again.' };
 }
 
 /* ---------------------------------------------------------- widgets */
@@ -2509,7 +2682,17 @@ var adminCat = 'burgers';
 function renderAdmin(){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open')) return;
-  if(!draft){ loadDraft().then(renderAdmin); return; }
+  if(!draft){
+    /* Show that we are reading, rather than an editor pre-filled with
+       defaults that a save would then write over the stored content. */
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (lang === 'ar' ? 'جارٍ قراءة المحتوى المحفوظ…' : 'Reading saved content…')
+      + '</p></div>';
+    loadDraft().then(renderAdmin);
+    return;
+  }
 
   if(!draft.categories.some(function(c){ return c.id === adminCat; })){
     adminCat = (draft.categories[0] || {}).id || 'burgers';
@@ -2570,25 +2753,35 @@ function renderAdmin(){
     +   '</div>'
     +   body
     + '</div>'
-    + '<div class="ad-save' + (dirty && canEdit ? ' show' : '') + '">'
-    +   '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
-    +   '<button class="ad-mini" id="adRevert">' + (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
-    +   '<button class="btn" id="adSave" style="padding:9px 20px;font-size:13px">'
-    +     (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish') + '</button>'
-    + '</div>';
+    + '<div class="ad-save' + ((dirty && canEdit) || saving || lastError ? ' show' : '') + '">'
+    +   (lastError
+          ? '<p class="ad-bad">' + esc(lastError) + '</p>'
+          : saving
+            ? '<p>' + (lang === 'ar' ? 'جارٍ الحفظ والتحقّق…' : 'Saving and verifying…') + '</p>'
+            : storeMoved
+              ? '<p class="ad-warn">' + (lang === 'ar'
+                  ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
+                  : 'Another session saved changes. Your save will merge on top of them.') + '</p>'
+              : '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>')
+    +   '<button class="ad-mini" id="adRevert"' + (saving ? ' disabled' : '') + '>'
+    +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
+    +   '<button class="btn" id="adSave" style="padding:9px 20px;font-size:13px"'
+    +     (saving ? ' disabled' : '') + '>'
+    +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
+                  : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish')) + '</button>'
+    + '</div>'
+    + (lastSaved && !dirty && !lastError
+        ? '<div class="ad-ok" role="status">' + (lang === 'ar'
+            ? 'تم الحفظ والتأكد من وجوده في قاعدة البيانات'
+            : 'Saved and confirmed in the database') + '</div>'
+        : '');
 }
 
 /* ---------------------------------------------------------- editing */
 
 function setPath(path, value){
-  var parts = path.split('.');
-  var node = draft;
-  for(var i = 0; i < parts.length - 1; i++){
-    if(node[parts[i]] == null) node[parts[i]] = {};
-    node = node[parts[i]];
-  }
-  node[parts[parts.length - 1]] = value;
-  dirty = true;
+  setPathOn(draft, path, value);
+  markTouched(path);
 }
 
 function markDirty(){
@@ -2613,7 +2806,7 @@ document.addEventListener('input', function(e){
     var mins = timeToMins(el.value);
     if(which === 'c' && mins <= draft.hours[idx].o) mins += 1440;
     draft.hours[idx][which] = mins;
-    dirty = true; markDirty();
+    markTouched('hours'); markDirty();
   }
 });
 
@@ -2624,7 +2817,7 @@ document.addEventListener('change', function(e){
   if(el.id === 'adCatFilter'){ adminCat = el.value; renderAdmin(); return; }
   if(el.dataset && el.dataset.catof){
     draft.items[Number(el.dataset.catof)].cat = el.value;
-    dirty = true; renderAdmin();
+    markTouched('items'); renderAdmin();
   }
 });
 
@@ -2654,9 +2847,9 @@ document.addEventListener('click', function(e){
   if(t.dataset.badge){
     var b = t.dataset.badge.split(':');
     draft.items[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
-    dirty = true; renderAdmin(); return;
+    markTouched('items'); renderAdmin(); return;
   }
-  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); dirty = true; renderAdmin(); return; }
+  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renderAdmin(); return; }
   if(t.dataset.cdel){
     var gone = draft.categories.splice(Number(t.dataset.cdel), 1)[0];
     /* Items of a deleted category would vanish from the site, so move
@@ -2665,13 +2858,13 @@ document.addEventListener('click', function(e){
     if(gone && fallback){
       draft.items.forEach(function(it){ if(it.cat === gone.id) it.cat = fallback; });
     }
-    dirty = true; renderAdmin(); return;
+    markTouched('categories'); markTouched('items'); renderAdmin(); return;
   }
   if(t.dataset.move){
     var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
     if(to >= 0 && to < draft.items.length){
       draft.items.splice(to, 0, draft.items.splice(from, 1)[0]);
-      dirty = true; renderAdmin();
+      markTouched('items'); renderAdmin();
     }
     return;
   }
@@ -2679,7 +2872,7 @@ document.addEventListener('click', function(e){
     var cf = Number(t.dataset.cmove), ct = cf + Number(t.dataset.dir);
     if(ct >= 0 && ct < draft.categories.length){
       draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
-      dirty = true; renderAdmin();
+      markTouched('categories'); renderAdmin();
     }
     return;
   }
@@ -2689,31 +2882,54 @@ document.addEventListener('click', function(e){
       spice: 0, badge: null, img: '',
       en: { n:'New item', d:'' }, ar: { n:'صنف جديد', d:'' }
     });
-    dirty = true; renderAdmin(); return;
+    markTouched('items'); renderAdmin(); return;
   }
   if(t.id === 'addCat'){
     draft.categories.push({
       id: 'cat-' + Date.now().toString(36), icon: 'i-fries', img: '',
       en: { n:'New category', t:'' }, ar: { n:'قسم جديد', t:'' }
     });
-    dirty = true; renderAdmin(); return;
+    markTouched('categories'); renderAdmin(); return;
   }
-  if(t.id === 'adRevert'){ draft = null; dirty = false; pendingMedia = {}; loadDraft().then(renderAdmin); return; }
+  if(t.id === 'adRevert'){
+    draft = null; dirty = false; pendingMedia = {}; touched = Object.create(null);
+    lastError = ''; storeMoved = false;
+    loadDraft().then(renderAdmin); return;
+  }
 
   if(t.id === 'adSave'){
-    t.disabled = true;
-    t.textContent = lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…';
-    save().then(function(){
+    if(saving) return;                 /* the button is re-rendered on every
+                                          snapshot, so its disabled state is
+                                          not a reliable guard on its own */
+    saving = true;
+    lastError = '';
+    renderAdmin();
+
+    save().then(function(res){
+      saving = false;
+      if(res && res.nothing){ lastError = ''; renderAdmin(); return; }
+      /* Only now, with the write read back and compared, is it honest to
+         say the change is saved. */
       dirty = false;
-      applyContent(draft);
+      lastSaved = Date.now();
+      draft = null;                    /* next open reads the store afresh */
+      loadDraft().then(renderAdmin);
+    }).catch(function(e){
+      saving = false;
+      var info = classifyError(e);
+      lastError = info.message;
+      if(info.readOnly) canEdit = false;
+      /* The work stays on screen and still counts as unsaved. */
+      dirty = true;
       renderAdmin();
-    }).catch(function(){
-      t.disabled = false;
-      t.textContent = lang === 'ar' ? 'فشل الحفظ' : 'Save refused';
-      setTimeout(function(){ canEdit = false; renderAdmin(); }, 1400);
     });
     return;
   }
+});
+
+/* Closing the tab or the panel with unsaved work should not lose it silently. */
+window.addEventListener('beforeunload', function(e){
+  if(dirty && canEdit){ e.preventDefault(); e.returnValue = ''; }
 });
 
 /* ---------------------------------------------------------- routing */
