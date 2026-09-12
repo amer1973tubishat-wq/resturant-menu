@@ -929,6 +929,9 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
 
 
 .ad-bad{ color:#FF6B7E !important }
+.ad-quiet{ color:var(--muted) !important }
+.ad-save .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
+.ad-save .btn:disabled:hover{ transform:none }
 .ad-warn{ color:var(--gold) !important }
 .ad-ok{
   position:fixed; inset-inline-end:20px; bottom:74px; z-index:12;
@@ -2753,7 +2756,10 @@ function renderAdmin(){
     +   '</div>'
     +   body
     + '</div>'
-    + '<div class="ad-save' + ((dirty && canEdit) || saving || lastError ? ' show' : '') + '">'
+    /* The bar is always on screen for an editor, so the Save button is never
+       something you have to discover by typing first. It simply has nothing
+       to do until there are changes. */
+    + '<div class="ad-save' + (canEdit || saving || lastError ? ' show' : '') + '">'
     +   (lastError
           ? '<p class="ad-bad">' + esc(lastError) + '</p>'
           : saving
@@ -2762,11 +2768,14 @@ function renderAdmin(){
               ? '<p class="ad-warn">' + (lang === 'ar'
                   ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
                   : 'Another session saved changes. Your save will merge on top of them.') + '</p>'
-              : '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>')
-    +   '<button class="ad-mini" id="adRevert"' + (saving ? ' disabled' : '') + '>'
+              : dirty
+                ? '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
+                : '<p class="ad-quiet">' + (lang === 'ar'
+                    ? 'كل التعديلات محفوظة' : 'All changes saved') + '</p>')
+    +   '<button class="ad-mini" id="adRevert"' + (saving || !dirty ? ' disabled' : '') + '>'
     +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
-    +   '<button class="btn" id="adSave" style="padding:9px 20px;font-size:13px"'
-    +     (saving ? ' disabled' : '') + '>'
+    +   '<button class="btn" id="adSave" style="padding:9px 22px;font-size:13px"'
+    +     (saving || !dirty ? ' disabled' : '') + '>'
     +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
                   : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish')) + '</button>'
     + '</div>'
@@ -2784,9 +2793,37 @@ function setPath(path, value){
   markTouched(path);
 }
 
+/* Updates the save bar in place. Re-rendering the whole panel on every
+   keystroke would tear the field the user is typing in out from under them,
+   so the bar's own state is refreshed on its own. */
 function markDirty(){
   var bar = document.querySelector('#admin-root .ad-save');
-  if(bar && canEdit) bar.classList.add('show');
+  if(!bar) return;
+  if(canEdit || saving || lastError) bar.classList.add('show');
+
+  var saveBtn = bar.querySelector('#adSave');
+  var revertBtn = bar.querySelector('#adRevert');
+  if(saveBtn) saveBtn.disabled = saving || !dirty;
+  if(revertBtn) revertBtn.disabled = saving || !dirty;
+
+  var msg = bar.querySelector('p');
+  if(msg && !lastError && !saving){
+    if(storeMoved){
+      msg.className = 'ad-warn';
+      msg.textContent = lang === 'ar'
+        ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
+        : 'Another session saved changes. Your save will merge on top of them.';
+    } else if(dirty){
+      msg.className = '';
+      msg.textContent = lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes';
+    } else {
+      msg.className = 'ad-quiet';
+      msg.textContent = lang === 'ar' ? 'كل التعديلات محفوظة' : 'All changes saved';
+    }
+  }
+  /* A stale "saved" badge next to unsaved work would be misleading. */
+  var ok = document.querySelector('#admin-root .ad-ok');
+  if(ok && dirty) ok.remove();
 }
 
 document.addEventListener('input', function(e){
