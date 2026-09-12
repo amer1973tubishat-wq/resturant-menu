@@ -22,7 +22,8 @@ Needs Playwright and a Chromium build:
 
 ```bash
 npm i -D playwright
-node tests/save-flow/suite.js
+node tests/save-flow/suite.js         # persistence
+node tests/save-flow/save-button.js   # the save control itself
 ```
 
 The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;
@@ -45,3 +46,11 @@ Exit code is non-zero if any check fails.
 | A failing write | no false success, a clear error, the unsaved bar stays, input preserved, store untouched, and a retry succeeds |
 | Two sessions | one save does not overwrite the other's untouched fields |
 | An account without edit access | read-only, inputs disabled, store untouched |
+
+`save-button.js` covers the control itself, at desktop and phone width: both
+save buttons are on screen, fully opaque, unobstructed and clickable the moment
+the dashboard opens; an unsaved-changes dot appears on both when a field
+changes and clears once the write is confirmed; the top button saves; and
+clicking with nothing pending answers "Nothing to save" rather than sitting
+silent. The button is deliberately never disabled — a dimmed one reads as an
+absent one.

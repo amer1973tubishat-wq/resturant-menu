@@ -930,8 +930,18 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
 
 .ad-bad{ color:#FF6B7E !important }
 .ad-quiet{ color:var(--muted) !important }
-.ad-save .btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
-.ad-save .btn:disabled:hover{ transform:none }
+.ad-savebtn{
+  position:relative; font-weight:700; white-space:nowrap;
+  box-shadow:0 6px 18px -8px rgba(255,106,26,.75);
+}
+.ad-savebtn:disabled{ opacity:.7; cursor:progress }
+.ad-bar .ad-savebtn{ height:34px; padding:0 18px; font-size:13px }
+/* A dot marks work that is not in the database yet. */
+.ad-dot{
+  position:absolute; top:-3px; inset-inline-end:-3px;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--jo-red); border:2px solid var(--char-900);
+}
 .ad-warn{ color:var(--gold) !important }
 .ad-ok{
   position:fixed; inset-inline-end:20px; bottom:74px; z-index:12;
@@ -2741,7 +2751,15 @@ function renderAdmin(){
       '<div class="ad-bar">'
     +   '<h1>' + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
     +   '<span class="ad-pill ' + st.cls + '"><i></i>' + esc(st.text) + '</span>'
-    +   '<div style="margin-inline-start:auto;display:flex;gap:8px">'
+    +   '<div style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">'
+    +     (canEdit
+          /* Also in the top bar, so the control is in view the instant the
+             dashboard opens rather than only at the foot of a long form. */
+          ? '<button class="btn ad-savebtn" id="adSaveTop"' + (saving ? ' disabled' : '') + '>'
+            + (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
+                      : (lang === 'ar' ? 'حفظ' : 'Save'))
+            + (dirty ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+          : '')
     +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
     +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
     +   '</div>'
@@ -2774,10 +2792,13 @@ function renderAdmin(){
                     ? 'كل التعديلات محفوظة' : 'All changes saved') + '</p>')
     +   '<button class="ad-mini" id="adRevert"' + (saving || !dirty ? ' disabled' : '') + '>'
     +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
-    +   '<button class="btn" id="adSave" style="padding:9px 22px;font-size:13px"'
-    +     (saving || !dirty ? ' disabled' : '') + '>'
+    /* Never dimmed to the point of looking absent: it stays a solid, clickable
+       control, and simply reports that there is nothing to save. */
+    +   '<button class="btn ad-savebtn" id="adSave" style="padding:10px 24px;font-size:13.5px"'
+    +     (saving ? ' disabled' : '') + '>'
     +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
-                  : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish')) + '</button>'
+                  : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish'))
+    +     (dirty ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
     + '</div>'
     + (lastSaved && !dirty && !lastError
         ? '<div class="ad-ok" role="status">' + (lang === 'ar'
@@ -2821,6 +2842,21 @@ function markDirty(){
       msg.textContent = lang === 'ar' ? 'كل التعديلات محفوظة' : 'All changes saved';
     }
   }
+  /* Both save buttons carry the same unsaved marker, updated in place. */
+  ['#adSaveTop', '#adSave'].forEach(function(sel){
+    var btn = document.querySelector('#admin-root ' + sel);
+    if(!btn) return;
+    var dot = btn.querySelector('.ad-dot');
+    if(dirty && !dot){
+      dot = document.createElement('span');
+      dot.className = 'ad-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      btn.appendChild(dot);
+    } else if(!dirty && dot){
+      dot.remove();
+    }
+  });
+
   /* A stale "saved" badge next to unsaved work would be misleading. */
   var ok = document.querySelector('#admin-root .ad-ok');
   if(ok && dirty) ok.remove();
@@ -2934,7 +2970,7 @@ document.addEventListener('click', function(e){
     loadDraft().then(renderAdmin); return;
   }
 
-  if(t.id === 'adSave'){
+  if(t.id === 'adSave' || t.id === 'adSaveTop'){
     if(saving) return;                 /* the button is re-rendered on every
                                           snapshot, so its disabled state is
                                           not a reliable guard on its own */
@@ -2944,7 +2980,17 @@ document.addEventListener('click', function(e){
 
     save().then(function(res){
       saving = false;
-      if(res && res.nothing){ lastError = ''; renderAdmin(); return; }
+      if(res && res.nothing){
+        /* Answer the click rather than appearing to do nothing. */
+        lastError = '';
+        renderAdmin();
+        var bar = document.querySelector('#admin-root .ad-save p');
+        if(bar){
+          bar.className = 'ad-quiet';
+          bar.textContent = lang === 'ar' ? 'لا توجد تغييرات لحفظها' : 'Nothing to save';
+        }
+        return;
+      }
       /* Only now, with the write read back and compared, is it honest to
          say the change is saved. */
       dirty = false;
