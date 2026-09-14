@@ -16,7 +16,20 @@ window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 2
 (function () {
   var listeners = [];
 
-  function clone(v) { return JSON.parse(JSON.stringify(v)); }
+  /* The real store returns object keys ALPHABETISED, not in the order they
+     were written (verified against the live database: {o,c} came back as
+     {c,o}). Reads mirror that, because an order-sensitive comparison in the
+     page would otherwise pass here and fail in production. */
+  function sortKeys(v) {
+    if (Array.isArray(v)) return v.map(sortKeys);
+    if (v && typeof v === 'object') {
+      const out = {};
+      Object.keys(v).sort().forEach(function (k) { out[k] = sortKeys(v[k]); });
+      return out;
+    }
+    return v;
+  }
+  function clone(v) { return sortKeys(JSON.parse(JSON.stringify(v))); }
   function readAll() { return window.__storeRead().then(function (t) { return JSON.parse(t || '{}'); }); }
   function writeAll(o) { return window.__storeWrite(JSON.stringify(o)); }
 

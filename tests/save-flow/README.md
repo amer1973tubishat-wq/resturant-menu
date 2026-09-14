@@ -18,6 +18,9 @@ The mock mirrors the parts of the contract the page depends on:
 - `__MOCK.forceNotify()` re-delivers the current state without a change, which
   is what the contract's ~30 s periodic refresh does. This is what exposed the
   panel rebuilding itself under the user's hands.
+- Reads return object keys **alphabetised**, because the live store does
+  (verified against it: `{o,c}` came back as `{c,o}`). Without this the mock
+  let an order-sensitive comparison pass here and fail in production.
 
 ## Running
 
@@ -28,6 +31,7 @@ npm i -D playwright
 node tests/save-flow/suite.js         # persistence
 node tests/save-flow/save-button.js   # the save control itself
 node tests/save-flow/live-editing.js  # edits survive database snapshots
+node tests/save-flow/operations.js    # every edit reports success honestly
 ```
 
 The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;
@@ -64,3 +68,9 @@ snapshot arriving mid-edit. It checks that a typed value, the focus and the
 caret position all survive one, and that a name typed while snapshots keep
 arriving is not truncated. Before the fix, typing "Shawarma Deluxe" through a
 stream of snapshots left "Sha" in the field.
+
+`operations.js` runs every editing action a person actually performs — add,
+delete, reorder, badge, category change, brand, headings, hours, image URL —
+and asserts each one reports success honestly, with no error and a
+confirmation. This is the suite that caught adding an item reporting "The
+database did not keep: items" while having saved perfectly well.

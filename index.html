@@ -2180,8 +2180,46 @@ function setPathOn(obj, path, value){
   node[parts[parts.length - 1]] = value;
 }
 
-function sameJson(a, b){
-  try { return JSON.stringify(a) === JSON.stringify(b); } catch(e){ return false; }
+/**
+ * Structural comparison for the post-save check.
+ *
+ * JSON.stringify was wrong here: the store returns object keys ALPHABETISED
+ * rather than in the order they were written, so stringifying both sides
+ * reported a difference for any freshly built object — adding a menu item or
+ * a category always failed verification even though the write had succeeded,
+ * which left the dashboard permanently claiming nothing was saved.
+ *
+ * Array order still matters (it is the menu's running order); object key
+ * order does not. A key holding undefined is treated as absent, since that
+ * is what a write drops.
+ */
+function sameValue(a, b){
+  if(a === b) return true;
+  if(a === null || b === null) return a === b;
+
+  var ta = typeof a, tb = typeof b;
+  if(ta !== 'object' || tb !== 'object') return a === b;
+
+  var aArr = Array.isArray(a), bArr = Array.isArray(b);
+  if(aArr !== bArr) return false;
+
+  if(aArr){
+    if(a.length !== b.length) return false;
+    for(var i = 0; i < a.length; i++){
+      if(!sameValue(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  var ka = Object.keys(a).filter(function(k){ return a[k] !== undefined; });
+  var kb = Object.keys(b).filter(function(k){ return b[k] !== undefined; });
+  if(ka.length !== kb.length) return false;
+  for(var j = 0; j < ka.length; j++){
+    var key = ka[j];
+    if(!Object.prototype.hasOwnProperty.call(b, key)) return false;
+    if(!sameValue(a[key], b[key])) return false;
+  }
+  return true;
 }
 
 function snapshotDefaults(){
@@ -2467,7 +2505,7 @@ function save(){
           var wanted = getPath(draft, path);
           if(wanted === undefined) return false;
           var got = getPath(docOf(path) === 'menu' ? savedMenu : savedSite, path);
-          return !sameJson(wanted, got);
+          return !sameValue(wanted, got);
         });
         if(bad.length){
           throw { kind:'verify', message:'The database did not keep: ' + bad.join(', ') };
