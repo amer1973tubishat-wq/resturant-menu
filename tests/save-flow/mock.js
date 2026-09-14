@@ -101,6 +101,10 @@ window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 2
     };
   }
 
+  /* The contract says delivery falls back to a periodic refresh (~30 s), which
+     re-delivers the current state even when nothing changed. This exposes that. */
+  window.__MOCK.forceNotify = function () { return notify(); };
+
   var ns = Object.freeze({ doc: docRef, collection: collRef });
 
   window.claude = {

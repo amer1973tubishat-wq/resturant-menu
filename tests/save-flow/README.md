@@ -15,6 +15,9 @@ The mock mirrors the parts of the contract the page depends on:
 - `onSnapshot` fires once shortly after registration, then on every change.
 - Writes can be made to fail (`__MOCK.failWrites`) or to be refused for lack of
   edit access (`__MOCK.canEdit`).
+- `__MOCK.forceNotify()` re-delivers the current state without a change, which
+  is what the contract's ~30 s periodic refresh does. This is what exposed the
+  panel rebuilding itself under the user's hands.
 
 ## Running
 
@@ -24,6 +27,7 @@ Needs Playwright and a Chromium build:
 npm i -D playwright
 node tests/save-flow/suite.js         # persistence
 node tests/save-flow/save-button.js   # the save control itself
+node tests/save-flow/live-editing.js  # edits survive database snapshots
 ```
 
 The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;
@@ -54,3 +58,9 @@ changes and clears once the write is confirmed; the top button saves; and
 clicking with nothing pending answers "Nothing to save" rather than sitting
 silent. The button is deliberately never disabled — a dimmed one reads as an
 absent one.
+
+`live-editing.js` guards the case that made saving feel broken in practice: a
+snapshot arriving mid-edit. It checks that a typed value, the focus and the
+caret position all survive one, and that a name typed while snapshots keep
+arriving is not truncated. Before the fix, typing "Shawarma Deluxe" through a
+stream of snapshots left "Sha" in the field.

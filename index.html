@@ -2307,18 +2307,13 @@ function connectDb(){
         if(d && typeof d.url === 'string') MEDIA[doc.id] = d.url;
       });
       setLang(lang);
-      renderAdmin();
+      onStoreChange();
     }).catch(function(){});
 
     [DOC_MENU, DOC_SITE].forEach(function(path){
       db.doc(path).onSnapshot(function(snap){
         if(snap.exists) applyContent(snap.data());
-        /* Keep the editor's working copy in step with the store. With nothing
-           unsaved it is simply refreshed; with unsaved edits the user's typing
-           is left alone and the save merges onto whatever is stored then. */
-        if(!dirty) { draft = null; }
-        else { storeMoved = true; }
-        renderAdmin();
+        onStoreChange();
       }, function(e){
         lastError = (e && e.code === 'revoked')
           ? 'Access to the database was withdrawn. Reload the page.'
@@ -2329,6 +2324,35 @@ function connectDb(){
 
     probeAccess();
   });
+}
+
+/**
+ * What a snapshot is allowed to do to the dashboard.
+ *
+ * renderAdmin() replaces the panel's innerHTML, so calling it from a snapshot
+ * destroyed the very field being typed into: focus was lost and every
+ * keystroke after the rebuild went nowhere, leaving the field showing its last
+ * committed value. Delivery also falls back to a periodic refresh, so this
+ * happened even when nothing had actually changed.
+ *
+ * While there are unsaved edits — or the caret is simply inside the form — the
+ * store update is applied to the public page and the status bar only. The form
+ * is left exactly as the user left it.
+ */
+function onStoreChange(){
+  var root = document.getElementById('admin-root');
+  var open = root && root.classList.contains('open');
+  var el = document.activeElement;
+  var editingNow = !!(open && el && root.contains(el) &&
+    /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ''));
+
+  if(dirty || editingNow){
+    if(dirty) storeMoved = true;
+    markDirty();          /* in-place: touches the bar, never the fields */
+    return;
+  }
+  draft = null;
+  renderAdmin();
 }
 
 /* The only honest way to learn whether this viewer may write is to try. */
@@ -2747,6 +2771,15 @@ function renderAdmin(){
       + '</div>';
   }
 
+  /* Any rebuild that does happen (a tab change, adding an item) should not
+     cost the user their place in the form. */
+  var focused = document.activeElement;
+  var keep = null;
+  if(focused && root.contains(focused) && focused.dataset && focused.dataset.path){
+    keep = { path: focused.dataset.path, start: null, end: null };
+    try { keep.start = focused.selectionStart; keep.end = focused.selectionEnd; } catch(e){}
+  }
+
   root.innerHTML =
       '<div class="ad-bar">'
     +   '<h1>' + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
@@ -2805,6 +2838,16 @@ function renderAdmin(){
             ? 'تم الحفظ والتأكد من وجوده في قاعدة البيانات'
             : 'Saved and confirmed in the database') + '</div>'
         : '');
+
+  if(keep){
+    var again = root.querySelector('[data-path="' + keep.path + '"]');
+    if(again){
+      again.focus();
+      if(keep.start != null){
+        try { again.setSelectionRange(keep.start, keep.end); } catch(e){}
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------- editing */
