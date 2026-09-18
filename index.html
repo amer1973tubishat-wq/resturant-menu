@@ -2384,17 +2384,19 @@ function connectDb(){
 function onStoreChange(){
   var root = document.getElementById('admin-root');
   var open = root && root.classList.contains('open');
-  var el = document.activeElement;
-  var editingNow = !!(open && el && root.contains(el) &&
-    /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ''));
 
-  if(dirty || editingNow){
-    if(dirty) storeMoved = true;
-    markDirty();          /* in-place: touches the bar, never the fields */
+  if(open){
+    /* An open editor is never rebuilt from the store. The old rule — rebuild
+       unless the caret is in a field or the dirty flag is set — trusted two
+       signals that can both be wrong, and a refresh arriving between a
+       keystroke and a save wiped the form back to the stored copy. The public
+       page and the status bar take the update; the form is left alone. */
+    if(hasChanges()) storeMoved = true;
+    markDirty();
     return;
   }
   draft = null;
-  renderAdmin();
+  renderedFrom = null;
 }
 
 /* The only honest way to learn whether this viewer may write is to try. */
@@ -2468,11 +2470,13 @@ function save(){
   if(!DB) return Promise.reject({ kind:'nodb', message:'No database on this view.' });
   if(!canEdit) return Promise.reject({ kind:'denied', message:'Your account cannot edit this page.' });
 
-  /* What to write is decided by comparing the draft against the copy that was
-     loaded — not by the change log. An input event that never reached the
-     handler used to leave `touched` empty, and the save then wrote nothing at
-     all while reporting no error, which is why edits seemed to vanish. The
-     draft is the intent; the difference against the baseline is the work. */
+  /* The visible form first: what is on screen is what this person means to
+     save, whether or not an input event ever reached us. Then what to write is
+     decided by comparing the draft against the copy that was loaded — never by
+     a change log, which is a record of events that may not have arrived. The
+     form is the intent; the difference against the baseline is the work. */
+  harvestForm();
+
   var fields = changedFields();
   if(fields.length === 0 && Object.keys(pendingMedia).length === 0){
     return Promise.resolve({ nothing:true });
@@ -2564,7 +2568,11 @@ function noteAttempt(outcome, detail){
       hasDraft: !!draft,
       hasBaseline: !!baseline,
       canEdit: canEdit,
-      dirty: dirty
+      dirty: dirty,
+      bound: lastBound,
+      formFields: lastHarvest.fields,
+      formMoved: lastHarvest.moved,
+      tab: adminTab
     }).catch(function(){});
   } catch(e){ /* diagnostics must never break a save */ }
 }
@@ -2599,7 +2607,7 @@ function adminStatus(){
 
 function field(label, value, path, type, attrs){
   attrs = attrs || {};
-  var id = 'f-' + path.replace(/[^\w-]/g, '_');
+  var id = fieldId(path);
   return '<div class="ad-field' + (attrs.full ? ' full' : '') + '">'
     + '<label for="' + id + '">' + esc(label) + '</label>'
     + (type === 'textarea'
@@ -2628,7 +2636,8 @@ function imageField(label, value, path){
     +       (lang === 'ar' ? 'رفع صورة' : 'Upload') + '</button>'
     +     '<button class="ad-mini danger" data-clearimg="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
     +       (lang === 'ar' ? 'إزالة' : 'Clear') + '</button>'
-    +     '<input class="ad-url" data-path="' + esc(path) + '" value="' + esc(value || '') + '"'
+    +     '<input class="ad-url" id="' + fieldId(path) + '" data-path="' + esc(path) + '"'
+    +       ' value="' + esc(value || '') + '"'
     +       (canEdit ? '' : ' disabled')
     +       ' placeholder="' + (lang === 'ar' ? 'أو الصق رابط صورة' : 'or paste an image URL') + '">'
     +   '</div>'
@@ -2821,9 +2830,16 @@ function renderAdmin(){
       + '<div class="ad-wrap"><p class="ad-note">'
       + (lang === 'ar' ? 'جارٍ قراءة المحتوى المحفوظ…' : 'Reading saved content…')
       + '</p></div>';
+    renderedFrom = null;
     loadDraft().then(renderAdmin);
     return;
   }
+
+  /* Anything typed since the last render is read out of the controls before
+     they are replaced, so a rebuild — a tab change, a snapshot, adding an
+     item — can no longer swallow an edit. */
+  harvestForm();
+  FIELD_PATHS = [];
 
   if(!draft.categories.some(function(c){ return c.id === adminCat; })){
     adminCat = (draft.categories[0] || {}).id || 'burgers';
@@ -2936,6 +2952,9 @@ function renderAdmin(){
             : 'Saved and confirmed in the database') + '</div>'
         : '');
 
+  renderedFrom = draft;
+  lastBound = bindFields(root);
+
   if(keep){
     var again = root.querySelector('[data-path="' + keep.path + '"]');
     if(again){
@@ -2949,6 +2968,122 @@ function renderAdmin(){
 
 /* ---------------------------------------------------------- editing */
 
+/**
+ * Every control the dashboard draws is registered as it is written, and its
+ * index is stamped into the element's id.
+ *
+ * The path back into the draft used to live only in a data- attribute read by
+ * a single listener on `document`. That made one delegated handler the sole
+ * route from a keystroke to the saved model: if it did not run — a guard that
+ * was momentarily false, an attribute that did not survive, an event that was
+ * never delivered — the typing stayed on screen and nothing else ever heard
+ * about it. The save then found the draft identical to the loaded copy and
+ * truthfully reported that there was nothing to save, which is exactly what
+ * the database recorded, six attempts running.
+ *
+ * An id is not optional markup: labels point at it. So the id is the route,
+ * every control is also bound directly, and the form itself is read at save
+ * time. Losing an edit now takes all three to fail at once.
+ */
+var FIELD_PATHS = [];
+function fieldId(path){ FIELD_PATHS.push(path); return 'f' + (FIELD_PATHS.length - 1); }
+
+/* The draft the visible form was drawn from. Reading controls back is only
+   valid while the two still match — after a revert or a reload the DOM is a
+   leftover, and harvesting it would resurrect what was just discarded. */
+var renderedFrom = null;
+
+function controlPath(el){
+  if(el.__adPath) return el.__adPath;
+  var id = el.id || '';
+  if(/^f\d+$/.test(id)){
+    var p = FIELD_PATHS[Number(id.slice(1))];
+    if(p) return (el.__adPath = p);
+  }
+  var attr = el.getAttribute && el.getAttribute('data-path');
+  if(attr) return (el.__adPath = attr);
+  return null;
+}
+
+/* Copies one control's value into the draft. Returns whether anything moved,
+   so a harvest can report how much it caught. */
+function applyControl(el){
+  if(!draft || !el || el.disabled) return false;
+  var path = controlPath(el);
+  if(path){
+    var v = el.value;
+    var cur = getPath(draft, path);
+    if(el.type === 'number'){
+      v = Number(v) || 0;
+      if(Number(cur) === v) return false;
+    } else {
+      /* A field the draft has never held renders empty, so an empty box is
+         not an edit. Without this every harvest would write '' over every
+         absent key and the panel would never stop claiming unsaved work. */
+      if((cur == null ? '' : String(cur)) === v) return false;
+    }
+    setPathOn(draft, path, v);
+    markTouched(path);
+    return true;
+  }
+  var hour = el.getAttribute && el.getAttribute('data-hour');
+  if(hour && Array.isArray(draft.hours)){
+    var bits = hour.split(':');
+    var idx = Number(bits[0]), which = bits[1];
+    var row = draft.hours[idx];
+    if(!row) return false;
+    var mins = timeToMins(el.value);
+    if(which === 'c' && mins <= row.o) mins += 1440;
+    if(row[which] === mins) return false;
+    row[which] = mins;
+    markTouched('hours');
+    return true;
+  }
+  var catof = el.getAttribute && el.getAttribute('data-catof');
+  if(catof != null && draft.items){
+    var it = draft.items[Number(catof)];
+    if(!it || it.cat === el.value) return false;
+    it.cat = el.value;
+    markTouched('items');
+    return true;
+  }
+  return false;
+}
+
+/* What is on the screen is what gets saved. Reading the controls back before
+   measuring or writing means an edit the user can see cannot be missing from
+   the save, whatever happened to the event that carried it. */
+function harvestForm(){
+  var root = document.getElementById('admin-root');
+  if(!root || !draft || renderedFrom !== draft) return 0;
+  var list = root.querySelectorAll('input,textarea,select');
+  var n = 0;
+  for(var i = 0; i < list.length; i++){ if(applyControl(list[i])) n++; }
+  lastHarvest = { fields: list.length, moved: n };
+  return n;
+}
+var lastHarvest = { fields: 0, moved: 0 };
+var lastBound = 0;
+
+function onFieldInput(e){
+  if(applyControl(e.target)) markDirty();
+}
+
+/* Bound on the elements themselves, so no guard on an ancestor can swallow a
+   keystroke on its way up. */
+function bindFields(root){
+  var list = root.querySelectorAll('input,textarea,select');
+  for(var i = 0; i < list.length; i++){
+    var el = list[i];
+    controlPath(el);
+    if(el.__adBound) continue;
+    el.__adBound = true;
+    el.addEventListener('input', onFieldInput);
+    el.addEventListener('change', onFieldInput);
+  }
+  return list.length;
+}
+
 function setPath(path, value){
   setPathOn(draft, path, value);
   markTouched(path);
@@ -2960,6 +3095,7 @@ function setPath(path, value){
 /* The honest answer to "is there anything to save?" — measured, not tracked,
    so a missed input event cannot make the dashboard claim it is up to date. */
 function hasChanges(){
+  harvestForm();
   return dirty || Object.keys(pendingMedia).length > 0 || changedFields().length > 0;
 }
 
@@ -3012,36 +3148,27 @@ function markDirty(){
   if(ok && pending) ok.remove();
 }
 
+/* A second route to the same work, kept because the two fail differently:
+   this one survives a control that was added without being bound, the direct
+   binding survives an ancestor that swallows the event. Applying an edit
+   twice is a no-op, so both running costs nothing.
+
+   Neither route checks canEdit any more. Recording what someone typed into
+   their own copy is harmless — the database, not this browser, decides whether
+   a write is allowed, and refusing to remember the typing only ever lost it. */
 document.addEventListener('input', function(e){
   var root = document.getElementById('admin-root');
-  if(!root || !root.classList.contains('open') || !canEdit) return;
-  var el = e.target;
-
-  if(el.dataset && el.dataset.path){
-    var v = el.value;
-    if(el.type === 'number') v = Number(v) || 0;
-    setPath(el.dataset.path, v);
-    markDirty();
-  }
-  if(el.dataset && el.dataset.hour){
-    var bits = el.dataset.hour.split(':');
-    var idx = Number(bits[0]), which = bits[1];
-    var mins = timeToMins(el.value);
-    if(which === 'c' && mins <= draft.hours[idx].o) mins += 1440;
-    draft.hours[idx][which] = mins;
-    markTouched('hours'); markDirty();
-  }
+  if(!root || !root.classList.contains('open')) return;
+  onFieldInput(e);
 });
 
 document.addEventListener('change', function(e){
   var root = document.getElementById('admin-root');
-  if(!root || !root.classList.contains('open') || !canEdit) return;
+  if(!root || !root.classList.contains('open')) return;
   var el = e.target;
   if(el.id === 'adCatFilter'){ adminCat = el.value; renderAdmin(); return; }
-  if(el.dataset && el.dataset.catof){
-    draft.items[Number(el.dataset.catof)].cat = el.value;
-    markTouched('items'); renderAdmin();
-  }
+  onFieldInput(e);
+  if(el.getAttribute && el.getAttribute('data-catof') != null) renderAdmin();
 });
 
 function timeToMins(t){
@@ -3049,11 +3176,25 @@ function timeToMins(t){
   return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
 }
 
+/* Deleting or reordering a list renumbers the paths the visible controls
+   carry: the field that said items.2 now describes a different item. The form
+   is declared stale so it is not read back until it has been redrawn —
+   without this, a delete let the old controls write their values onto
+   whatever had shifted into their place. */
+function renumbered(){
+  renderedFrom = null;
+  renderAdmin();
+}
+
 document.addEventListener('click', function(e){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open')) return;
   var t = e.target.closest('button');
   if(!t) return;
+
+  /* Read the form while its paths still line up with the draft: the button
+     about to be pressed may renumber them. */
+  harvestForm();
 
   if(t.id === 'adClose'){ location.hash = ''; return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
@@ -3072,7 +3213,7 @@ document.addEventListener('click', function(e){
     draft.items[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
     markTouched('items'); renderAdmin(); return;
   }
-  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renderAdmin(); return; }
+  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renumbered(); return; }
   if(t.dataset.cdel){
     var gone = draft.categories.splice(Number(t.dataset.cdel), 1)[0];
     /* Items of a deleted category would vanish from the site, so move
@@ -3081,13 +3222,13 @@ document.addEventListener('click', function(e){
     if(gone && fallback){
       draft.items.forEach(function(it){ if(it.cat === gone.id) it.cat = fallback; });
     }
-    markTouched('categories'); markTouched('items'); renderAdmin(); return;
+    markTouched('categories'); markTouched('items'); renumbered(); return;
   }
   if(t.dataset.move){
     var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
     if(to >= 0 && to < draft.items.length){
       draft.items.splice(to, 0, draft.items.splice(from, 1)[0]);
-      markTouched('items'); renderAdmin();
+      markTouched('items'); renumbered();
     }
     return;
   }
@@ -3095,7 +3236,7 @@ document.addEventListener('click', function(e){
     var cf = Number(t.dataset.cmove), ct = cf + Number(t.dataset.dir);
     if(ct >= 0 && ct < draft.categories.length){
       draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
-      markTouched('categories'); renderAdmin();
+      markTouched('categories'); renumbered();
     }
     return;
   }
@@ -3115,9 +3256,11 @@ document.addEventListener('click', function(e){
     markTouched('categories'); renderAdmin(); return;
   }
   if(t.id === 'adRevert'){
-    draft = null; dirty = false; pendingMedia = {}; touched = Object.create(null);
+    draft = null; renderedFrom = null;
+    dirty = false; pendingMedia = {}; touched = Object.create(null);
     lastError = ''; storeMoved = false;
-    loadDraft().then(renderAdmin); return;
+    renderAdmin();          /* clears the form, then re-reads the store */
+    return;
   }
 
   if(t.id === 'adSave' || t.id === 'adSaveTop'){
@@ -3144,7 +3287,7 @@ document.addEventListener('click', function(e){
          the change is saved. */
       dirty = false;
       lastSaved = Date.now();
-      draft = null;                    /* next open reads the store afresh */
+      draft = null; renderedFrom = null;   /* re-read the store, don't reuse */
       loadDraft().then(renderAdmin);
     }).catch(function(e){
       saving = false;

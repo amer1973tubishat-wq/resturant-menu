@@ -7,3 +7,6 @@
 __pycache__/
 *.pyc
 .coverage
+
+# Playwright, installed on demand for tests/save-flow (see its README)
+node_modules/

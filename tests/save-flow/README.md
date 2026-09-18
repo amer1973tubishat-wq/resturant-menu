@@ -83,3 +83,20 @@ wrote nothing at all while reporting no error. What to write is now derived by
 comparing the draft against the copy that was loaded, so a save still works
 when the change log is empty; every attempt is recorded in `meta/last-save`,
 and pressing save with genuinely nothing changed leaves the store untouched.
+
+## form-truth.js
+
+Added after the live database recorded six consecutive save attempts as
+`outcome: "nothing"`, `detail: "no field differed from the loaded copy"`, with
+`dirty: false` and nothing touched. The dashboard was describing its own model
+accurately; the model simply never received the typing, because the only route
+from a keystroke to the draft was one delegated listener on `document`.
+
+Every test here begins from an edit that exists **only in the DOM** — the state
+the database caught — and requires that a save still write it. That is the
+guarantee: what is on screen is what gets saved.
+
+Run it after any change to the dashboard's rendering, event handling or save
+path:
+
+    node tests/save-flow/form-truth.js
