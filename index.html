@@ -2399,12 +2399,27 @@ function onStoreChange(){
   renderedFrom = null;
 }
 
-/* The only honest way to learn whether this viewer may write is to try. */
-function probeAccess(){
+/**
+ * The only honest way to learn whether this viewer may write is to try.
+ *
+ * A refusal and a blip look identical from here, and treating a blip as a
+ * refusal marked the dashboard read-only for the rest of the page's life: the
+ * fields were disabled, the Save button vanished from the top bar, and there
+ * was no second attempt. Anything that is not a permission answer is retried.
+ */
+function probeAccess(tries){
   if(!DB) return;
+  tries = tries || 0;
   DB.doc('meta/access-probe').set({ at: Date.now() })
-    .then(function(){ canEdit = true;  renderAdmin(); })
-    .catch(function(){ canEdit = false; renderAdmin(); });
+    .then(function(){ canEdit = true; renderAdmin(); })
+    .catch(function(e){
+      canEdit = false;
+      var code = e && (e.code || e.kind);
+      if(code !== 'invalid_argument' && code !== 'revoked' && tries < 4){
+        setTimeout(function(){ probeAccess(tries + 1); }, 1500 * (tries + 1));
+      }
+      renderAdmin();
+    });
 }
 
 /* Never builds a draft before the store has answered. Doing so was the root
@@ -2551,14 +2566,37 @@ function save(){
 }
 
 /**
+ * Records the last button pressed in the dashboard, written before the press
+ * is acted on. A panel that "does nothing" leaves no trace by definition, so
+ * the trace has to be made first: which control, and what the panel believed
+ * about itself at that moment.
+ */
+var clickSeq = 0;
+function noteClick(id, extra){
+  clickSeq++;
+  try {
+    var rec = {
+      at: Date.now(), n: clickSeq, button: String(id).slice(0, 60),
+      saving: saving, canEdit: canEdit, hasDb: !!DB, hasDraft: !!draft, tab: adminTab
+    };
+    if(extra) for(var k in extra) rec[k] = extra[k];
+    /* Through the connection promise, not the DB global: a press that happens
+       while the store is still connecting is exactly the press worth knowing
+       about, and reading the global would have thrown it away. */
+    ensureDb().then(function(db){
+      if(db) db.doc('meta/last-click').set(rec).catch(function(){});
+    });
+  } catch(e){ /* diagnostics must never break a click */ }
+}
+
+/**
  * Records every save attempt in the database so a failure can be understood
  * after the fact instead of guessed at. Small, one document, overwritten each
  * time — and deliberately never allowed to fail the save it describes.
  */
 function noteAttempt(outcome, detail){
-  if(!DB) return;
   try {
-    DB.doc('meta/last-save').set({
+    var rec = {
       at: Date.now(),
       outcome: outcome,
       detail: String(detail || '').slice(0, 300),
@@ -2572,8 +2610,13 @@ function noteAttempt(outcome, detail){
       bound: lastBound,
       formFields: lastHarvest.fields,
       formMoved: lastHarvest.moved,
+      formBad: lastHarvest.bad || 0,
+      hasDb: !!DB,
       tab: adminTab
-    }).catch(function(){});
+    };
+    ensureDb().then(function(db){
+      if(db) db.doc('meta/last-save').set(rec).catch(function(){});
+    });
   } catch(e){ /* diagnostics must never break a save */ }
 }
 
@@ -2895,14 +2938,14 @@ function renderAdmin(){
     +   '<h1>' + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
     +   '<span class="ad-pill ' + st.cls + '"><i></i>' + esc(st.text) + '</span>'
     +   '<div style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">'
-    +     (canEdit
-          /* Also in the top bar, so the control is in view the instant the
-             dashboard opens rather than only at the foot of a long form. */
-          ? '<button class="btn ad-savebtn" id="adSaveTop"' + (saving ? ' disabled' : '') + '>'
-            + (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
-                      : (lang === 'ar' ? 'حفظ' : 'Save'))
-            + (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
-          : '')
+    /* In the top bar as well, so the control is in view the instant the
+       dashboard opens rather than only at the foot of a long form — and
+       unconditionally, because a button that is missing while the page decides
+       whether you may edit is indistinguishable from one that is broken. */
+    +     '<button class="btn ad-savebtn" id="adSaveTop"' + (saving ? ' disabled' : '') + '>'
+    +       (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
+                    : (lang === 'ar' ? 'حفظ' : 'Save'))
+    +       (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
     +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
     +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
     +   '</div>'
@@ -2920,11 +2963,23 @@ function renderAdmin(){
     /* The bar is always on screen for an editor, so the Save button is never
        something you have to discover by typing first. It simply has nothing
        to do until there are changes. */
-    + '<div class="ad-save' + (canEdit || saving || lastError ? ' show' : '') + '">'
+    /* Always on screen while the dashboard is open. It used to appear only
+       once the store had granted edit access, so during the seconds before
+       that — and for good if the check failed — the save controls were simply
+       not there, or slid off the bottom of the window. */
+    + '<div class="ad-save show">'
     +   (lastError
           ? '<p class="ad-bad">' + esc(lastError) + '</p>'
           : saving
             ? '<p>' + (lang === 'ar' ? 'جارٍ الحفظ والتحقّق…' : 'Saving and verifying…') + '</p>'
+            : !DB
+              ? '<p class="ad-bad">' + (lang === 'ar'
+                  ? 'لا اتصال بقاعدة البيانات — الحفظ لن ينجح من هذا العرض.'
+                  : 'No database on this view — saving cannot work here.') + '</p>'
+            : !canEdit
+              ? '<p class="ad-warn">' + (lang === 'ar'
+                  ? 'يجري التحقق من صلاحيتك… اضغط حفظ وسنتحقق مرة أخرى.'
+                  : 'Checking your access… press Save and it will be re-checked.') + '</p>'
             : storeMoved
               ? '<p class="ad-warn">' + (lang === 'ar'
                   ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
@@ -3057,16 +3112,23 @@ function harvestForm(){
   var root = document.getElementById('admin-root');
   if(!root || !draft || renderedFrom !== draft) return 0;
   var list = root.querySelectorAll('input,textarea,select');
-  var n = 0;
-  for(var i = 0; i < list.length; i++){ if(applyControl(list[i])) n++; }
-  lastHarvest = { fields: list.length, moved: n };
+  var n = 0, bad = 0;
+  for(var i = 0; i < list.length; i++){
+    /* Per control, because this runs at the top of every render: one field
+       that cannot be read must not stop the other thirty-six from being
+       saved, and must certainly not take the render with it. */
+    try { if(applyControl(list[i])) n++; } catch(e){ bad++; }
+  }
+  lastHarvest = { fields: list.length, moved: n, bad: bad };
   return n;
 }
-var lastHarvest = { fields: 0, moved: 0 };
+var lastHarvest = { fields: 0, moved: 0, bad: 0 };
 var lastBound = 0;
 
 function onFieldInput(e){
-  if(applyControl(e.target)) markDirty();
+  try {
+    if(applyControl(e.target)) markDirty();
+  } catch(err){ /* one unreadable control never blocks the rest of the form */ }
 }
 
 /* Bound on the elements themselves, so no guard on an ancestor can swallow a
@@ -3102,7 +3164,7 @@ function hasChanges(){
 function markDirty(){
   var bar = document.querySelector('#admin-root .ad-save');
   if(!bar) return;
-  if(canEdit || saving || lastError) bar.classList.add('show');
+  bar.classList.add('show');
 
   var pending = hasChanges();
   var saveBtn = bar.querySelector('#adSave');
@@ -3186,12 +3248,34 @@ function renumbered(){
   renderAdmin();
 }
 
+/**
+ * Every press is recorded before anything else runs, and one failing branch
+ * can no longer take the rest of the panel's buttons with it.
+ *
+ * A single listener handled every button, so an exception anywhere in it left
+ * the whole dashboard looking dead — nothing responds, nothing is written, and
+ * there is no trace of what happened. Now the failure is caught, shown, and
+ * put on the record.
+ */
 document.addEventListener('click', function(e){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open')) return;
   var t = e.target.closest('button');
   if(!t) return;
 
+  noteClick(t.id || t.className || '(button)');
+  try {
+    adminClick(t);
+  } catch(err){
+    saving = false;                 /* never leave the buttons stuck */
+    lastError = (lang === 'ar' ? 'عطل في اللوحة: ' : 'Dashboard error: ')
+      + ((err && err.message) || String(err));
+    noteClick('error', { error: ((err && err.message) || String(err)).slice(0, 200) });
+    renderAdmin();
+  }
+});
+
+function adminClick(t){
   /* Read the form while its paths still line up with the draft: the button
      about to be pressed may renumber them. */
   harvestForm();
@@ -3199,6 +3283,14 @@ document.addEventListener('click', function(e){
   if(t.id === 'adClose'){ location.hash = ''; return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
   if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
+  if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
+
+  /* Below here the controls only make sense for an editor. Save is handled
+     above this line on purpose: it used to fall through to this return, so a
+     viewer marked read-only — including one marked so by a probe that had
+     merely failed — pressed Save and absolutely nothing happened. No message,
+     no record, no clue. A save now always answers, even if the answer is
+     "your account cannot edit this page". */
   if(!canEdit) return;
 
   if(t.dataset.upload){
@@ -3263,62 +3355,110 @@ document.addEventListener('click', function(e){
     return;
   }
 
-  if(t.id === 'adSave' || t.id === 'adSaveTop'){
-    if(saving) return;                 /* the button is re-rendered on every
-                                          snapshot, so its disabled state is
-                                          not a reliable guard on its own */
-    saving = true;
-    lastError = '';
+}
+
+/**
+ * Pressing Save. Always answers: a save that cannot proceed says why, on
+ * screen and on the record, instead of returning quietly.
+ */
+function pressSave(){
+  /* The button is re-rendered on every snapshot, so its disabled state is not
+     a reliable guard on its own. */
+  if(saving) return;
+  saving = true;
+  lastError = '';
+  renderAdmin();
+
+  /* On the record before the first write, not only after the last one: a
+     save that never answers used to leave nothing behind at all. */
+  noteAttempt('start', 'save pressed');
+
+  /* A save that never settles left the button disabled for good — the
+     dashboard looked dead and there was no way back short of a reload. It is
+     time-boxed now: whichever comes first wins, the work stays on screen,
+     and the button always comes back. */
+  var settled = false;
+  var once = function(fn){
+    return function(v){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      saving = false;
+      fn(v);
+    };
+  };
+  var timer = setTimeout(function(){
+    if(settled) return;
+    settled = true;
+    saving = false;
+    dirty = true;                    /* the work stays, and stays unsaved */
+    lastError = lang === 'ar'
+      ? 'لم ترد قاعدة البيانات خلال ٢٠ ثانية. تعديلاتك ما زالت هنا — اضغط حفظ مرة أخرى.'
+      : 'The database did not answer within 20 seconds. Your changes are still here — press Save again.';
+    noteAttempt('timeout', 'no answer within 20s');
     renderAdmin();
+  }, 20000);
 
-    save().then(function(res){
-      saving = false;
-      if(res && res.nothing){
-        noteAttempt('nothing', 'no field differed from the loaded copy');
-        lastError = '';
-        /* State, not a DOM poke: a snapshot arriving a moment later used to
-           rub the message straight back out. */
-        nothingAt = Date.now();
-        renderAdmin();
-        return;
-      }
-      noteAttempt('ok', (res.names || []).join(','));
-      /* Only now, with the write read back and compared, is it honest to say
-         the change is saved. */
-      dirty = false;
-      lastSaved = Date.now();
-      draft = null; renderedFrom = null;   /* re-read the store, don't reuse */
-      loadDraft().then(renderAdmin);
-    }).catch(function(e){
-      saving = false;
-      var info = classifyError(e);
-      lastError = info.message;
-      dirty = true;                    /* the work stays, and stays unsaved */
-      noteAttempt('error', (e && (e.code || e.kind) ? (e.code || e.kind) + ': ' : '') + (e && e.message));
-
-      if(info.readOnly === 'recheck'){
-        /* Ask the store directly rather than guessing why it refused. */
-        DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
-          canEdit = true;
-          lastError = lang === 'ar'
-            ? 'رفضت قاعدة البيانات الحفظ رغم أن صلاحيتك سليمة — غالباً لأن المحتوى تجاوز الحجم المسموح. جرّب صورة أصغر.'
-            : 'The database refused the write although your access is fine — most likely the content exceeded the size limit. Try a smaller image.';
-          renderAdmin();
-        }).catch(function(){
-          canEdit = false;
-          lastError = lang === 'ar'
-            ? 'حسابك لم يعد يملك صلاحية التعديل على هذه الصفحة.'
-            : 'Your account no longer has edit access to this page.';
-          renderAdmin();
-        });
-        return;
-      }
-      if(info.readOnly === true) canEdit = false;
+  /* Resolve.then(save) so a synchronous throw inside save() becomes a
+     rejection this handler can report, instead of an exception that leaves
+     `saving` true and every save button dead. */
+  Promise.resolve().then(function(){
+    /* A read-only verdict can be the result of a probe that simply failed, and
+       that verdict used to outlive the blip that caused it for the whole life
+       of the page. Ask the store again before refusing to save. */
+    if(DB && !canEdit){
+      return DB.doc('meta/access-probe').set({ at: Date.now() })
+        .then(function(){ canEdit = true; })
+        .catch(function(){})
+        .then(save);
+    }
+    return save();
+  }).then(once(function(res){
+    if(res && res.nothing){
+      noteAttempt('nothing', 'no field differed from the loaded copy');
+      lastError = '';
+      /* State, not a DOM poke: a snapshot arriving a moment later used to
+         rub the message straight back out. */
+      nothingAt = Date.now();
       renderAdmin();
-    });
-    return;
-  }
-});
+      return;
+    }
+    noteAttempt('ok', (res.names || []).join(','));
+    /* Only now, with the write read back and compared, is it honest to say
+       the change is saved. */
+    dirty = false;
+    lastSaved = Date.now();
+    draft = null; renderedFrom = null;   /* re-read the store, don't reuse */
+    loadDraft().then(renderAdmin);
+  })).catch(once(function(e){
+    var info = classifyError(e);
+    lastError = info.message;
+    dirty = true;                    /* the work stays, and stays unsaved */
+    noteAttempt('error', (e && (e.code || e.kind) ? (e.code || e.kind) + ': ' : '') + (e && e.message));
+
+    if(info.readOnly === 'recheck' && DB){
+      /* Ask the store directly rather than guessing why it refused. */
+      DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
+        canEdit = true;
+        lastError = lang === 'ar'
+          ? 'رفضت قاعدة البيانات الحفظ رغم أن صلاحيتك سليمة — غالباً لأن المحتوى تجاوز الحجم المسموح. جرّب صورة أصغر.'
+          : 'The database refused the write although your access is fine — most likely the content exceeded the size limit. Try a smaller image.';
+        renderAdmin();
+      }).catch(function(){
+        canEdit = false;
+        lastError = lang === 'ar'
+          ? 'حسابك لم يعد يملك صلاحية التعديل على هذه الصفحة.'
+          : 'Your account no longer has edit access to this page.';
+        renderAdmin();
+      });
+      return;
+    }
+    if(info.readOnly === true) canEdit = false;
+    renderAdmin();
+  }));
+
+}
+
 
 /* Closing the tab or the panel with unsaved work should not lose it silently. */
 window.addEventListener('beforeunload', function(e){

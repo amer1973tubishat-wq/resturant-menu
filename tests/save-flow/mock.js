@@ -11,7 +11,11 @@
  *  - onSnapshot fires once soon after registration, then on every change
  *  - collection().get() -> snapshot with forEach
  */
-window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 250, writeLog: [] };
+/* hangWrites models the one failure a promise cannot report: a write that
+   neither resolves nor rejects. The page has to time it out itself. The access
+   probe is exempt, so the dashboard still opens as an editor. */
+window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
+                  latencyMs: 40, useDelayMs: 250, writeLog: [] };
 
 (function () {
   var listeners = [];
@@ -78,6 +82,7 @@ window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 2
           setTimeout(function () {
             if (!window.__MOCK.canEdit) { rej({ code: 'invalid_argument', message: 'below required level' }); return; }
             if (window.__MOCK.failWrites) { rej({ code: 'unavailable', message: 'transient' }); return; }
+            if (window.__MOCK.hangWrites && path.indexOf('meta/') !== 0) return;   /* never settles */
             window.__MOCK.writeLog.push({ path: path, at: Date.now() });
             mutate(function (all) { all[path] = clone(data); })
               .then(function () { return notify(path); }).then(res);

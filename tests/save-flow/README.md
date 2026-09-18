@@ -100,3 +100,20 @@ Run it after any change to the dashboard's rendering, event handling or save
 path:
 
     node tests/save-flow/form-truth.js
+
+## button-answers.js
+
+Added after the dashboard reported a Save button that was present, labelled
+«حفظ ونشر», and did nothing at all when pressed. The database showed why the
+report was impossible to diagnose from the code alone: `meta/access-probe`
+written minutes earlier, `meta/last-save` untouched for an hour. The press fell
+through the read-only guard in the click handler and returned in silence — no
+message, no record, no clue.
+
+Each case puts the dashboard in a state where saving cannot or should not
+succeed — a viewer the database refuses, no database at all, a write that never
+answers, a control that cannot be read, a probe that failed once — presses the
+button, and requires an answer. A control that does nothing and says nothing is
+indistinguishable from a broken one.
+
+    node tests/save-flow/button-answers.js
