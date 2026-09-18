@@ -18,6 +18,8 @@ The mock mirrors the parts of the contract the page depends on:
 - `__MOCK.forceNotify()` re-delivers the current state without a change, which
   is what the contract's ~30 s periodic refresh does. This is what exposed the
   panel rebuilding itself under the user's hands.
+- A write notifies only the listeners of the document that changed, as the
+  live store does.
 - Reads return object keys **alphabetised**, because the live store does
   (verified against it: `{o,c}` came back as `{c,o}`). Without this the mock
   let an order-sensitive comparison pass here and fail in production.
@@ -32,6 +34,7 @@ node tests/save-flow/suite.js         # persistence
 node tests/save-flow/save-button.js   # the save control itself
 node tests/save-flow/live-editing.js  # edits survive database snapshots
 node tests/save-flow/operations.js    # every edit reports success honestly
+node tests/save-flow/resilience.js    # a save survives a lost change log
 ```
 
 The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;
@@ -74,3 +77,9 @@ delete, reorder, badge, category change, brand, headings, hours, image URL —
 and asserts each one reports success honestly, with no error and a
 confirmation. This is the suite that caught adding an item reporting "The
 database did not keep: items" while having saved perfectly well.
+
+`resilience.js` covers the failure the live database pointed to: saves that
+wrote nothing at all while reporting no error. What to write is now derived by
+comparing the draft against the copy that was loaded, so a save still works
+when the change log is empty; every attempt is recorded in `meta/last-save`,
+and pressing save with genuinely nothing changed leaves the store untouched.

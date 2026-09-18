@@ -44,9 +44,12 @@ window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 2
     return queue;
   }
 
-  function notify() {
+  /* The real store delivers to the listeners of the document that changed.
+     Notifying every listener made unrelated writes look like content updates. */
+  function notify(changedPath) {
     return readAll().then(function (all) {
       listeners.forEach(function (l) {
+        if (changedPath && l.path !== changedPath) return;
         if (l.type === 'doc') {
           var d = all[l.path];
           l.next({ exists: d !== undefined, id: l.path.split('/').pop(), data: function () { return clone(d || {}); } });
@@ -77,7 +80,7 @@ window.__MOCK = { canEdit: true, failWrites: false, latencyMs: 40, useDelayMs: 2
             if (window.__MOCK.failWrites) { rej({ code: 'unavailable', message: 'transient' }); return; }
             window.__MOCK.writeLog.push({ path: path, at: Date.now() });
             mutate(function (all) { all[path] = clone(data); })
-              .then(function () { return notify(); }).then(res);
+              .then(function () { return notify(path); }).then(res);
           }, window.__MOCK.latencyMs);
         });
       },

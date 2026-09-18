@@ -2107,8 +2107,11 @@ var canEdit = false;
 var saving = false;       /* guards concurrent saves; the button is re-rendered */
 var lastError = '';       /* shown to the user; never swallowed */
 var lastSaved = 0;
+var nothingAt = 0;   /* when the last save found nothing to write */
 var storeMoved = false;   /* another editor wrote while this draft was open */
-var touched = Object.create(null);  /* dot-paths the user actually changed */
+var touched = Object.create(null);  /* dot-paths seen by the input handler */
+var baseline = null;   /* deep copy of what loadDraft read, so the save set can
+                          be derived by comparison instead of bookkeeping */
 var adminTab = 'menu';
 var draft = null;
 var dirty = false;
@@ -2160,6 +2163,7 @@ function normalisePath(path){
 function markTouched(path){
   touched[normalisePath(path)] = true;
   dirty = true;
+  nothingAt = 0;
 }
 
 function getPath(obj, path){
@@ -2423,6 +2427,7 @@ function loadDraft(){
         };
         if(!draft.text.en) draft.text.en = {};
         if(!draft.text.ar) draft.text.ar = {};
+        baseline = JSON.parse(JSON.stringify(draft));
         touched = Object.create(null);
         storeMoved = false;
       })
@@ -2430,6 +2435,23 @@ function loadDraft(){
         draft = base;
         lastError = 'Could not read the saved content. Reload before editing.';
       });
+  });
+}
+
+var MENU_FIELDS = ['categories', 'items'];
+var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'contact'];
+
+/**
+ * The top-level fields whose current value differs from the copy that was
+ * loaded — in other words, exactly what this person changed. Comparing beats
+ * a change log because there is nothing to miss or reset: whatever is in the
+ * draft and differs gets written.
+ */
+function changedFields(){
+  if(!draft) return [];
+  if(!baseline) return MENU_FIELDS.concat(SITE_FIELDS);   /* unknown: write it all */
+  return MENU_FIELDS.concat(SITE_FIELDS).filter(function(f){
+    return !sameValue(draft[f], baseline[f]);
   });
 }
 
@@ -2446,8 +2468,15 @@ function save(){
   if(!DB) return Promise.reject({ kind:'nodb', message:'No database on this view.' });
   if(!canEdit) return Promise.reject({ kind:'denied', message:'Your account cannot edit this page.' });
 
-  var paths = Object.keys(touched);
-  if(paths.length === 0) return Promise.resolve({ nothing:true });
+  /* What to write is decided by comparing the draft against the copy that was
+     loaded — not by the change log. An input event that never reached the
+     handler used to leave `touched` empty, and the save then wrote nothing at
+     all while reporting no error, which is why edits seemed to vanish. The
+     draft is the intent; the difference against the baseline is the work. */
+  var fields = changedFields();
+  if(fields.length === 0 && Object.keys(pendingMedia).length === 0){
+    return Promise.resolve({ nothing:true });
+  }
 
   var mediaIds = Object.keys(pendingMedia);
 
@@ -2476,12 +2505,12 @@ function save(){
         contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
       };
 
+      /* Only the fields this person changed are carried over, so a colleague's
+         untouched fields survive. */
       var wantMenu = false, wantSite = false;
-      paths.forEach(function(path){
-        var value = getPath(draft, path);
-        if(value === undefined) return;
-        if(docOf(path) === 'menu'){ setPathOn(menuDoc, path, value); wantMenu = true; }
-        else                      { setPathOn(siteDoc, path, value); wantSite = true; }
+      fields.forEach(function(f){
+        if(MENU_FIELDS.indexOf(f) > -1){ menuDoc[f] = draft[f]; wantMenu = true; }
+        else                           { siteDoc[f] = draft[f]; wantSite = true; }
       });
 
       var writes = [];
@@ -2495,27 +2524,49 @@ function save(){
 
       return Promise.all(writes).then(function(){
         /* Read back and compare. A resolved write is the store's word for it;
-           this is the check that the values really landed, which is what lets
-           the page claim success honestly. */
+           this confirms the values really landed, which is what lets the page
+           claim success honestly. */
         return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
       }).then(function(after){
         var savedMenu = after[0].exists ? after[0].data() : {};
         var savedSite = after[1].exists ? after[1].data() : {};
-        var bad = paths.filter(function(path){
-          var wanted = getPath(draft, path);
-          if(wanted === undefined) return false;
-          var got = getPath(docOf(path) === 'menu' ? savedMenu : savedSite, path);
-          return !sameValue(wanted, got);
+        var bad = fields.filter(function(f){
+          var got = (MENU_FIELDS.indexOf(f) > -1 ? savedMenu : savedSite)[f];
+          return !sameValue(draft[f], got);
         });
         if(bad.length){
           throw { kind:'verify', message:'The database did not keep: ' + bad.join(', ') };
         }
         pendingMedia = {};
         touched = Object.create(null);
+        baseline = JSON.parse(JSON.stringify(draft));
         storeMoved = false;
-        return { verified:true, fields:paths.length };
+        return { verified:true, fields:fields.length, names:fields };
       });
     });
+}
+
+/**
+ * Records every save attempt in the database so a failure can be understood
+ * after the fact instead of guessed at. Small, one document, overwritten each
+ * time — and deliberately never allowed to fail the save it describes.
+ */
+function noteAttempt(outcome, detail){
+  if(!DB) return;
+  try {
+    DB.doc('meta/last-save').set({
+      at: Date.now(),
+      outcome: outcome,
+      detail: String(detail || '').slice(0, 300),
+      changed: changedFields().join(',') || '(none)',
+      touched: Object.keys(touched).join(',') || '(none)',
+      pendingImages: Object.keys(pendingMedia).length,
+      hasDraft: !!draft,
+      hasBaseline: !!baseline,
+      canEdit: canEdit,
+      dirty: dirty
+    }).catch(function(){});
+  } catch(e){ /* diagnostics must never break a save */ }
 }
 
 /* A refused write is not the same as a broken one. Only a permission refusal
@@ -2526,7 +2577,12 @@ function classifyError(e){
   if(e && e.kind === 'denied') return { readOnly:true,  message:e.message };
   if(e && e.kind === 'nodb')   return { readOnly:false, message:e.message };
   if(e && e.kind === 'verify') return { readOnly:false, message:e.message };
-  if(code === 'invalid_argument') return { readOnly:true, message:'The server refused the write. Your account may not have edit access.' };
+  /* invalid_argument covers both a permission refusal AND a document that
+     breaks a limit (over 256 KiB, bad path). Assuming the first was wrong: a
+     too-large document would silently demote a legitimate editor to
+     read-only. The caller re-checks access before deciding. */
+  if(code === 'invalid_argument') return { readOnly:'recheck',
+    message:'The database refused the write. Re-checking your access…' };
   if(code === 'revoked')          return { readOnly:true, message:'Access was withdrawn while you were editing. Reload the page.' };
   if(code === 'quota_exceeded')   return { readOnly:false, message:'The database is full. Remove some images and try again.' };
   if(code === 'resource_exhausted') return { readOnly:false, message:'Too many writes at once. Wait a moment and try again.' };
@@ -2829,7 +2885,7 @@ function renderAdmin(){
           ? '<button class="btn ad-savebtn" id="adSaveTop"' + (saving ? ' disabled' : '') + '>'
             + (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
                       : (lang === 'ar' ? 'حفظ' : 'Save'))
-            + (dirty ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+            + (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
           : '')
     +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
     +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
@@ -2857,11 +2913,14 @@ function renderAdmin(){
               ? '<p class="ad-warn">' + (lang === 'ar'
                   ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
                   : 'Another session saved changes. Your save will merge on top of them.') + '</p>'
-              : dirty
+              : hasChanges()
                 ? '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
-                : '<p class="ad-quiet">' + (lang === 'ar'
-                    ? 'كل التعديلات محفوظة' : 'All changes saved') + '</p>')
-    +   '<button class="ad-mini" id="adRevert"' + (saving || !dirty ? ' disabled' : '') + '>'
+                : (Date.now() - nothingAt < 5000)
+                  ? '<p class="ad-quiet">' + (lang === 'ar'
+                      ? 'لا توجد تغييرات لحفظها' : 'Nothing to save') + '</p>'
+                  : '<p class="ad-quiet">' + (lang === 'ar'
+                      ? 'كل التعديلات محفوظة' : 'All changes saved') + '</p>')
+    +   '<button class="ad-mini" id="adRevert"' + (saving || !hasChanges() ? ' disabled' : '') + '>'
     +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
     /* Never dimmed to the point of looking absent: it stays a solid, clickable
        control, and simply reports that there is nothing to save. */
@@ -2869,9 +2928,9 @@ function renderAdmin(){
     +     (saving ? ' disabled' : '') + '>'
     +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
                   : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish'))
-    +     (dirty ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+    +     (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
     + '</div>'
-    + (lastSaved && !dirty && !lastError
+    + (lastSaved && !hasChanges() && !lastError
         ? '<div class="ad-ok" role="status">' + (lang === 'ar'
             ? 'تم الحفظ والتأكد من وجوده في قاعدة البيانات'
             : 'Saved and confirmed in the database') + '</div>'
@@ -2898,15 +2957,22 @@ function setPath(path, value){
 /* Updates the save bar in place. Re-rendering the whole panel on every
    keystroke would tear the field the user is typing in out from under them,
    so the bar's own state is refreshed on its own. */
+/* The honest answer to "is there anything to save?" — measured, not tracked,
+   so a missed input event cannot make the dashboard claim it is up to date. */
+function hasChanges(){
+  return dirty || Object.keys(pendingMedia).length > 0 || changedFields().length > 0;
+}
+
 function markDirty(){
   var bar = document.querySelector('#admin-root .ad-save');
   if(!bar) return;
   if(canEdit || saving || lastError) bar.classList.add('show');
 
+  var pending = hasChanges();
   var saveBtn = bar.querySelector('#adSave');
   var revertBtn = bar.querySelector('#adRevert');
-  if(saveBtn) saveBtn.disabled = saving || !dirty;
-  if(revertBtn) revertBtn.disabled = saving || !dirty;
+  if(saveBtn) saveBtn.disabled = saving;
+  if(revertBtn) revertBtn.disabled = saving || !pending;
 
   var msg = bar.querySelector('p');
   if(msg && !lastError && !saving){
@@ -2915,9 +2981,12 @@ function markDirty(){
       msg.textContent = lang === 'ar'
         ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
         : 'Another session saved changes. Your save will merge on top of them.';
-    } else if(dirty){
+    } else if(pending){
       msg.className = '';
       msg.textContent = lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes';
+    } else if(Date.now() - nothingAt < 5000){
+      msg.className = 'ad-quiet';
+      msg.textContent = lang === 'ar' ? 'لا توجد تغييرات لحفظها' : 'Nothing to save';
     } else {
       msg.className = 'ad-quiet';
       msg.textContent = lang === 'ar' ? 'كل التعديلات محفوظة' : 'All changes saved';
@@ -2928,19 +2997,19 @@ function markDirty(){
     var btn = document.querySelector('#admin-root ' + sel);
     if(!btn) return;
     var dot = btn.querySelector('.ad-dot');
-    if(dirty && !dot){
+    if(pending && !dot){
       dot = document.createElement('span');
       dot.className = 'ad-dot';
       dot.setAttribute('aria-hidden', 'true');
       btn.appendChild(dot);
-    } else if(!dirty && dot){
+    } else if(!pending && dot){
       dot.remove();
     }
   });
 
   /* A stale "saved" badge next to unsaved work would be misleading. */
   var ok = document.querySelector('#admin-root .ad-ok');
-  if(ok && dirty) ok.remove();
+  if(ok && pending) ok.remove();
 }
 
 document.addEventListener('input', function(e){
@@ -3062,18 +3131,17 @@ document.addEventListener('click', function(e){
     save().then(function(res){
       saving = false;
       if(res && res.nothing){
-        /* Answer the click rather than appearing to do nothing. */
+        noteAttempt('nothing', 'no field differed from the loaded copy');
         lastError = '';
+        /* State, not a DOM poke: a snapshot arriving a moment later used to
+           rub the message straight back out. */
+        nothingAt = Date.now();
         renderAdmin();
-        var bar = document.querySelector('#admin-root .ad-save p');
-        if(bar){
-          bar.className = 'ad-quiet';
-          bar.textContent = lang === 'ar' ? 'لا توجد تغييرات لحفظها' : 'Nothing to save';
-        }
         return;
       }
-      /* Only now, with the write read back and compared, is it honest to
-         say the change is saved. */
+      noteAttempt('ok', (res.names || []).join(','));
+      /* Only now, with the write read back and compared, is it honest to say
+         the change is saved. */
       dirty = false;
       lastSaved = Date.now();
       draft = null;                    /* next open reads the store afresh */
@@ -3082,9 +3150,27 @@ document.addEventListener('click', function(e){
       saving = false;
       var info = classifyError(e);
       lastError = info.message;
-      if(info.readOnly) canEdit = false;
-      /* The work stays on screen and still counts as unsaved. */
-      dirty = true;
+      dirty = true;                    /* the work stays, and stays unsaved */
+      noteAttempt('error', (e && (e.code || e.kind) ? (e.code || e.kind) + ': ' : '') + (e && e.message));
+
+      if(info.readOnly === 'recheck'){
+        /* Ask the store directly rather than guessing why it refused. */
+        DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
+          canEdit = true;
+          lastError = lang === 'ar'
+            ? 'رفضت قاعدة البيانات الحفظ رغم أن صلاحيتك سليمة — غالباً لأن المحتوى تجاوز الحجم المسموح. جرّب صورة أصغر.'
+            : 'The database refused the write although your access is fine — most likely the content exceeded the size limit. Try a smaller image.';
+          renderAdmin();
+        }).catch(function(){
+          canEdit = false;
+          lastError = lang === 'ar'
+            ? 'حسابك لم يعد يملك صلاحية التعديل على هذه الصفحة.'
+            : 'Your account no longer has edit access to this page.';
+          renderAdmin();
+        });
+        return;
+      }
+      if(info.readOnly === true) canEdit = false;
       renderAdmin();
     });
     return;
