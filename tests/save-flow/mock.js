@@ -15,7 +15,9 @@
    neither resolves nor rejects. The page has to time it out itself. The access
    probe is exempt, so the dashboard still opens as an editor. */
 window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
-                  latencyMs: 40, useDelayMs: 250, writeLog: [] };
+                  shareReads: false, latencyMs: 40, useDelayMs: 250, writeLog: [] };
+/* Documents handed out by reference when shareReads is on. */
+var cache = {};
 
 (function () {
   var listeners = [];
@@ -50,14 +52,29 @@ window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
 
   /* The real store delivers to the listeners of the document that changed.
      Notifying every listener made unrelated writes look like content updates. */
+  /* How a document is handed to the page — the one place that decides, so a
+     get() and an arriving snapshot behave identically.
+
+     With shareReads on, every read of a path returns the SAME object, refreshed
+     in place. That is the behaviour a store with a document cache has, and it
+     is what made the page's edits vanish: the draft was built out of these
+     objects, so a refresh overwrote the typing inside the draft itself. */
+  function handOut(path, d) {
+    if (!window.__MOCK.shareReads) {
+      return { exists: d !== undefined, id: path.split('/').pop(), data: function () { return clone(d || {}); } };
+    }
+    var c = cache[path] = cache[path] || {};
+    Object.keys(c).forEach(function (k) { delete c[k]; });
+    var fresh = clone(d || {});
+    Object.keys(fresh).forEach(function (k) { c[k] = fresh[k]; });
+    return { exists: d !== undefined, id: path.split('/').pop(), data: function () { return c; } };
+  }
+
   function notify(changedPath) {
     return readAll().then(function (all) {
       listeners.forEach(function (l) {
         if (changedPath && l.path !== changedPath) return;
-        if (l.type === 'doc') {
-          var d = all[l.path];
-          l.next({ exists: d !== undefined, id: l.path.split('/').pop(), data: function () { return clone(d || {}); } });
-        }
+        if (l.type === 'doc') l.next(handOut(l.path, all[l.path]));
       });
     });
   }
@@ -71,8 +88,7 @@ window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
         return new Promise(function (res) {
           setTimeout(function () {
             readAll().then(function (all) {
-              var d = all[path];
-              res({ exists: d !== undefined, id: path.split('/').pop(), data: function () { return clone(d || {}); } });
+              res(handOut(path, all[path]));
             });
           }, window.__MOCK.latencyMs);
         });

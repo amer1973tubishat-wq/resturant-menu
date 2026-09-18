@@ -2226,6 +2226,13 @@ function sameValue(a, b){
   return true;
 }
 
+/* A deep copy of anything the store hands over, so nothing this page edits is
+   still owned — and refreshable — by the store. */
+function own(v){
+  try { return v == null ? v : JSON.parse(JSON.stringify(v)); }
+  catch(e){ return v; }
+}
+
 function snapshotDefaults(){
   var clone = function(x){ return JSON.parse(JSON.stringify(x)); };
   return {
@@ -2243,6 +2250,7 @@ function snapshotDefaults(){
 
 function applyContent(d){
   if(!d) return;
+  d = own(d);          /* the page keeps its own copy; see loadDraft() */
   /* Presence checks, never truthiness: an empty menu, a cleared phone number
      and a blank heading are all legitimate saved states. Treating them as
      "missing" was silently reverting deletions to the built-in defaults. */
@@ -2345,7 +2353,7 @@ function connectDb(){
 
     db.collection('media').get().then(function(snap){
       snap.forEach(function(doc){
-        var d = doc.data();
+        var d = own(doc.data());
         if(d && typeof d.url === 'string') MEDIA[doc.id] = d.url;
       });
       setLang(lang);
@@ -2431,8 +2439,17 @@ function loadDraft(){
     if(!db){ draft = base; return; }
     return Promise.all([db.doc(DOC_MENU).get(), db.doc(DOC_SITE).get()])
       .then(function(res){
-        var m  = res[0].exists ? res[0].data() : {};
-        var st = res[1].exists ? res[1].data() : {};
+        /* Copied, never referenced.
+         *
+         * data() hands back a document object the store owns, and the store
+         * refreshes its documents periodically. Building the draft out of those
+         * objects meant every local edit lived inside the store's own copy — so
+         * a refresh arriving thirty seconds later overwrote the typing in place,
+         * with no code here involved. The field reverted to the stored value,
+         * the draft then matched the baseline, and the save truthfully found
+         * nothing to write. That is the revert, and this copy is the fix. */
+        var m  = own(res[0].exists ? res[0].data() : {});
+        var st = own(res[1].exists ? res[1].data() : {});
         draft = {
           categories: Array.isArray(m.categories) ? m.categories : base.categories,
           items:      Array.isArray(m.items)      ? m.items      : base.items,
@@ -2492,11 +2509,6 @@ function save(){
      form is the intent; the difference against the baseline is the work. */
   harvestForm();
 
-  var fields = changedFields();
-  if(fields.length === 0 && Object.keys(pendingMedia).length === 0){
-    return Promise.resolve({ nothing:true });
-  }
-
   var mediaIds = Object.keys(pendingMedia);
 
   /* Images first: a menu document naming an image id that was never written
@@ -2509,8 +2521,8 @@ function save(){
     })
     .then(function(res){
       var base = snapshotDefaults();
-      var m  = res[0].exists ? res[0].data() : {};
-      var st = res[1].exists ? res[1].data() : {};
+      var m  = own(res[0].exists ? res[0].data() : {});
+      var st = own(res[1].exists ? res[1].data() : {});
 
       var menuDoc = {
         categories: Array.isArray(m.categories) ? m.categories : base.categories,
@@ -2524,8 +2536,33 @@ function save(){
         contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
       };
 
-      /* Only the fields this person changed are carried over, so a colleague's
-         untouched fields survive. */
+      /* A field is written when BOTH are true: this person changed it, and the
+         database does not already hold that value.
+         
+         Either test alone is wrong. Against the baseline alone, a save writes a
+         value the store already has, and — worse — a baseline that has gone
+         stale makes a real edit compare equal and vanish. Against the store
+         alone, an untouched field whose copy here predates a colleague's edit
+         looks changed, and their work is overwritten by a value this person
+         never touched. Together: my changes go in, theirs stay, and nothing is
+         written twice. */
+      var fields = MENU_FIELDS.concat(SITE_FIELDS).filter(function(f){
+        var stored = (MENU_FIELDS.indexOf(f) > -1 ? menuDoc : siteDoc)[f];
+        if(sameValue(draft[f], stored)) return false;          /* already there */
+        if(baseline && sameValue(draft[f], baseline[f])){
+          /* Unchanged here but different in the store: someone else's edit.
+             Leave it alone, and take their value so this copy stops claiming a
+             difference it does not have. */
+          draft[f] = own(stored);
+          storeMoved = true;
+          return false;
+        }
+        return true;
+      });
+      if(fields.length === 0 && mediaIds.length === 0){
+        return { nothing:true };
+      }
+
       var wantMenu = false, wantSite = false;
       fields.forEach(function(f){
         if(MENU_FIELDS.indexOf(f) > -1){ menuDoc[f] = draft[f]; wantMenu = true; }
@@ -2547,8 +2584,8 @@ function save(){
            claim success honestly. */
         return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
       }).then(function(after){
-        var savedMenu = after[0].exists ? after[0].data() : {};
-        var savedSite = after[1].exists ? after[1].data() : {};
+        var savedMenu = own(after[0].exists ? after[0].data() : {});
+        var savedSite = own(after[1].exists ? after[1].data() : {});
         var bad = fields.filter(function(f){
           var got = (MENU_FIELDS.indexOf(f) > -1 ? savedMenu : savedSite)[f];
           return !sameValue(draft[f], got);
@@ -2990,7 +3027,8 @@ function renderAdmin(){
                   ? '<p class="ad-quiet">' + (lang === 'ar'
                       ? 'لا توجد تغييرات لحفظها' : 'Nothing to save') + '</p>'
                   : '<p class="ad-quiet">' + (lang === 'ar'
-                      ? 'كل التعديلات محفوظة' : 'All changes saved') + '</p>')
+                      ? 'كل التعديلات محفوظة — الحفظ تلقائي'
+                      : 'All changes saved — saving is automatic') + '</p>')
     +   '<button class="ad-mini" id="adRevert"' + (saving || !hasChanges() ? ' disabled' : '') + '>'
     +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
     /* Never dimmed to the point of looking absent: it stays a solid, clickable
@@ -3127,9 +3165,58 @@ var lastBound = 0;
 
 function onFieldInput(e){
   try {
-    if(applyControl(e.target)) markDirty();
+    if(applyControl(e.target)){ markDirty(); autoSave(); }
   } catch(err){ /* one unreadable control never blocks the rest of the form */ }
 }
+
+/**
+ * Every change reaches the database on its own, about a second after the
+ * typing stops.
+ *
+ * Four rounds of this bug had one shape: the edit was made, something took it
+ * off the screen before the button was pressed, and the save then correctly
+ * reported nothing to write. Making the button cleverer cannot fix that — by
+ * the time it is pressed the work is already gone. Writing as the work happens
+ * can: there is no window left for anything to revert, because the new value is
+ * in the store seconds after it is typed. The button remains, as "save now".
+ */
+var autoTimer = null;
+var autoRun = false;   /* the save in flight was automatic */
+var AUTO_DELAY = 1100;
+function autoSave(){
+  if(!DB || saving) return;
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = setTimeout(flushSave, AUTO_DELAY);
+}
+
+/* Write now rather than on the timer. Leaving a field, hiding the tab or
+   navigating away are all moments after which this page may not get another
+   chance, so each one shortens the window to nothing. */
+function flushSave(){
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+  if(!DB || saving || !hasChanges()) return;
+  pressSave(true);
+}
+
+/* Leaving a control commits it: click out of the field and it is written. */
+document.addEventListener('focusout', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  if(!root.contains(e.target)) return;
+  try { if(applyControl(e.target)) markDirty(); } catch(err){}
+  /* Deferred by a turn: focusout lands between mousedown and mouseup, and
+     doing work here that touches the DOM would cancel the click that caused
+     it. */
+  setTimeout(flushSave, 0);
+});
+
+/* The last moment this page is reliably allowed to run. A reload between an
+   edit and a save is what lost four rounds of work: the typing was in a page
+   that no longer existed, and the next one read the stored value back. */
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden') flushSave();
+});
+window.addEventListener('pagehide', flushSave);
 
 /* Bound on the elements themselves, so no guard on an ancestor can swallow a
    keystroke on its way up. */
@@ -3187,7 +3274,9 @@ function markDirty(){
       msg.textContent = lang === 'ar' ? 'لا توجد تغييرات لحفظها' : 'Nothing to save';
     } else {
       msg.className = 'ad-quiet';
-      msg.textContent = lang === 'ar' ? 'كل التعديلات محفوظة' : 'All changes saved';
+      msg.textContent = lang === 'ar'
+        ? 'كل التعديلات محفوظة — الحفظ تلقائي'
+        : 'All changes saved — saving is automatic';
     }
   }
   /* Both save buttons carry the same unsaved marker, updated in place. */
@@ -3295,17 +3384,17 @@ function adminClick(t){
 
   if(t.dataset.upload){
     var target = t.dataset.upload;
-    pickImage(function(id){ setPath(target, id); renderAdmin(); markDirty(); });
+    pickImage(function(id){ setPath(target, id); renderAdmin(); markDirty(); autoSave(); });
     return;
   }
-  if(t.dataset.clearimg){ setPath(t.dataset.clearimg, ''); renderAdmin(); markDirty(); return; }
+  if(t.dataset.clearimg){ setPath(t.dataset.clearimg, ''); renderAdmin(); markDirty(); autoSave(); return; }
 
   if(t.dataset.badge){
     var b = t.dataset.badge.split(':');
     draft.items[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
-    markTouched('items'); renderAdmin(); return;
+    markTouched('items'); renderAdmin(); autoSave(); return;
   }
-  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renumbered(); return; }
+  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renumbered(); autoSave(); return; }
   if(t.dataset.cdel){
     var gone = draft.categories.splice(Number(t.dataset.cdel), 1)[0];
     /* Items of a deleted category would vanish from the site, so move
@@ -3314,13 +3403,13 @@ function adminClick(t){
     if(gone && fallback){
       draft.items.forEach(function(it){ if(it.cat === gone.id) it.cat = fallback; });
     }
-    markTouched('categories'); markTouched('items'); renumbered(); return;
+    markTouched('categories'); markTouched('items'); renumbered(); autoSave(); return;
   }
   if(t.dataset.move){
     var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
     if(to >= 0 && to < draft.items.length){
       draft.items.splice(to, 0, draft.items.splice(from, 1)[0]);
-      markTouched('items'); renumbered();
+      markTouched('items'); renumbered(); autoSave();
     }
     return;
   }
@@ -3328,7 +3417,7 @@ function adminClick(t){
     var cf = Number(t.dataset.cmove), ct = cf + Number(t.dataset.dir);
     if(ct >= 0 && ct < draft.categories.length){
       draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
-      markTouched('categories'); renumbered();
+      markTouched('categories'); renumbered(); autoSave();
     }
     return;
   }
@@ -3338,16 +3427,17 @@ function adminClick(t){
       spice: 0, badge: null, img: '',
       en: { n:'New item', d:'' }, ar: { n:'صنف جديد', d:'' }
     });
-    markTouched('items'); renderAdmin(); return;
+    markTouched('items'); renderAdmin(); autoSave(); return;
   }
   if(t.id === 'addCat'){
     draft.categories.push({
       id: 'cat-' + Date.now().toString(36), icon: 'i-fries', img: '',
       en: { n:'New category', t:'' }, ar: { n:'قسم جديد', t:'' }
     });
-    markTouched('categories'); renderAdmin(); return;
+    markTouched('categories'); renderAdmin(); autoSave(); return;
   }
   if(t.id === 'adRevert'){
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
     draft = null; renderedFrom = null;
     dirty = false; pendingMedia = {}; touched = Object.create(null);
     lastError = ''; storeMoved = false;
@@ -3361,17 +3451,24 @@ function adminClick(t){
  * Pressing Save. Always answers: a save that cannot proceed says why, on
  * screen and on the record, instead of returning quietly.
  */
-function pressSave(){
+function pressSave(auto){
   /* The button is re-rendered on every snapshot, so its disabled state is not
      a reliable guard on its own. */
   if(saving) return;
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+  autoRun = !!auto;
   saving = true;
   lastError = '';
-  renderAdmin();
+  /* An automatic save must not move anything. Rebuilding the panel here tore
+     the DOM out between a mousedown and its mouseup, so the very click that
+     moved focus out of a field — a tab, a button — was destroyed before it
+     could fire. The bar is updated in place instead; only a save the user
+     asked for gets a full render. */
+  if(autoRun) markDirty(); else renderAdmin();
 
   /* On the record before the first write, not only after the last one: a
      save that never answers used to leave nothing behind at all. */
-  noteAttempt('start', 'save pressed');
+  noteAttempt('start', autoRun ? 'auto' : 'button');
 
   /* A save that never settles left the button disabled for good — the
      dashboard looked dead and there was no way back short of a reload. It is
@@ -3420,7 +3517,7 @@ function pressSave(){
       /* State, not a DOM poke: a snapshot arriving a moment later used to
          rub the message straight back out. */
       nothingAt = Date.now();
-      renderAdmin();
+      if(autoRun) markDirty(); else renderAdmin();
       return;
     }
     noteAttempt('ok', (res.names || []).join(','));
@@ -3428,8 +3525,12 @@ function pressSave(){
        the change is saved. */
     dirty = false;
     lastSaved = Date.now();
-    draft = null; renderedFrom = null;   /* re-read the store, don't reuse */
-    loadDraft().then(renderAdmin);
+    /* The editor is NOT rebuilt from the store here. It used to be — the draft
+       was discarded and re-read — which opened a window in which anything
+       typed during or just after the save was thrown away and the field
+       visibly reverted. save() has already refreshed the baseline, so the
+       draft on screen is exactly what the database holds. */
+    if(autoRun) markDirty(); else renderAdmin();
   })).catch(once(function(e){
     var info = classifyError(e);
     lastError = info.message;

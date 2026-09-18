@@ -117,3 +117,26 @@ button, and requires an answer. A control that does nothing and says nothing is
 indistinguishable from a broken one.
 
     node tests/save-flow/button-answers.js
+
+## autosave.js
+
+The fourth round of "it does not save" settled what the earlier records meant.
+The decisive pair was `dirty: false` together with `touched: "(none)"`: every
+route from a keystroke to the draft goes through `markTouched`, so that pair
+says nothing had been typed in the page load that pressed Save. The typing was
+in an earlier page load — the artifact had reloaded in between — and the new one
+had read the stored value back from the database. `content/site` had not changed
+since 12 September, and the user watched the restaurant name revert to بيتنا.
+
+No button can fix that: by the time it is pressed, the work is in a page that
+no longer exists. So the write stopped waiting for the button. It happens about
+a second after the typing stops, immediately when a field is left, and again
+when the page is hidden or unloaded.
+
+This suite runs with the mock in its most hostile mode — documents handed out
+by reference (`shareReads`) and refreshes arriving mid-edit — and its central
+test types a new name, reloads the page, and requires the name to still be
+there. With auto-save removed, ten of its checks fail, including that one, with
+`بيتنا` as the observed value.
+
+    node tests/save-flow/autosave.js
