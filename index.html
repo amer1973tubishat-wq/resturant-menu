@@ -1528,6 +1528,12 @@ var money = function(n){ return n.toFixed(2) + ' ' + T[lang].cur; };
 /* Content edited in the admin panel lives in a shared database, and the runtime
    contract is explicit that shared data is untrusted — so everything read back
    from it is escaped before it reaches innerHTML. */
+/* An own-property read, for any lookup whose key is stored content. */
+function own_(obj, key){
+  return (obj && typeof key === 'string' &&
+    Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+}
+
 function esc(v){
   return String(v == null ? '' : v)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1547,10 +1553,27 @@ var activeCat = 'burgers';
 /* An image is either a pasted https URL, an inline data URL, or an id
    pointing at a stored image document. Anything else means "no image",
    and the card falls back to the built-in illustration. */
+/* The only two shapes that may reach an src attribute: an https URL, or an
+   inline image. Everything else — javascript:, data:text/html, a protocol
+   relative //host, a stray object from the prototype chain — resolves to
+   nothing. The stored value is checked by the same rule as a pasted one,
+   because a media document is editable content too. */
+function safeImageUrl(v){
+  if(typeof v !== 'string') return '';
+  var t = v.trim();
+  if(/^https:\/\/[^\s"'<>]+$/i.test(t)) return t;
+  if(/^data:image\/(png|jpe?g|webp|gif|avif|bmp);base64,[A-Za-z0-9+/=\s]+$/i.test(t)) return t;
+  return '';
+}
+
 function imgSrc(v){
-  if(!v) return '';
-  if(/^https?:\/\//i.test(v) || /^data:image\//i.test(v)) return v;
-  return MEDIA[v] || '';
+  if(typeof v !== 'string' || !v) return '';
+  var direct = safeImageUrl(v);
+  if(direct) return direct;
+  /* An id into the stored images. Own properties only: a value like
+     "constructor" would otherwise walk the prototype chain. */
+  if(!Object.prototype.hasOwnProperty.call(MEDIA, v)) return '';
+  return safeImageUrl(MEDIA[v]);
 }
 
 function renderCategories(){
@@ -1575,6 +1598,16 @@ function renderCategories(){
   observeReveals(grid);
 }
 
+/* A price out of the database is content: it can be absent, negative, a
+   string, or a billion. Rendered through the same clamp the editor applies, so
+   the card always shows a plausible number. */
+function money2(v){
+  var n = Number(v);
+  if(!isFinite(n) || n < 0) n = 0;
+  if(n > 9999) n = 9999;
+  return n.toFixed(2);
+}
+
 function renderMenu(){
   var t = T[lang];
   var list = ITEMS.filter(function(it){ return it.cat === activeCat; });
@@ -1592,7 +1625,7 @@ function renderMenu(){
     var L = b[lang] || b.en || {};
     var badge = b.badge
       ? '<span class="card-badge' + (b.badge === 'best' || b.badge === 'chef' ? ' gold' : '') + '">'
-        + esc(t.badges[b.badge] || b.badge) + '</span>'
+        + esc(own_(t.badges, b.badge) || b.badge) + '</span>'
       : '';
     var dots = '';
     for(var sp = 0; sp < 5; sp++) dots += '<i class="' + (sp < (b.spice || 0) ? 'on' : '') + '"></i>';
@@ -1607,7 +1640,7 @@ function renderMenu(){
       +     badge + art
       +   '</div>'
       +   '<div class="card-top"><h3 class="card-name">' + esc(L.n) + '</h3>'
-      +     '<span class="price">' + Number(b.price || 0).toFixed(2) + '<small>' + t.cur + '</small></span></div>'
+      +     '<span class="price">' + money2(b.price) + '<small>' + t.cur + '</small></span></div>'
       +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
       +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
@@ -2166,22 +2199,40 @@ function markTouched(path){
   nothingAt = 0;
 }
 
+/* Paths are built by this file, but a path that walked into the prototype
+   would turn one edited field into a change to every object on the page, so
+   the three keys that can do that are refused outright. */
+var UNSAFE_KEY = /^(?:__proto__|constructor|prototype)$/;
+function safeParts(path){
+  var parts = String(path == null ? '' : path).split('.');
+  for(var i = 0; i < parts.length; i++){
+    if(!parts[i] || UNSAFE_KEY.test(parts[i])) return null;
+  }
+  return parts;
+}
+
 function getPath(obj, path){
-  var parts = path.split('.'), node = obj;
+  var parts = safeParts(path);
+  if(!parts) return undefined;
+  var node = obj;
   for(var i = 0; i < parts.length; i++){
     if(node == null) return undefined;
+    if(!Object.prototype.hasOwnProperty.call(Object(node), parts[i])) return undefined;
     node = node[parts[i]];
   }
   return node;
 }
 
 function setPathOn(obj, path, value){
-  var parts = path.split('.'), node = obj;
+  var parts = safeParts(path);
+  if(!parts || obj == null) return false;
+  var node = obj;
   for(var i = 0; i < parts.length - 1; i++){
     if(node[parts[i]] == null || typeof node[parts[i]] !== 'object') node[parts[i]] = {};
     node = node[parts[i]];
   }
   node[parts[parts.length - 1]] = value;
+  return true;
 }
 
 /**
@@ -2248,14 +2299,21 @@ function snapshotDefaults(){
 
 /* ---------------------------------------------------------- apply */
 
+/* Anything in the arrays that is not an object would throw somewhere in a
+   render and take the whole page down with it. Stored content is data from a
+   shared database, so its shape is checked rather than assumed. */
+function objectsOnly(list){
+  return list.filter(function(x){ return x && typeof x === 'object' && !Array.isArray(x); });
+}
+
 function applyContent(d){
   if(!d) return;
   d = own(d);          /* the page keeps its own copy; see loadDraft() */
   /* Presence checks, never truthiness: an empty menu, a cleared phone number
      and a blank heading are all legitimate saved states. Treating them as
      "missing" was silently reverting deletions to the built-in defaults. */
-  if(Array.isArray(d.categories)) CATEGORIES = d.categories;
-  if(Array.isArray(d.items))      ITEMS = d.items;
+  if(Array.isArray(d.categories)) CATEGORIES = objectsOnly(d.categories);
+  if(Array.isArray(d.items))      ITEMS = objectsOnly(d.items);
   if(Array.isArray(d.hours) && d.hours.length === 7){
     HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
   }
@@ -2451,8 +2509,8 @@ function loadDraft(){
         var m  = own(res[0].exists ? res[0].data() : {});
         var st = own(res[1].exists ? res[1].data() : {});
         draft = {
-          categories: Array.isArray(m.categories) ? m.categories : base.categories,
-          items:      Array.isArray(m.items)      ? m.items      : base.items,
+          categories: Array.isArray(m.categories) ? objectsOnly(m.categories) : base.categories,
+          items:      Array.isArray(m.items)      ? objectsOnly(m.items)      : base.items,
           hours:      (Array.isArray(st.hours) && st.hours.length === 7) ? st.hours : base.hours,
           text:       (st.text && typeof st.text === 'object')   ? st.text   : base.text,
           brand:      (st.brand && typeof st.brand === 'object') ? st.brand  : base.brand,
@@ -2498,6 +2556,12 @@ function changedFields(){
  * anything the draft never knew about. Merging touched paths onto freshly
  * read documents removes that whole class of failure.
  */
+/* A document's size as the store counts it, near enough to act on. */
+var DOC_LIMIT = 240000;        /* the store's own cap is 256 KiB */
+function docSize(doc){
+  try { return JSON.stringify(doc).length; } catch(e){ return 0; }
+}
+
 function save(){
   if(!DB) return Promise.reject({ kind:'nodb', message:'No database on this view.' });
   if(!canEdit) return Promise.reject({ kind:'denied', message:'Your account cannot edit this page.' });
@@ -2569,6 +2633,19 @@ function save(){
         else                           { siteDoc[f] = draft[f]; wantSite = true; }
       });
 
+      /* The store refuses a document over 256 KiB with a generic error that
+         looks exactly like a permission problem. Measuring first turns an
+         unexplained, permanent failure into one sentence the user can act
+         on. */
+      var tooBig = [];
+      if(wantMenu && docSize({ categories: menuDoc.categories, items: menuDoc.items }) > DOC_LIMIT) tooBig.push('menu');
+      if(wantSite && docSize(siteDoc) > DOC_LIMIT) tooBig.push('site');
+      if(tooBig.length){
+        throw { kind:'toobig', message: lang === 'ar'
+          ? 'المحتوى تجاوز الحجم الذي تقبله قاعدة البيانات. أزل صورة أو اختصر نصاً طويلاً ثم احفظ.'
+          : 'The content is larger than the database accepts. Remove an image or shorten a long text, then save.' };
+      }
+
       var writes = [];
       if(wantMenu) writes.push(DB.doc(DOC_MENU).set({
         categories: menuDoc.categories, items: menuDoc.items, updatedAt: Date.now()
@@ -2603,26 +2680,20 @@ function save(){
 }
 
 /**
- * Records the last button pressed in the dashboard, written before the press
- * is acted on. A panel that "does nothing" leaves no trace by definition, so
- * the trace has to be made first: which control, and what the panel believed
- * about itself at that moment.
+ * Remembers the last button pressed, in memory, and lets the save record carry
+ * it. This used to be a database write per click, which was a poor trade: the
+ * store's write budget is shared with the saves themselves, and a burst of
+ * clicking could spend enough of it to have real saves refused with
+ * resource_exhausted — diagnostics breaking the thing they were measuring.
  */
 var clickSeq = 0;
+var lastClick = '(none)';
+var lastClickError = '';
 function noteClick(id, extra){
   clickSeq++;
   try {
-    var rec = {
-      at: Date.now(), n: clickSeq, button: String(id).slice(0, 60),
-      saving: saving, canEdit: canEdit, hasDb: !!DB, hasDraft: !!draft, tab: adminTab
-    };
-    if(extra) for(var k in extra) rec[k] = extra[k];
-    /* Through the connection promise, not the DB global: a press that happens
-       while the store is still connecting is exactly the press worth knowing
-       about, and reading the global would have thrown it away. */
-    ensureDb().then(function(db){
-      if(db) db.doc('meta/last-click').set(rec).catch(function(){});
-    });
+    lastClick = String(id).slice(0, 60);
+    if(extra && extra.error) lastClickError = String(extra.error).slice(0, 200);
   } catch(e){ /* diagnostics must never break a click */ }
 }
 
@@ -2649,6 +2720,9 @@ function noteAttempt(outcome, detail){
       formMoved: lastHarvest.moved,
       formBad: lastHarvest.bad || 0,
       hasDb: !!DB,
+      clicks: clickSeq,
+      lastClick: lastClick,
+      lastClickError: lastClickError || '(none)',
       tab: adminTab
     };
     ensureDb().then(function(db){
@@ -2665,6 +2739,7 @@ function classifyError(e){
   if(e && e.kind === 'denied') return { readOnly:true,  message:e.message };
   if(e && e.kind === 'nodb')   return { readOnly:false, message:e.message };
   if(e && e.kind === 'verify') return { readOnly:false, message:e.message };
+  if(e && e.kind === 'toobig') return { readOnly:false, message:e.message };
   /* invalid_argument covers both a permission refusal AND a document that
      breaks a limit (over 256 KiB, bad path). Assuming the first was wrong: a
      too-large document would silently demote a legitimate editor to
@@ -2685,17 +2760,28 @@ function adminStatus(){
   return { cls:'ok', text: lang === 'ar' ? 'صلاحية التعديل' : 'Editor access' };
 }
 
+/* Both documents cap at 256 KiB in the store, and a single pasted essay can
+   put one over on its own — after which every save fails and the dashboard is
+   stuck. Each control carries its own ceiling, and applyControl enforces it
+   whatever route the text arrived by. */
+var MAX_LINE = 300;
+var MAX_TEXT = 2000;
+var MAX_URL  = 2000;
+
 function field(label, value, path, type, attrs){
   attrs = attrs || {};
   var id = fieldId(path);
+  var cap = attrs.max || (type === 'textarea' ? MAX_TEXT : MAX_LINE);
   return '<div class="ad-field' + (attrs.full ? ' full' : '') + '">'
     + '<label for="' + id + '">' + esc(label) + '</label>'
     + (type === 'textarea'
-        ? '<textarea id="' + id + '" data-path="' + esc(path) + '"'
+        ? '<textarea id="' + id + '" data-path="' + esc(path) + '" maxlength="' + cap + '"'
           + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
           + (attrs.rows ? ' rows="' + attrs.rows + '"' : '') + '>' + esc(value) + '</textarea>'
         : '<input id="' + id + '" data-path="' + esc(path) + '" type="' + (type || 'text') + '"'
-          + (type === 'number' ? ' step="' + (attrs.step || '0.25') + '" min="0"' : '')
+          + (type === 'number'
+              ? ' step="' + (attrs.step || '0.25') + '" min="0" max="' + (attrs.hi || 9999) + '"'
+              : ' maxlength="' + cap + '"')
           + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
           + (attrs.placeholder ? ' placeholder="' + esc(attrs.placeholder) + '"' : '')
           + ' value="' + esc(value) + '">')
@@ -2717,7 +2803,7 @@ function imageField(label, value, path){
     +     '<button class="ad-mini danger" data-clearimg="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
     +       (lang === 'ar' ? 'إزالة' : 'Clear') + '</button>'
     +     '<input class="ad-url" id="' + fieldId(path) + '" data-path="' + esc(path) + '"'
-    +       ' value="' + esc(value || '') + '"'
+    +       ' maxlength="' + MAX_URL + '" value="' + esc(value || '') + '"'
     +       (canEdit ? '' : ' disabled')
     +       ' placeholder="' + (lang === 'ar' ? 'أو الصق رابط صورة' : 'or paste an image URL') + '">'
     +   '</div>'
@@ -2788,8 +2874,23 @@ function tabCats(){
 
 var BADGE_KEYS = ['best', 'chef', 'spicy', 'veg'];
 
+var UNSORTED = '\u0000unsorted';
+
+/* Items whose category no longer exists. They vanish from the public site and,
+   until this, from the dashboard too: the menu tab lists one category at a
+   time, so an item belonging to none could not be reached, edited or deleted
+   by any route. */
+function orphanItems(){
+  var known = Object.create(null);
+  draft.categories.forEach(function(c){ if(c && c.id) known[c.id] = true; });
+  return draft.items.filter(function(b){
+    return !(b && typeof b.cat === 'string' && known[b.cat]);
+  });
+}
+
 function tabMenu(){
   var L = lang === 'ar' ? 'ar' : 'en';
+  var lost = orphanItems().length;
   var out = '<div class="ad-filter">'
     + '<label>' + (lang === 'ar' ? 'القسم' : 'Category') + '</label>'
     + '<select id="adCatFilter"' + (canEdit ? '' : ' disabled') + '>'
@@ -2798,11 +2899,27 @@ function tabMenu(){
         return '<option value="' + esc(c.id) + '"' + (adminCat === c.id ? ' selected' : '') + '>'
           + esc(CL.n || c.id) + '</option>';
       }).join('')
+    + (lost
+        ? '<option value="' + esc(UNSORTED) + '"' + (adminCat === UNSORTED ? ' selected' : '') + '>'
+          + (lang === 'ar' ? 'بلا قسم' : 'No category') + ' (' + lost + ')</option>'
+        : '')
     + '</select></div>';
+
+  if(adminCat === UNSORTED){
+    out += '<p class="ad-note" style="margin-bottom:14px">'
+      + (lang === 'ar'
+          ? 'هذه الأصناف قسمها غير موجود، فلا تظهر في الموقع. غيّر قسم كل صنف أو احذفه.'
+          : 'These items point at a category that no longer exists, so the site does not show them. Give each one a category, or delete it.')
+      + '</p>';
+  }
+
+  var orphan = Object.create(null);
+  orphanItems().forEach(function(b){ orphan[b.id] = true; });
 
   var any = false;
   draft.items.forEach(function(b, i){
-    if(b.cat !== adminCat) return;
+    var mine = (adminCat === UNSORTED) ? !!orphan[b.id] : (b.cat === adminCat);
+    if(!mine) return;
     any = true;
     var IL = b[L] || {};
     out += '<div class="ad-card">'
@@ -2823,13 +2940,13 @@ function tabMenu(){
               + esc(CL2.n || c.id) + '</option>';
           }).join('')
       +   '</select></div>'
-      + field(lang === 'ar' ? 'الحرارة ٠-٥' : 'Spice 0-5', b.spice || 0, 'items.' + i + '.spice', 'number', { step:'1' })
+      + field(lang === 'ar' ? 'الحرارة ٠-٥' : 'Spice 0-5', b.spice || 0, 'items.' + i + '.spice', 'number', { step:'1', hi:5 })
       + '<div class="ad-field full"><label>' + (lang === 'ar' ? 'الشارة' : 'Badge') + '</label>'
       +   '<div class="ad-chips">'
       +   BADGE_KEYS.map(function(k){
             return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
               + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
-              + esc(T[lang].badges[k] || k) + '</button>';
+              + esc(own_(T[lang].badges, k) || k) + '</button>';
           }).join('')
       +   '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
       +   (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
@@ -2921,7 +3038,8 @@ function renderAdmin(){
   harvestForm();
   FIELD_PATHS = [];
 
-  if(!draft.categories.some(function(c){ return c.id === adminCat; })){
+  if(adminCat !== UNSORTED &&
+     !draft.categories.some(function(c){ return c.id === adminCat; })){
     adminCat = (draft.categories[0] || {}).id || 'burgers';
   }
 
@@ -3107,9 +3225,18 @@ function applyControl(el){
     var v = el.value;
     var cur = getPath(draft, path);
     if(el.type === 'number'){
-      v = Number(v) || 0;
+      /* A price that is negative, infinite or not a number is not a price.
+         Clamped here rather than trusted from the control, because min/max on
+         an input are a hint to the user, not a guarantee to the program. */
+      v = Number(v);
+      if(!isFinite(v)) v = 0;
+      var hi = Number(el.getAttribute('max'));
+      if(!isFinite(hi) || hi <= 0) hi = 9999;
+      v = Math.min(Math.max(v, 0), hi);
+      if(el.getAttribute('step') === '1') v = Math.round(v);
       if(Number(cur) === v) return false;
     } else {
+      if(el.maxLength > 0 && v.length > el.maxLength) v = v.slice(0, el.maxLength);
       /* A field the draft has never held renders empty, so an empty box is
          not an edit. Without this every harvest would write '' over every
          absent key and the panel would never stop claiming unsaved work. */
@@ -3181,10 +3308,20 @@ function onFieldInput(e){
  * in the store seconds after it is typed. The button remains, as "save now".
  */
 var autoTimer = null;
-var autoRun = false;   /* the save in flight was automatic */
+var autoRun = false;      /* the save in flight was automatic */
+var savePending = false;  /* a change arrived while a save was in flight */
+var autoHeldUntil = 0;    /* automatic saves paused after a failure */
 var AUTO_DELAY = 1100;
+var AUTO_HOLD = 15000;
+
 function autoSave(){
-  if(!DB || saving) return;
+  if(!DB) return;
+  /* A change made DURING a save must not be dropped. Returning here and
+     scheduling nothing meant the last keystroke before a save completed was
+     never written — the exact shape of bug this whole mechanism exists to
+     prevent. It is remembered and scheduled the moment the save settles. */
+  if(saving){ savePending = true; return; }
+  if(Date.now() < autoHeldUntil) return;
   if(autoTimer) clearTimeout(autoTimer);
   autoTimer = setTimeout(flushSave, AUTO_DELAY);
 }
@@ -3194,8 +3331,34 @@ function autoSave(){
    chance, so each one shortens the window to nothing. */
 function flushSave(){
   if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
-  if(!DB || saving || !hasChanges()) return;
+  if(!DB) return;
+  if(saving){ savePending = true; return; }
+  /* The backoff applies here too, and that is not a detail: showing a failed
+     save redraws the panel, which destroys the focused field, which fires
+     focusout, which lands back in this function. Without the hold that is a
+     closed loop — a failing write every few milliseconds for as long as the
+     panel is open. Measured at fifty-five attempts in six seconds before this
+     line existed. */
+  if(Date.now() < autoHeldUntil) return;
+  if(!hasChanges()) return;
   pressSave(true);
+}
+
+/* Called when a save settles, whatever the outcome. */
+function afterSave(ok){
+  if(ok){
+    autoHeldUntil = 0;
+  } else {
+    /* A failure that repeats — a document over the size limit, a withdrawn
+       permission — would otherwise mean a doomed write every second for as
+       long as the panel is open. Automatic saves pause; the button does not,
+       so the user can always force a retry. */
+    autoHeldUntil = Date.now() + AUTO_HOLD;
+  }
+  if(savePending){
+    savePending = false;
+    if(ok) autoSave();
+  }
 }
 
 /* Leaving a control commits it: click out of the field and it is written. */
@@ -3260,7 +3423,12 @@ function markDirty(){
   if(revertBtn) revertBtn.disabled = saving || !pending;
 
   var msg = bar.querySelector('p');
-  if(msg && !lastError && !saving){
+  if(msg && !lastError && saving){
+    /* An automatic save updates the bar rather than redrawing the panel, so
+       this is the only place it can report itself. */
+    msg.className = 'ad-quiet';
+    msg.textContent = lang === 'ar' ? 'يُحفظ تلقائياً…' : 'Saving automatically…';
+  } else if(msg && !lastError && !saving){
     if(storeMoved){
       msg.className = 'ad-warn';
       msg.textContent = lang === 'ar'
@@ -3423,7 +3591,9 @@ function adminClick(t){
   }
   if(t.id === 'addItem'){
     draft.items.push({
-      id: 'item-' + Date.now().toString(36), cat: adminCat, price: 5.00,
+      id: 'item-' + Date.now().toString(36),
+      cat: adminCat === UNSORTED ? ((draft.categories[0] || {}).id || 'burgers') : adminCat,
+      price: 5.00,
       spice: 0, badge: null, img: '',
       en: { n:'New item', d:'' }, ar: { n:'صنف جديد', d:'' }
     });
@@ -3457,6 +3627,8 @@ function pressSave(auto){
   if(saving) return;
   if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
   autoRun = !!auto;
+  if(!autoRun) autoHeldUntil = 0;   /* the button overrides any backoff */
+  savePending = false;
   saving = true;
   lastError = '';
   /* An automatic save must not move anything. Rebuilding the panel here tore
@@ -3475,19 +3647,20 @@ function pressSave(auto){
      time-boxed now: whichever comes first wins, the work stays on screen,
      and the button always comes back. */
   var settled = false;
-  var once = function(fn){
+  var once = function(fn, ok){
     return function(v){
       if(settled) return;
       settled = true;
       clearTimeout(timer);
       saving = false;
-      fn(v);
+      try { fn(v); } finally { afterSave(ok); }
     };
   };
   var timer = setTimeout(function(){
     if(settled) return;
     settled = true;
     saving = false;
+    afterSave(false);
     dirty = true;                    /* the work stays, and stays unsaved */
     lastError = lang === 'ar'
       ? 'لم ترد قاعدة البيانات خلال ٢٠ ثانية. تعديلاتك ما زالت هنا — اضغط حفظ مرة أخرى.'
@@ -3531,7 +3704,7 @@ function pressSave(auto){
        visibly reverted. save() has already refreshed the baseline, so the
        draft on screen is exactly what the database holds. */
     if(autoRun) markDirty(); else renderAdmin();
-  })).catch(once(function(e){
+  }, true)).catch(once(function(e){
     var info = classifyError(e);
     lastError = info.message;
     dirty = true;                    /* the work stays, and stays unsaved */

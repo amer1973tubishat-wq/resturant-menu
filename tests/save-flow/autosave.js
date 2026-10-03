@@ -197,6 +197,41 @@ const barText = (page) => page.$eval('#admin-root .ad-save p', el => el.textCont
     await ctx.close();
   }
 
+  /* 4b — an edit made WHILE a save is in flight must not be dropped. The
+     first version of auto-save returned early when a save was running and
+     scheduled nothing, so the last keystroke before a save completed was
+     never written — the very shape of bug the mechanism exists to prevent. */
+  {
+    resetStore(seeded());
+    const { ctx, page } = await open(b, { mock: { latencyMs: 1200 } });
+    const sel = '#admin-root [data-path="items.0.en.n"]';
+    await page.fill(sel, 'First');
+    await page.waitForTimeout(1600);          /* the save is now in flight */
+    check('a save is running', await barText(page) === 'Saving automatically…', await barText(page));
+
+    await page.fill(sel, 'Second');           /* typed during the save */
+    await page.waitForTimeout(6000);
+    check('the edit made during a save is written too',
+      itemName() === 'Second', String(itemName()));
+    await ctx.close();
+  }
+
+  /* 4c — a failing save does not turn into a write every second. */
+  {
+    resetStore(seeded());
+    const { ctx, page } = await open(b, { mock: { failContentWrites: true } });
+    await page.evaluate(() => { window.__MOCK.attempts.length = 0; });
+    await page.fill('#admin-root [data-path="items.0.en.n"]', 'Doomed');
+    await page.waitForTimeout(6000);
+    const tries = await page.evaluate(() =>
+      window.__MOCK.attempts.filter(w => w.path.indexOf('content/') === 0).length);
+    check('the failing save was actually attempted', tries >= 1, `attempts=${tries}`);
+    check('and it backs off instead of retrying every second', tries <= 2, `attempts=${tries}`);
+    check('and the work is still on screen',
+      await shown(page, '#admin-root [data-path="items.0.en.n"]') === 'Doomed');
+    await ctx.close();
+  }
+
   /* 5 — the resting bar tells the user saving is automatic. */
   {
     resetStore(seeded());

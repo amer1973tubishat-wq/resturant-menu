@@ -140,3 +140,20 @@ there. With auto-save removed, ten of its checks fail, including that one, with
 `بيتنا` as the observed value.
 
     node tests/save-flow/autosave.js
+
+## content-safety.js
+
+Stored content is untrusted: everything the page renders comes out of a
+database the dashboard writes to. This suite stores twelve XSS payloads in
+every content field — names, descriptions, category labels, headings, the
+brand wordmark, image references, the WhatsApp number — and requires that
+nothing executes, across both languages and all seven dashboard tabs.
+
+The test for "did it execute" counts effects, not strings: a dialog, a thrown
+error, a flag the payload would set on `window`, an element carrying a script
+URL or an event-handler attribute. It also asserts the payloads are visible as
+text, so a passing run cannot mean the content was quietly dropped. Two further
+cases cover a path that tries to reach `__proto__`, and a stored document of
+entirely the wrong shape, which must not blank the page.
+
+    node tests/save-flow/content-safety.js

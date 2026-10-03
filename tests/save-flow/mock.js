@@ -15,7 +15,7 @@
    neither resolves nor rejects. The page has to time it out itself. The access
    probe is exempt, so the dashboard still opens as an editor. */
 window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
-                  shareReads: false, latencyMs: 40, useDelayMs: 250, writeLog: [] };
+                  shareReads: false, failContentWrites: false, latencyMs: 40, useDelayMs: 250, writeLog: [], attempts: [] };
 /* Documents handed out by reference when shareReads is on. */
 var cache = {};
 
@@ -94,10 +94,19 @@ var cache = {};
         });
       },
       set: function (data) {
+        /* Every attempt, including the refused ones. Logging only successful
+           writes made a backoff indistinguishable from doing nothing. */
+        window.__MOCK.attempts.push({ path: path, at: Date.now() });
         return new Promise(function (res, rej) {
           setTimeout(function () {
             if (!window.__MOCK.canEdit) { rej({ code: 'invalid_argument', message: 'below required level' }); return; }
             if (window.__MOCK.failWrites) { rej({ code: 'unavailable', message: 'transient' }); return; }
+            /* Content writes fail while the access probe still succeeds — the
+               shape of a document the store will not take, where the viewer's
+               permission is fine. */
+            if (window.__MOCK.failContentWrites && path.indexOf('content/') === 0) {
+              rej({ code: 'unavailable', message: 'content refused' }); return;
+            }
             if (window.__MOCK.hangWrites && path.indexOf('meta/') !== 0) return;   /* never settles */
             window.__MOCK.writeLog.push({ path: path, at: Date.now() });
             mutate(function (all) { all[path] = clone(data); })
