@@ -21,6 +21,15 @@ const EXECUTABLE = process.env.CHROMIUM_PATH ||
     ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
     : undefined);
 
+/* The dashboard's address is read out of the page, not written down here, so
+   changing the route cannot leave the suites testing a door that moved. */
+const ADMIN_HASH = (function () {
+  const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'index.html'), 'utf8');
+  const m = src.match(/var ADMIN_ROUTE = '([^']+)'/);
+  if (!m) throw new Error('ADMIN_ROUTE not found in index.html');
+  return m[1];
+})();
+
 const STORE = path.join(process.env.TMPDIR || '/tmp', 'baytna-save-flow-store.json');
 const MOCK  = fs.readFileSync(path.join(__dirname, 'mock.js'), 'utf8');
 const PAGE  = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -47,4 +56,4 @@ async function openPage(browser, { hash = '', mock = {} } = {}) {
   return { ctx, page };
 }
 
-module.exports = { STORE, resetStore, readStore, openPage, chromium, EXECUTABLE };
+module.exports = { STORE, ADMIN_HASH, resetStore, readStore, openPage, chromium, EXECUTABLE };

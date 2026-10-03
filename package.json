@@ -3,7 +3,7 @@
   "private": true,
   "description": "Single-page menu site and dashboard for Baytna Burger. The site itself is one file; this manifest only declares what the browser tests need.",
   "scripts": {
-    "test": "for f in suite save-button live-editing operations resilience form-truth button-answers autosave content-safety editable; do node tests/save-flow/$f.js || exit 1; done"
+    "test": "for f in suite save-button live-editing operations resilience form-truth button-answers autosave content-safety editable private-route; do node tests/save-flow/$f.js || exit 1; done"
   },
   "devDependencies": {
     "playwright": "^1.63.0"

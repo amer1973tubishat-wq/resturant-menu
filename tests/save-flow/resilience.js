@@ -1,4 +1,4 @@
-const { resetStore, readStore, openPage, chromium, EXECUTABLE } = require('./harness');
+const { resetStore, readStore, openPage, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 let fails = 0;
 const check = (n, ok, extra='') => { console.log(`${ok?'PASS':'FAIL'}  ${n}${extra?' — '+extra:''}`); if(!ok) fails++; };
 
@@ -17,7 +17,7 @@ const seeded = () => ({
   console.log('=== the change log is wiped after editing (what the live DB implies) ===');
   resetStore(seeded());
   {
-    const t = await openPage(b, { hash:'#admin' });
+    const t = await openPage(b, { hash:ADMIN_HASH });
     await t.page.waitForTimeout(1400);
     await t.page.fill('[data-path="items.0.en.n"]', 'Should Still Save');
     await t.page.waitForTimeout(300);
@@ -52,7 +52,7 @@ const seeded = () => ({
   console.log('\n=== every attempt is recorded for diagnosis ===');
   resetStore(seeded());
   {
-    const t = await openPage(b, { hash:'#admin' });
+    const t = await openPage(b, { hash:ADMIN_HASH });
     await t.page.waitForTimeout(1400);
     await t.page.fill('[data-path="items.0.en.n"]', 'Logged');
     await t.page.click('#adSave');
@@ -69,7 +69,7 @@ const seeded = () => ({
   console.log('\n=== save with nothing actually changed ===');
   resetStore(seeded());
   {
-    const t = await openPage(b, { hash:'#admin' });
+    const t = await openPage(b, { hash:ADMIN_HASH });
     await t.page.waitForTimeout(1400);
     await t.page.click('#adSave');
     await t.page.waitForTimeout(2500);

@@ -1,8 +1,10 @@
 # resturant-menu
 ## Editing the site
 
-Everything on the page is editable from the dashboard at `#admin`, in both
-Arabic and English:
+The dashboard is not linked from the site. It lives at its own address —
+see `ADMIN_ROUTE` in `index.html` — and renders only for an account with edit
+access; anyone else gets a short "not available" page. Everything on the site
+is editable there, in both Arabic and English:
 
 | Tab | What it covers |
 |---|---|

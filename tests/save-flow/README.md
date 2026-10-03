@@ -181,3 +181,23 @@ ingredient list, a social link appearing and disappearing, a badge's wording,
 the currency, and the phone number behind the tel: link.
 
     node tests/save-flow/editable.js
+
+## private-route.js
+
+The dashboard is not part of the site a customer sees. Two separate things,
+and only the second is a control:
+
+1. **Unlisted.** Nothing on the page links to it. A customer browsing the menu
+   never arrives. This is a convenience — the address is in the page source.
+2. **Gated.** The panel renders only for a viewer the database accepts writes
+   from. Someone who finds the address anyway gets nothing: no controls, and
+   not even a read-only copy of the content.
+
+The second is what makes the first safe to rely on. This suite holds both: no
+link points at the route, `#admin` and other guesses open nothing, the real
+address works for an editor, and it yields nothing to anyone else.
+
+Every suite reads the route out of `index.html` rather than hardcoding it, so
+changing the address cannot leave the tests knocking on a door that moved.
+
+    node tests/save-flow/private-route.js

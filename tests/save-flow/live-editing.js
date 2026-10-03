@@ -1,4 +1,4 @@
-const { resetStore, readStore, openPage, chromium, EXECUTABLE } = require('./harness');
+const { resetStore, readStore, openPage, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 let fails = 0;
 const check = (n, ok, extra='') => { console.log(`${ok?'PASS':'FAIL'}  ${n}${extra?' — '+extra:''}`); if(!ok) fails++; };
 
@@ -15,7 +15,7 @@ const seeded = () => ({
 
   console.log('=== typing, then a snapshot arrives (the ~30s refresh) ===');
   resetStore(seeded());
-  const t = await openPage(b, { hash:'#admin' });
+  const t = await openPage(b, { hash:ADMIN_HASH });
   await t.page.waitForTimeout(1400);
 
   const sel = '[data-path="items.0.en.n"]';

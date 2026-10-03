@@ -11,7 +11,7 @@
  * not succeed, presses the button, and requires an answer: a visible message,
  * a record in the database, or a completed save. Never silence.
  */
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const PAGE = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -52,7 +52,7 @@ async function open(browser, { mock = {}, noClaude = false } = {}) {
   }
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
-  await page.goto(PAGE + '#admin');
+  await page.goto(PAGE + ADMIN_HASH);
   await page.waitForTimeout(4000);
   return { ctx, page };
 }
@@ -80,26 +80,22 @@ const barText = (page) => page.$eval('#admin-root .ad-save p', el => el.textCont
 (async () => {
   const b = await chromium.launch({ executablePath: EXECUTABLE });
 
-  /* 1 — a read-only viewer presses Save. */
+  /* 1 — a viewer the database refuses never reaches the controls at all.
+     This used to be a read-only copy of the panel with a Save button that
+     answered honestly. Now the dashboard is unlisted and gated, so the
+     stronger guarantee applies: there is nothing here to press. */
   {
     resetStore(seeded());
     const { ctx, page } = await open(b, { mock: { canEdit: false } });
-    const before = await btn(page, '#adSave');
-    check('read-only: the button is there', before.present && before.inWindow, JSON.stringify(before));
-    check('read-only: and clickable', before.disabled === false && before.reachable);
-    check('read-only: the top button is there too', (await btn(page, '#adSaveTop')).present);
-
-    await page.click('#adSave');
-    await page.waitForTimeout(3000);
-    const text = await barText(page);
-    check('read-only: pressing it produces a message', text.length > 0 && text !== '(no bar)', text);
-    /* No record is possible here and that is correct: a viewer the database
-       refuses cannot write a diagnostic either. The on-screen answer is the
-       whole guarantee. What must not happen is a content write. */
-    check('read-only: nothing was written to the content',
-      (readStore()['content/menu'] || {}).items[0].en.n === 'Item A',
-      String((readStore()['content/menu'] || {}).items[0].en.n));
-    check('read-only: the message names the reason', /cannot edit|صلاحية|لا يملك/.test(text), text);
+    check('refused viewer: no save button', (await btn(page, '#adSave')).present === false);
+    check('refused viewer: no form controls',
+      (await page.evaluate(() => document.querySelectorAll('#admin-root input,#admin-root textarea,#admin-root select').length)) === 0);
+    check('refused viewer: told plainly',
+      /not available|غير متاحة/.test(await page.$eval('#admin-root', el => el.textContent)));
+    check('refused viewer: the menu content is not shown',
+      !/Item A/.test(await page.$eval('#admin-root', el => el.textContent)));
+    check('refused viewer: nothing was written',
+      (readStore()['content/menu'] || {}).items[0].en.n === 'Item A');
     await ctx.close();
   }
 
@@ -175,7 +171,12 @@ const barText = (page) => page.$eval('#admin-root .ad-save p', el => el.textCont
   {
     resetStore(seeded());
     const { ctx, page } = await open(b, { mock: { failWrites: true } });
-    check('after a failed probe the save controls are present', (await btn(page, '#adSave')).present);
+    /* While the probe is failing the panel is withheld — and must not yet
+       accuse the viewer of lacking access, because the page is still asking. */
+    check('a failing probe withholds the panel', (await btn(page, '#adSave')).present === false);
+    check('and does not accuse the viewer while retries are pending',
+      /Checking your access|جارٍ التحقق/.test(await page.$eval('#admin-root', el => el.textContent)),
+      (await page.$eval('#admin-root', el => el.textContent)).slice(0, 90));
     await page.evaluate(() => { window.__MOCK.failWrites = false; });
     await page.waitForTimeout(9000);          /* the retries run 1.5s..6s apart */
     const pill = await page.$eval('#admin-root .ad-pill', el => el.textContent.trim());

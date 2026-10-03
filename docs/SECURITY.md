@@ -12,6 +12,24 @@ The live product is `index.html`. The `admin/` app was built earlier and
 superseded by the dashboard inside the artifact; it is kept for its schema and
 API design, and it is not running anywhere.
 
+## The dashboard is unlisted, and gated
+
+Nothing on the site links to the dashboard. It lives at its own address —
+`#manage-` followed by sixteen hex characters — and a customer browsing the
+menu never meets it.
+
+That is a convenience, not a control. The address is in the page source, and
+anyone who looks can read it. The control is the gate: the panel renders only
+for a viewer the database accepts writes from. Someone who finds the address
+anyway gets a short "not available" page — no form controls, and not even a
+read-only copy of the content. The access question is asked again each time
+the route is opened, because access can be granted or withdrawn while a page
+sits open, and a stale answer either locks the owner out or lets someone in.
+
+`tests/save-flow/private-route.js` holds all of it: that no link points at the
+route, that `#admin` and other guesses open nothing, that the real address
+works for an editor, and that it yields nothing to anyone else.
+
 ## Where authorisation actually happens
 
 There is deliberately no password in `index.html`. A password checked in

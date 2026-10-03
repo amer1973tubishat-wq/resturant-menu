@@ -8,7 +8,7 @@
  * starts from an edit that exists only in the DOM, which is the state the
  * database caught, and demands that a save still write it.
  */
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const PAGE = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -43,7 +43,7 @@ async function open(browser, { width = 1400, height = 900 } = {}) {
   await page.addInitScript(fs.readFileSync(path.join(__dirname, 'mock.js'), 'utf8'));
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
-  await page.goto(PAGE + '#admin');
+  await page.goto(PAGE + ADMIN_HASH);
   await page.waitForTimeout(4000);
   return { ctx, page };
 }

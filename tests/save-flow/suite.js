@@ -1,4 +1,4 @@
-const { resetStore, readStore, openPage, chromium, EXECUTABLE } = require('./harness');
+const { resetStore, readStore, openPage, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 let fails = 0;
 const check = (n, ok, extra='') => { console.log(`${ok?'PASS':'FAIL'}  ${n}${extra?' — '+extra:''}`); if(!ok) fails++; };
 
@@ -23,7 +23,7 @@ const seeded = () => ({
 
 async function openAdmin(b, hash){
   const t = await openPage(b, { hash: hash || '' });
-  if(!hash){ await t.page.evaluate(()=>{location.hash='#admin';}); }
+  if(!hash){ await t.page.evaluate((h)=>{location.hash=h;}, ADMIN_HASH); }
   await t.page.waitForTimeout(1400);
   return t;
 }
@@ -40,7 +40,7 @@ async function fieldOnTab(page, tab, sel){
   console.log('--- Test 0: land directly on #admin (the failing path) ---');
   resetStore(seeded());
   {
-    const t = await openAdmin(b, '#admin');
+    const t = await openAdmin(b, ADMIN_HASH);
     const shown = await field(t.page, '[data-path="items.0.en.n"]');
     check('editor loads STORED content, not defaults', shown === 'Item A', `shows "${shown}"`);
     await t.page.click('[data-tab="contact"]'); await t.page.waitForTimeout(300);
@@ -187,19 +187,23 @@ async function fieldOnTab(page, tab, sel){
     await A.ctx.close(); await B.ctx.close();
   }
 
-  // ---------------- Test 7: read-only account ----------------
+  // ---------------- Test 7: an account without edit access ----------------
+  /* The dashboard used to open read-only for such a viewer: the panel, the
+     content, and disabled fields. It is now withheld entirely — the route is
+     unlisted and gated, so finding it is not enough to see anything. */
   console.log('\n--- Test 7: an account without edit access ---');
   resetStore(seeded());
   {
     const t = await openPage(b, { mock:{ canEdit:false } });
-    await t.page.evaluate(()=>{location.hash='#admin';}); await t.page.waitForTimeout(1600);
+    await t.page.evaluate((h)=>{location.hash=h;}, ADMIN_HASH); await t.page.waitForTimeout(2600);
     const ui = await t.page.evaluate(()=>({
-      pill: (document.querySelector('.ad-pill')||{}).textContent,
-      disabled: [...document.querySelectorAll('.ad-field input')].every(i=>i.disabled)
+      text: document.getElementById('admin-root').textContent,
+      fields: document.querySelectorAll('#admin-root input,#admin-root textarea,#admin-root select').length
     }));
-    check('shown as read-only', /read-only/i.test(ui.pill), ui.pill);
-    check('inputs disabled', ui.disabled);
-    check('store untouched by a read-only viewer', readStore()['content/site'].contact.phone === 'stored-phone');
+    check('the dashboard is withheld', /not available|غير متاحة/.test(ui.text), ui.text.slice(0, 70));
+    check('no fields are rendered at all', ui.fields === 0, String(ui.fields));
+    check('and the content is not shown', !/stored-phone/.test(ui.text));
+    check('store untouched by a refused viewer', readStore()['content/site'].contact.phone === 'stored-phone');
     await t.ctx.close();
   }
 

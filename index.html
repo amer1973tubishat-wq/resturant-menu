@@ -1320,7 +1320,6 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
     </div>
     <div class="foot-bottom">
       <span data-i18n="rights">© 2026 Baytna Burger · Amman, Jordan</span>
-      <a href="#admin" id="adminLink" class="ad-link" data-i18n="admin_link">Admin</a>
       <span class="sesame-row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span data-i18n="made">Made with fire and olive oil</span>
     </div>
@@ -1482,7 +1481,7 @@ var T = {
     foot_blurb:'Smashed over fire on Rainbow Street since 2016. Grilled in Amman, loved everywhere.',
     foot_menu:'Menu', foot_visit:'Visit', foot_hours:'Hours', foot_order:'Order',
     foot_order_note:'Delivery across Amman, 11:30–23:30 daily.', wa_order:'Order on WhatsApp',
-    rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD', admin_link:'Admin',
+    rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD',
     days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
     badges:{best:'Best Seller', chef:"Chef's Pick", spicy:'Bring Water', veg:'Vegetarian'},
     spice:'Heat', add:'Add', open_now:'Open now', closed_now:'Closed',
@@ -1520,7 +1519,7 @@ var T = {
     foot_blurb:'سماش على النار في شارع الرينبو منذ ٢٠١٦. مشوي في عمّان، محبوب في كل مكان.',
     foot_menu:'المنيو', foot_visit:'زورونا', foot_hours:'أوقات العمل', foot_order:'اطلب',
     foot_order_note:'توصيل داخل عمّان، يومياً من ١١:٣٠ حتى ٢٣:٣٠.', wa_order:'اطلب على واتساب',
-    rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ', admin_link:'لوحة التحكم',
+    rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ',
     days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     badges:{best:'الأكثر مبيعاً', chef:'اختيار الشيف', spicy:'جهّز الماء', veg:'نباتي'},
     spice:'الحرارة', add:'أضف', open_now:'مفتوح الآن', closed_now:'مغلق',
@@ -2293,7 +2292,7 @@ var TEXT_GROUPS = [
     keys:['open_now','closed_now','closes_in','opens_at','mins','hrs'] },
   { title:{en:'Footer',           ar:'التذييل'},
     keys:['foot_blurb','foot_menu','foot_visit','foot_hours','foot_order',
-          'foot_order_note','wa_order','rights','made','admin_link'] }
+          'foot_order_note','wa_order','rights','made'] }
 ];
 
 var TEXT_LABEL = {
@@ -2654,13 +2653,15 @@ function probeAccess(tries){
   if(!DB) return;
   tries = tries || 0;
   DB.doc('meta/access-probe').set({ at: Date.now() })
-    .then(function(){ canEdit = true; renderAdmin(); })
+    .then(function(){ canEdit = true; probeDone = true; renderAdmin(); })
     .catch(function(e){
       canEdit = false;
       var code = e && (e.code || e.kind);
-      if(code !== 'invalid_argument' && code !== 'revoked' && tries < 4){
-        setTimeout(function(){ probeAccess(tries + 1); }, 1500 * (tries + 1));
-      }
+      var again = code !== 'invalid_argument' && code !== 'revoked' && tries < 4;
+      if(again) setTimeout(function(){ probeAccess(tries + 1); }, 1500 * (tries + 1));
+      /* Only call it settled once there is no retry coming: a viewer should
+         not be told they lack access while the page is still asking. */
+      if(!again) probeDone = true;
       renderAdmin();
     });
 }
@@ -3309,9 +3310,39 @@ function tabContact(){
 
 var adminCat = 'burgers';
 
+/* Has the store been asked yet whether this viewer may write? Until it
+   answers, the dashboard shows neither itself nor a refusal. */
+var probeDone = false;
+
 function renderAdmin(){
   var root = document.getElementById('admin-root');
   if(!root || !root.classList.contains('open')) return;
+
+  /* The gate. A viewer the database will not accept writes from gets nothing
+     here — not a read-only copy of the panel, not the content, nothing. The
+     address is unlisted so a customer never arrives; this is what happens if
+     one does anyway.
+
+     With no database at all there is nothing to protect and nothing to check,
+     so the panel opens and says so — that is the file:// case, where the page
+     is just a page. */
+  if(DB && !canEdit){
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (probeDone
+          ? (lang === 'ar'
+              ? '<b>هذه الصفحة غير متاحة لحسابك.</b><br>لوحة التحكم مخصّصة لمن يملك صلاحية التعديل على هذا الموقع.'
+              : '<b>This page is not available to your account.</b><br>The dashboard is for accounts with edit access to this site.')
+          : (lang === 'ar' ? 'جارٍ التحقق من صلاحيتك…' : 'Checking your access…'))
+      + '</p>'
+      + '<p style="margin-top:18px"><a class="btn btn--ghost" href="#">'
+      + (lang === 'ar' ? 'العودة إلى الموقع' : 'Back to the site') + '</a></p>'
+      + '</div>';
+    renderedFrom = null;
+    return;
+  }
+
   if(!draft){
     /* Show that we are reading, rather than an editor pre-filled with
        defaults that a save would then write over the stored content. */
@@ -4086,14 +4117,29 @@ window.addEventListener('beforeunload', function(e){
 
 /* ---------------------------------------------------------- routing */
 
+/**
+ * The dashboard's address.
+ *
+ * It is not linked from anywhere on the site, so a customer browsing the menu
+ * never meets it. That is a convenience, not a protection — anyone who reads the
+ * page source can find this string. What actually keeps customers out is the
+ * check below: the panel renders only for a viewer the database accepts
+ * writes from, and the database is the one enforcing that, not this file.
+ */
+var ADMIN_ROUTE = '#manage-e6d7e34b271462c0';
+
 function syncRoute(){
   var root = document.getElementById('admin-root');
   if(!root) return;
-  var open = location.hash === '#admin';
+  var open = location.hash === ADMIN_ROUTE;
   root.classList.toggle('open', open);
   if(open){
     root.removeAttribute('hidden');
     document.body.style.overflow = 'hidden';
+    /* Ask again on each opening: access can be granted or withdrawn while the
+       page sits there, and a stale answer either locks the owner out or lets
+       someone in. */
+    ensureDb().then(function(db){ if(db && !canEdit) probeAccess(); });
     if(!draft) loadDraft().then(renderAdmin); else renderAdmin();
   } else {
     root.setAttribute('hidden', '');

@@ -1,4 +1,4 @@
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const PAGE = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -46,7 +46,7 @@ async function btnState(page, sel){
     await page.exposeFunction('__storeRead', async () => { try { return fs.readFileSync(STORE,'utf8'); } catch { return '{}'; } });
     await page.exposeFunction('__storeWrite', async (t) => { fs.writeFileSync(STORE, t); return true; });
     await page.addInitScript(fs.readFileSync(path.join(__dirname,'mock.js'),'utf8'));
-    await page.goto(PAGE + '#admin');
+    await page.goto(PAGE + ADMIN_HASH);
     await page.waitForTimeout(4000);
 
     const top = await btnState(page, '#adSaveTop');

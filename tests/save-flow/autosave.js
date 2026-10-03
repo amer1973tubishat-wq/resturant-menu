@@ -15,7 +15,7 @@
  * most hostile mode: documents handed out by reference (shareReads) and
  * refreshes arriving mid-edit.
  */
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const PAGE = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -57,7 +57,7 @@ async function open(browser, { mock = {}, arabic = false } = {}) {
   if (arabic) await page.addInitScript(() => { try { localStorage.setItem('baytna-lang', 'ar'); } catch (e) {} });
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
-  await page.goto(PAGE + '#admin');
+  await page.goto(PAGE + ADMIN_HASH);
   await page.waitForTimeout(4200);
   return { ctx, page };
 }

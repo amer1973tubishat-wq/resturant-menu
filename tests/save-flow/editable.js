@@ -13,7 +13,7 @@
  * exposing it and this fails immediately, rather than being noticed months
  * later by someone who cannot change their own menu.
  */
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const SRC = path.resolve(__dirname, '..', '..', 'index.html');
@@ -88,7 +88,7 @@ const setField = async (page, selector, value) => {
   let page;
 
   /* 2 — a navigation label, which used to be a literal. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'text');
   await setField(page, '#admin-root [data-path="text.en.nav_menu"]', 'Our Food');
   check('a nav label is stored', (readStore()['content/site'].text.en.nav_menu) === 'Our Food');
@@ -100,7 +100,7 @@ const setField = async (page, selector, value) => {
   await page.close();
 
   /* 3 — a build-your-own option price, which is money. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'build');
   const priceSel = '#admin-root [data-path="steps.1.opts.0.p"]';
   check('the builder exposes option prices', (await page.$(priceSel)) !== null);
@@ -120,7 +120,7 @@ const setField = async (page, selector, value) => {
   await page.close();
 
   /* 4 — the ingredient chips, edited as a list. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'text');
   await setField(page, '#admin-root [data-list="ings.en"]', 'Olive oil\nSea salt\nSumac');
   check('the ingredient list is stored',
@@ -139,7 +139,7 @@ const setField = async (page, selector, value) => {
     (await page.$eval('.soc[aria-label="Instagram"]', el => el.hidden)) === true);
   await page.close();
 
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'contact');
   await setField(page, '#admin-root [data-path="links.instagram"]', 'https://instagram.com/baytna');
   await page.close();
@@ -151,7 +151,7 @@ const setField = async (page, selector, value) => {
   await page.close();
 
   /* 6 — a badge label, previously fixed wording. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'text');
   await setField(page, '#admin-root [data-path="text.en.badge_best"]', 'House Favourite');
   await page.close();
@@ -163,7 +163,7 @@ const setField = async (page, selector, value) => {
 
   /* 7 — the currency, read while rendering rather than swapped into an
      element, so it exercises the other override path. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'text');
   await setField(page, '#admin-root [data-path="text.en.cur"]', 'USD');
   await page.close();
@@ -175,7 +175,7 @@ const setField = async (page, selector, value) => {
   await page.close();
 
   /* 8 — the palette, which recolours the whole site. */
-  page = await load(ctx, seeded(), '#admin');
+  page = await load(ctx, seeded(), ADMIN_HASH);
   await tab(page, 'theme');
   check('the colours tab offers the palette',
     (await page.$('#admin-root [data-path="theme.flame"]')) !== null);

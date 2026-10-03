@@ -12,7 +12,7 @@
  * actual effects — dialogs, thrown errors, and a flag a payload would set on
  * window if any of its scripts ran.
  */
-const { STORE, resetStore, readStore, chromium, EXECUTABLE } = require('./harness');
+const { STORE, resetStore, readStore, chromium, EXECUTABLE, ADMIN_HASH } = require('./harness');
 const fs = require('fs');
 const path = require('path');
 const PAGE = 'file://' + path.resolve(__dirname, '..', '..', 'index.html');
@@ -125,7 +125,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
 
   /* 2 — the dashboard renders the same content into form controls. */
   if (page) await page.close();
-  page = await load(ctx, hostile(), '#admin');
+  page = await load(ctx, hostile(), ADMIN_HASH);
   for (const tab of ['menu', 'cats', 'brand', 'hero', 'text', 'hours', 'contact']) {
     await page.click(`#admin-root .ad-tab[data-tab="${tab}"]`).catch(() => {});
     await page.waitForTimeout(250);
@@ -149,7 +149,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
 
   /* 4 — a path cannot be made to reach the prototype. */
   if (page) await page.close();
-  page = await load(ctx, hostile(), '#admin');
+  page = await load(ctx, hostile(), ADMIN_HASH);
   const polluted = await page.evaluate(() => {
     const root = document.getElementById('admin-root');
     const victim = root.querySelector('input[data-path]');
@@ -189,7 +189,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   page = await load(ctx, {
     'content/menu': { categories: ['x'], items: [null, 7], updatedAt: 1 },
     'content/site': { brand: 42, contact: [], text: null, hours: [], heroImage: {}, updatedAt: 1 },
-  }, '#admin');
+  }, ADMIN_HASH);
   check('the dashboard opens on a malformed document', page.errs.length === 0, page.errs.join(' | '));
   check('and shows its tabs',
     (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 9);
