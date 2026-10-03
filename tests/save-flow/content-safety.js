@@ -192,7 +192,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   }, '#admin');
   check('the dashboard opens on a malformed document', page.errs.length === 0, page.errs.join(' | '));
   check('and shows its tabs',
-    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 7);
+    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 9);
 
   await ctx.close();
   await b.close();

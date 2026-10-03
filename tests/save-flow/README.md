@@ -157,3 +157,27 @@ cases cover a path that tries to reach `__proto__`, and a stored document of
 entirely the wrong shape, which must not blank the page.
 
     node tests/save-flow/content-safety.js
+
+## editable.js
+
+Everything on the site is editable from the dashboard, and an edit reaches the
+page people see.
+
+41 of the site's 64 strings used to be literals in the file — the navigation,
+the hero buttons, the story, the whole footer, the opening status, the
+currency — along with the entire build-your-own menu and its prices, the
+ingredient chips, the badge wording and every social link.
+
+Its first check is the one that keeps this true: every `data-i18n` key in the
+markup must be reachable from the Text tab, and every field the Text tab
+offers must edit a string the page actually uses. Add a string to the page
+without exposing it, or leave a field behind that edits nothing, and this
+fails immediately — rather than being discovered months later by someone who
+cannot change their own menu.
+
+The rest drive the real path for one control of each kind: a nav label, a
+builder option's price (and the total the customer is then charged), the
+ingredient list, a social link appearing and disappearing, a badge's wording,
+the currency, and the phone number behind the tel: link.
+
+    node tests/save-flow/editable.js

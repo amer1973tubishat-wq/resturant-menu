@@ -1402,6 +1402,16 @@ var ITEMS = [
 
 /* Brand name and hero/logo art, all editable from the dashboard. */
 var BRAND = { en:{ a:'BAYTNA', b:'BURGER' }, ar:{ a:'بيتنا', b:'برجر' }, logo:'' };
+/* Social and map destinations, all editable. Empty means "hide the link"
+   rather than "link to nowhere", which is what href="#" used to do. */
+var LINKS = { instagram:'', facebook:'', tiktok:'', maps:'' };
+/* The four colours the whole page is built from. Stored as content, so the
+   restaurant's palette is theirs to change too. */
+var THEME_KEYS = ['flame', 'gold', 'red', 'bg'];
+var THEME_BASE = { flame:'#FF6A1A', gold:'#F2B33D', red:'#CE1126', bg:'#0A0A0B' };
+var THEME = { flame:'', gold:'', red:'', bg:'' };
+var CONTACT_PHONE = '+962 7 9000 0000';
+var isText = function(x){ return typeof x === 'string'; };
 var HERO_IMAGE = '';
 var MEDIA = {};   /* id -> data URL, loaded from the database */
 
@@ -1523,7 +1533,7 @@ var T = {
 var lang = 'en';
 var $  = function(s,c){ return (c||document).querySelector(s); };
 var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
-var money = function(n){ return n.toFixed(2) + ' ' + T[lang].cur; };
+var money = function(n){ return n.toFixed(2) + ' ' + tx('cur'); };
 
 /* Content edited in the admin panel lives in a shared database, and the runtime
    contract is explicit that shared data is untrusted — so everything read back
@@ -1608,6 +1618,14 @@ function money2(v){
   return n.toFixed(2);
 }
 
+/* A badge's wording, overridable like any other string on the page. */
+function badgeLabel(key){
+  if(typeof key !== 'string' || !key) return '';
+  var over = textOf('badge_' + key);
+  if(over) return over;
+  return own_(T[lang].badges, key) || key;
+}
+
 function renderMenu(){
   var t = T[lang];
   var list = ITEMS.filter(function(it){ return it.cat === activeCat; });
@@ -1615,7 +1633,7 @@ function renderMenu(){
   if(!grid) return;
 
   if(list.length === 0){
-    grid.innerHTML = '<p class="menu-empty">' + esc(t.no_items) + '</p>';
+    grid.innerHTML = '<p class="menu-empty">' + esc(tx('no_items')) + '</p>';
     return;
   }
 
@@ -1625,7 +1643,7 @@ function renderMenu(){
     var L = b[lang] || b.en || {};
     var badge = b.badge
       ? '<span class="card-badge' + (b.badge === 'best' || b.badge === 'chef' ? ' gold' : '') + '">'
-        + esc(own_(t.badges, b.badge) || b.badge) + '</span>'
+        + esc(badgeLabel(b.badge)) + '</span>'
       : '';
     var dots = '';
     for(var sp = 0; sp < 5; sp++) dots += '<i class="' + (sp < (b.spice || 0) ? 'on' : '') + '"></i>';
@@ -1640,11 +1658,11 @@ function renderMenu(){
       +     badge + art
       +   '</div>'
       +   '<div class="card-top"><h3 class="card-name">' + esc(L.n) + '</h3>'
-      +     '<span class="price">' + money2(b.price) + '<small>' + t.cur + '</small></span></div>'
+      +     '<span class="price">' + money2(b.price) + '<small>' + esc(tx('cur')) + '</small></span></div>'
       +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
-      +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
-      +     '<button class="add-btn" type="button" data-add="' + esc(b.id) + '">' + t.add + '</button>'
+      +     '<span class="spice">' + esc(tx('spice')) + ' <span class="spice-dots">' + dots + '</span></span>'
+      +     '<button class="add-btn" type="button" data-add="' + esc(b.id) + '">' + esc(tx('add')) + '</button>'
       +   '</div>'
       + '</article>';
   }).join('');
@@ -1731,7 +1749,7 @@ function renderOptions(){
     return '<button class="opt" type="button" aria-pressed="' + on + '" data-opt="' + o.id + '">'
       +   '<span class="on">' + L.n + '</span>'
       +   (L.d ? '<span class="od">' + L.d + '</span>' : '')
-      +   '<span class="op">' + (o.p > 0 ? '+' + o.p.toFixed(2) + ' ' + T[lang].cur : '—') + '</span>'
+      +   '<span class="op">' + (o.p > 0 ? '+' + Number(o.p).toFixed(2) + ' ' + esc(tx('cur')) : '—') + '</span>'
       + '</button>';
   }).join('') + '</div>';
 }
@@ -1771,7 +1789,7 @@ function renderReceipt(){
         return '<div class="rline"><span class="rl">' + l.label + '<b>' + l.sub + '</b></span>'
           + '<span class="rp">' + (l.price > 0 ? l.price.toFixed(2) : '—') + '</span></div>';
       }).join('')
-    : '<p class="rempty">' + t.receipt_empty + '</p>';
+    : '<p class="rempty">' + esc(tx('receipt_empty')) + '</p>';
 
   animateTotal(total);
 
@@ -1779,9 +1797,9 @@ function renderReceipt(){
   var ready = pick.bun && pick.patty;
   btn.toggleAttribute('disabled', !ready);
   if(ready){
-    var msg = t.order_head + '\n\n'
+    var msg = tx('order_head') + '\n\n'
       + lines.map(function(l){ return '• ' + l.sub + ': ' + l.label; }).join('\n')
-      + '\n\n' + t.order_total + ': ' + money(total);
+      + '\n\n' + tx('order_total') + ': ' + money(total);
     btn.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
     btn.target = '_blank'; btn.rel = 'noopener noreferrer';
   } else {
@@ -1891,9 +1909,9 @@ function openState(){
 
 function humanGap(m, t){
   var h = Math.floor(m/60), mm = m%60, g = t.gap;
-  if(h && mm) return h + g + t.hrs + ' ' + mm + g + t.mins;
-  if(h) return h + g + t.hrs;
-  return mm + g + t.mins;
+  if(h && mm) return h + g + tx('hrs') + ' ' + mm + g + tx('mins');
+  if(h) return h + g + tx('hrs');
+  return mm + g + tx('mins');
 }
 
 function renderHours(){
@@ -1909,8 +1927,8 @@ function renderHours(){
   var box = $('#status');
   box.className = 'status ' + (st.open ? 'open':'closed');
   $('#statusText').textContent = st.open
-    ? t.open_now + ' · ' + t.closes_in + ' ' + humanGap(st.left, t)
-    : t.closed_now + ' · ' + t.opens_at + ' ' + t.days[st.day] + ' ' + fmtTime(st.at);
+    ? tx('open_now') + ' · ' + tx('closes_in') + ' ' + humanGap(st.left, t)
+    : tx('closed_now') + ' · ' + tx('opens_at') + ' ' + t.days[st.day] + ' ' + fmtTime(st.at);
 }
 
 /* ============================================================
@@ -1946,14 +1964,101 @@ function setLang(next){
   });
 
   renderBrand(); renderCategories(); renderMenu(); renderIngredients();
-  renderHeroImage();
+  renderHeroImage(); renderLinks();
   renderSteps(); renderOptions(); renderReceipt(); renderHours();
   buildWaLink();
   try{ localStorage.setItem('baytna-lang', next); }catch(e){}
 }
 
+/* Social and map links. An empty one hides its button rather than leaving a
+   dead href="#" on the page, and only an https destination is accepted — the
+   same rule the images use, for the same reason. */
+function safeLink(v){
+  if(typeof v !== 'string') return '';
+  var t = v.trim();
+  return /^https:\/\/[^\s"'<>]+$/i.test(t) ? t : '';
+}
+
+/* A colour is only ever a six-digit hex. Anything else is ignored rather than
+   passed to the style engine, so a stored value cannot become CSS. */
+function safeColor(v){
+  return (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v.trim())) ? v.trim().toLowerCase() : '';
+}
+
+/* The darker partner each accent is paired with in the gradients. */
+function darken(hex, amount){
+  var n = parseInt(hex.slice(1), 16);
+  var mix = function(c){
+    var v = Math.round(c * (1 - amount));
+    return Math.min(255, Math.max(0, v));
+  };
+  var r = mix((n >> 16) & 255), g = mix((n >> 8) & 255), b = mix(n & 255);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function applyTheme(){
+  var root = document.documentElement;
+  var set = function(name, value){
+    if(value) root.style.setProperty(name, value);
+    else root.style.removeProperty(name);
+  };
+  var flame = safeColor(THEME.flame), gold = safeColor(THEME.gold);
+  var red = safeColor(THEME.red), bg = safeColor(THEME.bg);
+
+  set('--flame', flame);
+  set('--flame-deep', flame ? darken(flame, 0.22) : '');
+  set('--gold', gold);
+  set('--gold-deep', gold ? darken(gold, 0.28) : '');
+  set('--jo-red', red);
+  set('--jo-red-hi', red ? darken(red, -0.18) : '');
+  set('--char-900', bg);
+  set('--char-800', bg ? darken(bg, -0.35) : '');
+  set('--char-700', bg ? darken(bg, -0.75) : '');
+}
+
+function renderLinks(){
+  [['instagram','Instagram'], ['facebook','Facebook'], ['tiktok','TikTok']].forEach(function(pair){
+    var a = document.querySelector('.soc[aria-label="' + pair[1] + '"]');
+    if(!a) return;
+    var url = safeLink(LINKS[pair[0]]);
+    if(url){
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.hidden = false;
+    } else {
+      a.removeAttribute('href'); a.hidden = true;
+    }
+  });
+
+  var dir = document.getElementById('directions');
+  if(dir){
+    var maps = safeLink(LINKS.maps);
+    dir.href = maps || ('https://www.google.com/maps/search/?api=1&query='
+      + encodeURIComponent(textOf('map_addr') || 'Rainbow Street Jabal Amman Jordan'));
+  }
+
+  /* The phone number in the visit panel is the one from the dashboard. */
+  var tel = document.querySelector('.vmeta a[href^="tel:"]');
+  if(tel){
+    var raw = String(CONTACT_PHONE || '');
+    var digits = raw.replace(/[^\d+]/g, '');
+    if(digits){ tel.href = 'tel:' + digits; tel.textContent = raw; }
+  }
+}
+
+/* Short name for the same thing, used wherever a string is read while
+   rendering rather than swapped into a data-i18n element. */
+function tx(key){ return textOf(key); }
+
+/* The live value of a text key: the admin's override if there is one, else
+   the built-in string. */
+function textOf(key){
+  var over = OVERRIDES[lang] ? OVERRIDES[lang][key] : null;
+  if(over != null && over !== '') return String(over);
+  var v = T[lang][key];
+  return typeof v === 'string' ? v : '';
+}
+
 function buildWaLink(){
-  var msg = T[lang].order_head;
+  var msg = tx('order_head');
   $('#waMain').href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
 }
 
@@ -2154,28 +2259,85 @@ var DOC_MENU = 'content/menu';
 var DOC_SITE = 'content/site';
 
 /* Text keys the dashboard exposes, grouped as they appear on the page. */
+/* Every string on the page, grouped as the visitor meets them.
+ *
+ * This list used to be a hand-picked two dozen, which meant most of the site —
+ * the navigation, the buttons, the story, the whole footer — could only be
+ * changed by editing the file. Anything with a data-i18n key belongs here, and
+ * the dashboard refuses to start if one is missing, so adding a string to the
+ * page without exposing it is caught immediately rather than noticed months
+ * later. */
 var TEXT_GROUPS = [
-  { title:{en:'Hero',            ar:'الواجهة'},
-    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag'] },
-  { title:{en:'Hero statistics', ar:'أرقام الواجهة'},
+  { title:{en:'Navigation',       ar:'القائمة العلوية'},
+    keys:['brand','nav_menu','nav_sides','nav_build','nav_story','nav_visit','nav_order'] },
+  { title:{en:'Hero',             ar:'الواجهة'},
+    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag','hero_cta1','hero_cta2','scroll','loading'] },
+  { title:{en:'Hero statistics',  ar:'أرقام الواجهة'},
     keys:['stat1v','stat1','stat2v','stat2','stat3v','stat3'] },
-  { title:{en:'Section headings',ar:'عناوين الأقسام'},
-    keys:['eyebrow_cats','cats_title','cats_lede','eyebrow_menu','menu_title','menu_lede',
-          'eyebrow_build','build_title','eyebrow_story','story_title','eyebrow_visit','visit_title'] }
+  { title:{en:'Categories',       ar:'قسم الأقسام'},
+    keys:['eyebrow_cats','cats_title','cats_lede','no_items'] },
+  { title:{en:'Menu',             ar:'قسم المنيو'},
+    keys:['eyebrow_menu','menu_title','menu_lede','spice','add','cur'] },
+  { title:{en:'Badges',           ar:'الشارات'},
+    keys:['badge_best','badge_chef','badge_spicy','badge_veg'] },
+  { title:{en:'Build your own',   ar:'اصنع برجرك'},
+    keys:['eyebrow_build','build_title','build_lede','receipt_title','receipt_sub',
+          'receipt_empty','total','send_wa','order_head','order_total'] },
+  { title:{en:'Story',            ar:'قسم القصة'},
+    keys:['eyebrow_story','story_title','story_p1','story_p2','story_pull'] },
+  { title:{en:'Story — suppliers',ar:'القصة — الموردون'},
+    keys:['s1n','s1l','s2n','s2l','s3n','s3l','s4n','s4l'] },
+  { title:{en:'Visit',            ar:'قسم الزيارة'},
+    keys:['eyebrow_visit','visit_title','map_name','map_addr','tz_note','directions'] },
+  { title:{en:'Opening status',   ar:'حالة الفتح'},
+    keys:['open_now','closed_now','closes_in','opens_at','mins','hrs'] },
+  { title:{en:'Footer',           ar:'التذييل'},
+    keys:['foot_blurb','foot_menu','foot_visit','foot_hours','foot_order',
+          'foot_order_note','wa_order','rights','made','admin_link'] }
 ];
 
 var TEXT_LABEL = {
+  brand:'Brand wordmark (first word, then <b>second</b>)',
+  nav_menu:'Menu', nav_sides:'Categories', nav_build:'Build Yours',
+  nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order button',
   hero_badge:'Badge line', hero_l1:'Headline 1', hero_l2:'Headline 2 (flame)',
   hero_l3:'Headline 3', hero_tag:'Tagline',
+  hero_cta1:'Primary button', hero_cta2:'Secondary button',
+  scroll:'Scroll hint', loading:'Loading screen',
   stat1v:'Stat 1 value', stat1:'Stat 1 label',
   stat2v:'Stat 2 value', stat2:'Stat 2 label',
   stat3v:'Stat 3 value', stat3:'Stat 3 label',
-  eyebrow_cats:'Categories eyebrow', cats_title:'Categories title', cats_lede:'Categories intro',
+  eyebrow_cats:'Categories eyebrow', cats_title:'Categories title',
+  cats_lede:'Categories intro', no_items:'Empty category message',
   eyebrow_menu:'Menu eyebrow', menu_title:'Menu title', menu_lede:'Menu intro',
-  eyebrow_build:'Builder eyebrow', build_title:'Builder title',
+  spice:'Heat label', add:'Add button', cur:'Currency',
+  badge_best:'Best seller', badge_chef:"Chef's pick",
+  badge_spicy:'Spicy', badge_veg:'Vegetarian',
+  eyebrow_build:'Builder eyebrow', build_title:'Builder title', build_lede:'Builder intro',
+  receipt_title:'Receipt title', receipt_sub:'Receipt subtitle',
+  receipt_empty:'Empty receipt message', total:'Total label',
+  send_wa:'Send order button', order_head:'WhatsApp message heading',
+  order_total:'WhatsApp message total',
   eyebrow_story:'Story eyebrow', story_title:'Story title',
-  eyebrow_visit:'Visit eyebrow', visit_title:'Visit title'
+  story_p1:'Story paragraph 1', story_p2:'Story paragraph 2', story_pull:'Pull quote',
+  s1n:'Supplier 1 place', s1l:'Supplier 1 note',
+  s2n:'Supplier 2 place', s2l:'Supplier 2 note',
+  s3n:'Supplier 3 place', s3l:'Supplier 3 note',
+  s4n:'Supplier 4 place', s4l:'Supplier 4 note',
+  eyebrow_visit:'Visit eyebrow', visit_title:'Visit title',
+  map_name:'Map label name', map_addr:'Address', tz_note:'Timezone note',
+  directions:'Directions button',
+  open_now:'Open now', closed_now:'Closed', closes_in:'Closes in',
+  opens_at:'Opens', mins:'Minutes suffix', hrs:'Hours suffix',
+  foot_blurb:'Footer blurb', foot_menu:'Footer: menu heading',
+  foot_visit:'Footer: visit heading', foot_hours:'Footer: hours link',
+  foot_order:'Footer: order heading', foot_order_note:'Footer: delivery note',
+  wa_order:'WhatsApp button', rights:'Copyright line', made:'Sign-off',
+  admin_link:'Admin link'
 };
+
+/* Long-form strings get a textarea; the rest a single line. */
+var TEXT_BIG = /title|tag|lede|blurb|_p[0-9]|pull|note|head|_addr|empty/;
 
 /* Which document a top-level field belongs to. */
 function docOf(path){
@@ -2291,6 +2453,10 @@ function snapshotDefaults(){
     items:      ITEMS.map(clone),
     hours:      HOURS.map(function(h){ return { o:h.o, c:h.c }; }),
     text:       { en:{}, ar:{} },
+    steps:      STEPS.map(clone),
+    ings:       { en: T.en.ings.slice(), ar: T.ar.ings.slice() },
+    links:      { instagram:'', facebook:'', tiktok:'', maps:'' },
+    theme:      { flame:'', gold:'', red:'', bg:'' },
     brand:      clone(BRAND),
     heroImage:  HERO_IMAGE,
     contact:    { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
@@ -2322,9 +2488,20 @@ function applyContent(d){
     OVERRIDES.ar = d.text.ar || {};
   }
   if(d.brand && typeof d.brand === 'object') BRAND = d.brand;
+  if(Array.isArray(d.steps) && d.steps.length) STEPS = objectsOnly(d.steps);
+  if(d.ings && typeof d.ings === 'object'){
+    if(Array.isArray(d.ings.en)) T.en.ings = d.ings.en.filter(isText);
+    if(Array.isArray(d.ings.ar)) T.ar.ings = d.ings.ar.filter(isText);
+  }
+  if(d.links && typeof d.links === 'object') LINKS = d.links;
+  if(d.theme && typeof d.theme === 'object'){
+    THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(d.theme[k]); });
+    applyTheme();
+  }
   if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
-  if(d.contact && typeof d.contact.whatsapp === 'string'){
-    WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
+  if(d.contact && typeof d.contact === 'object'){
+    if(typeof d.contact.whatsapp === 'string') WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
+    if(typeof d.contact.phone === 'string') CONTACT_PHONE = d.contact.phone;
   }
   if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
     activeCat = (CATEGORIES[0] || {}).id || '';
@@ -2515,7 +2692,11 @@ function loadDraft(){
           text:       (st.text && typeof st.text === 'object')   ? st.text   : base.text,
           brand:      (st.brand && typeof st.brand === 'object') ? st.brand  : base.brand,
           heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
-          contact:    (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
+          contact:    (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
+          steps:      Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
+          ings:       (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
+          links:      (st.links && typeof st.links === 'object') ? st.links : base.links,
+          theme:      (st.theme && typeof st.theme === 'object') ? st.theme : base.theme
         };
         if(!draft.text.en) draft.text.en = {};
         if(!draft.text.ar) draft.text.ar = {};
@@ -2531,7 +2712,7 @@ function loadDraft(){
 }
 
 var MENU_FIELDS = ['categories', 'items'];
-var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'contact'];
+var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'contact', 'steps', 'ings', 'links', 'theme'];
 
 /**
  * The top-level fields whose current value differs from the copy that was
@@ -2597,7 +2778,11 @@ function save(){
         text:      (st.text && typeof st.text === 'object')   ? st.text  : base.text,
         brand:     (st.brand && typeof st.brand === 'object') ? st.brand : base.brand,
         heroImage: typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
-        contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact
+        contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
+        steps:     Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
+        ings:      (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
+        links:     (st.links && typeof st.links === 'object') ? st.links : base.links,
+        theme:     (st.theme && typeof st.theme === 'object') ? st.theme : base.theme
       };
 
       /* A field is written when BOTH are true: this person changed it, and the
@@ -2652,7 +2837,10 @@ function save(){
       }));
       if(wantSite) writes.push(DB.doc(DOC_SITE).set({
         hours: siteDoc.hours, text: siteDoc.text, brand: siteDoc.brand,
-        heroImage: siteDoc.heroImage, contact: siteDoc.contact, updatedAt: Date.now()
+        heroImage: siteDoc.heroImage, contact: siteDoc.contact,
+        steps: siteDoc.steps, ings: siteDoc.ings, links: siteDoc.links,
+        theme: siteDoc.theme,
+        updatedAt: Date.now()
       }));
 
       return Promise.all(writes).then(function(){
@@ -2785,6 +2973,19 @@ function field(label, value, path, type, attrs){
           + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
           + (attrs.placeholder ? ' placeholder="' + esc(attrs.placeholder) + '"' : '')
           + ' value="' + esc(value) + '">')
+    + '</div>';
+}
+
+/* A list of short strings, one per line. Used for the ingredient chips, where
+   a row of inputs would be fussier to edit than a block of text. */
+var MAX_LIST = 40;
+function listField(label, arr, path, note){
+  var text = (Array.isArray(arr) ? arr.filter(isText) : []).join('\n');
+  return '<div class="ad-field full"><label>' + esc(label) + '</label>'
+    + '<textarea data-list="' + esc(path) + '" rows="6" maxlength="' + MAX_TEXT + '"'
+    + (lang === 'ar' ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled') + '>'
+    + esc(text) + '</textarea>'
+    + (note ? '<span style="font-size:11px;color:var(--muted)">' + esc(note) + '</span>' : '')
     + '</div>';
 }
 
@@ -2946,7 +3147,7 @@ function tabMenu(){
       +   BADGE_KEYS.map(function(k){
             return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
               + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
-              + esc(own_(T[lang].badges, k) || k) + '</button>';
+              + esc(badgeLabel(k)) + '</button>';
           }).join('')
       +   '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
       +   (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
@@ -2961,6 +3162,74 @@ function tabMenu(){
   return out;
 }
 
+/* The build-your-own steps: their titles, every option, and every option's
+   price. These were literals in the file, which meant the one part of the
+   menu a customer assembles themselves — and pays for — could not be changed
+   without an edit to the page. */
+function tabBuild(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var out = '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'خطوات «اصنع برجرك» وأسعار كل خيار. السعر يُضاف إلى المجموع الذي يراه الزبون.'
+        : 'The build-your-own steps and the price of each option. Prices add up to the total the customer sees.')
+    + '</p>';
+
+  draft.steps.forEach(function(st, si){
+    out += '<div class="ad-card">'
+      + '<div class="ad-row-top"><strong>' + esc(st[L] || st.key || '') + '</strong></div>'
+      + '<div class="ad-grid">'
+      + field(lang === 'ar' ? 'اسم الخطوة' : 'Step name', st[L] || '',
+          'steps.' + si + '.' + L, 'text', { rtl: L === 'ar' })
+      + '</div>';
+
+    (st.opts || []).forEach(function(o, oi){
+      var OL = o[L] || {};
+      var base = 'steps.' + si + '.opts.' + oi;
+      out += '<div class="ad-row">'
+        + '<div class="ad-row-top"><strong>' + esc(OL.n || o.id || '') + '</strong>'
+        + '<button class="ad-mini danger" data-optdel="' + si + ':' + oi + '"'
+        + (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
+        + '<div class="ad-grid">'
+        + field(lang === 'ar' ? 'الاسم' : 'Name', OL.n || '', base + '.' + L + '.n', 'text', { rtl: L === 'ar' })
+        + field(lang === 'ar' ? 'السعر الإضافي' : 'Extra price', o.p || 0, base + '.p', 'number')
+        + field(lang === 'ar' ? 'وصف قصير' : 'Short note', OL.d || '', base + '.' + L + '.d', 'text',
+            { full:1, rtl: L === 'ar' })
+        + '</div></div>';
+    });
+
+    out += '<button class="ad-mini" data-optadd="' + si + '"' + (canEdit ? '' : ' disabled') + '>+ '
+      + (lang === 'ar' ? 'خيار جديد' : 'Add option') + '</button>'
+      + '</div>';
+  });
+  return out;
+}
+
+/* The palette. A colour input always hands back #rrggbb, and the value is
+   validated again before it reaches the style engine. Empty means "use the
+   built-in colour", which is what Reset restores. */
+function tabTheme(){
+  var th = draft.theme || {};
+  var row = function(label, key){
+    return field(label, safeColor(th[key]) || THEME_BASE[key], 'theme.' + key, 'color');
+  };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'ألوان الموقع' : 'Site colours') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'تتغيّر ألوان الموقع كله فوراً. الدرجات الأغمق والأفتح تُشتق تلقائياً من هذه الأربعة.'
+        : 'These recolour the whole site at once. The darker and lighter shades are derived from them.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + row(lang === 'ar' ? 'اللهب (الأساسي)'   : 'Flame (primary)',  'flame')
+    + row(lang === 'ar' ? 'الذهبي'            : 'Gold',             'gold')
+    + row(lang === 'ar' ? 'الأحمر (الأزرار)'  : 'Red (call to action)', 'red')
+    + row(lang === 'ar' ? 'الخلفية'           : 'Background',       'bg')
+    + '</div>'
+    + '<button class="ad-mini" id="themeReset"' + (canEdit ? '' : ' disabled') + '>'
+    + (lang === 'ar' ? 'إرجاع الألوان الأصلية' : 'Reset to the original colours') + '</button>'
+    + '</div>';
+}
+
 function tabText(){
   var L = lang === 'ar' ? 'ar' : 'en';
   var out = '<p class="ad-note" style="margin-bottom:14px">'
@@ -2972,13 +3241,22 @@ function tabText(){
     out += '<div class="ad-card"><div class="ad-head"><h2>' + esc(g.title[lang] || g.title.en) + '</h2></div>'
       + '<div class="ad-grid">'
       + g.keys.map(function(k){
-          var big = /title|tag|lede/.test(k);
-          return field(TEXT_LABEL[k] || k, (draft.text[L] || {})[k] || '',
+          var big = TEXT_BIG.test(k);
+          return field(own_(TEXT_LABEL, k) || k, (draft.text[L] || {})[k] || '',
             'text.' + L + '.' + k, big ? 'textarea' : 'text',
             { full: big, rtl: L === 'ar', rows: 2 });
         }).join('')
       + '</div></div>';
   });
+
+  out += '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'مكوّنات القصة' : 'Story ingredients') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + listField(lang === 'ar' ? 'المكوّنات' : 'Ingredient chips',
+        (draft.ings || {})[L],
+        'ings.' + L,
+        lang === 'ar' ? 'سطر لكل مكوّن.' : 'One per line.')
+    + '</div></div>';
   return out;
 }
 
@@ -3004,11 +3282,26 @@ function tabHours(){
 }
 
 function tabContact(){
+  var l = draft.links || {};
   return '<div class="ad-card"><div class="ad-head"><h2>'
     + (lang === 'ar' ? 'التواصل' : 'Contact') + '</h2></div>'
     + '<div class="ad-grid">'
     + field(lang === 'ar' ? 'واتساب (أرقام فقط)' : 'WhatsApp (digits only)', draft.contact.whatsapp || '', 'contact.whatsapp')
     + field(lang === 'ar' ? 'الهاتف' : 'Phone', draft.contact.phone || '', 'contact.phone')
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'الروابط' : 'Links') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'روابط https فقط. اترك الحقل فارغاً ليختفي الزر من الموقع بدل أن يكون رابطاً معطّلاً.'
+        : 'https links only. Leave one empty and its button disappears from the site, rather than sitting there dead.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field('Instagram', l.instagram || '', 'links.instagram', 'text', { max: MAX_URL, placeholder:'https://…' })
+    + field('Facebook',  l.facebook  || '', 'links.facebook',  'text', { max: MAX_URL, placeholder:'https://…' })
+    + field('TikTok',    l.tiktok    || '', 'links.tiktok',    'text', { max: MAX_URL, placeholder:'https://…' })
+    + field(lang === 'ar' ? 'رابط الخريطة' : 'Map link', l.maps || '', 'links.maps', 'text',
+        { full:1, max: MAX_URL, placeholder: lang === 'ar' ? 'اتركه فارغاً ليُبنى من العنوان' : 'leave empty to build it from the address' })
     + '</div></div>';
 }
 
@@ -3050,6 +3343,8 @@ function renderAdmin(){
     ['brand',   lang === 'ar' ? 'الاسم'    : 'Brand'],
     ['hero',    lang === 'ar' ? 'الواجهة'  : 'Hero'],
     ['text',    lang === 'ar' ? 'النصوص'   : 'Text'],
+    ['build',   lang === 'ar' ? 'اصنع برجرك' : 'Builder'],
+    ['theme',   lang === 'ar' ? 'الألوان'   : 'Colours'],
     ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
     ['contact', lang === 'ar' ? 'التواصل'  : 'Contact']
   ];
@@ -3059,6 +3354,8 @@ function renderAdmin(){
            : adminTab === 'brand' ? tabBrand()
            : adminTab === 'hero'  ? tabHero()
            : adminTab === 'text'  ? tabText()
+           : adminTab === 'build' ? tabBuild()
+           : adminTab === 'theme' ? tabTheme()
            : adminTab === 'hours' ? tabHours()
            : tabContact();
 
@@ -3246,6 +3543,18 @@ function applyControl(el){
     markTouched(path);
     return true;
   }
+  var listPath = el.getAttribute && el.getAttribute('data-list');
+  if(listPath){
+    var next = String(el.value || '').split(/\r?\n/)
+      .map(function(x){ return x.trim().slice(0, MAX_LINE); })
+      .filter(function(x){ return x.length > 0; })
+      .slice(0, MAX_LIST);
+    if(sameValue(getPath(draft, listPath), next)) return false;
+    setPathOn(draft, listPath, next);
+    markTouched(listPath);
+    return true;
+  }
+
   var hour = el.getAttribute && el.getAttribute('data-hour');
   if(hour && Array.isArray(draft.hours)){
     var bits = hour.split(':');
@@ -3292,7 +3601,16 @@ var lastBound = 0;
 
 function onFieldInput(e){
   try {
-    if(applyControl(e.target)){ markDirty(); autoSave(); }
+    if(applyControl(e.target)){
+      markDirty();
+      /* A colour should be visible as it is chosen, not only once the save
+         round-trips. The draft is the source; the page follows it. */
+      if(e.target.type === 'color' && draft && draft.theme){
+        THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(draft.theme[k]); });
+        applyTheme();
+      }
+      autoSave();
+    }
   } catch(err){ /* one unreadable control never blocks the rest of the form */ }
 }
 
@@ -3589,6 +3907,26 @@ function adminClick(t){
     }
     return;
   }
+  if(t.dataset.optadd){
+    var si = Number(t.dataset.optadd);
+    var st = draft.steps[si];
+    if(st){
+      st.opts = st.opts || [];
+      st.opts.push({ id:'opt-' + Date.now().toString(36), p:0,
+        en:{ n:'New option', d:'' }, ar:{ n:'خيار جديد', d:'' } });
+      markTouched('steps'); renumbered(); autoSave();
+    }
+    return;
+  }
+  if(t.dataset.optdel){
+    var bits2 = t.dataset.optdel.split(':');
+    var st2 = draft.steps[Number(bits2[0])];
+    if(st2 && Array.isArray(st2.opts)){
+      st2.opts.splice(Number(bits2[1]), 1);
+      markTouched('steps'); renumbered(); autoSave();
+    }
+    return;
+  }
   if(t.id === 'addItem'){
     draft.items.push({
       id: 'item-' + Date.now().toString(36),
@@ -3605,6 +3943,13 @@ function adminClick(t){
       en: { n:'New category', t:'' }, ar: { n:'قسم جديد', t:'' }
     });
     markTouched('categories'); renderAdmin(); autoSave(); return;
+  }
+  if(t.id === 'themeReset'){
+    draft.theme = { flame:'', gold:'', red:'', bg:'' };
+    THEME = { flame:'', gold:'', red:'', bg:'' };
+    applyTheme();
+    markTouched('theme'); renumbered(); autoSave();
+    return;
   }
   if(t.id === 'adRevert'){
     if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }

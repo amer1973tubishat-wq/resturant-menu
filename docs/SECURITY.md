@@ -50,7 +50,11 @@ page treats it that way:
   nothing and the built-in illustration is drawn instead. The same rule applies
   to a URL pasted into the dashboard and to one already in the store, because a
   stored media document is editable content too;
-- the WhatsApp number is reduced to digits before it is put in a link;
+- the WhatsApp number is reduced to digits before it is put in a link, and a
+  social or map link is accepted only as an `https://` URL — an empty one hides
+  its button rather than leaving a dead `href="#"` on the page;
+- a palette colour is accepted only as `#rrggbb`. Anything else is dropped
+  before it reaches the style engine, so a stored value cannot become CSS;
 - a lookup whose key is stored content (`badges[item.badge]`, `MEDIA[id]`) is an
   own-property read, so a value like `constructor` returns nothing rather than
   walking the prototype chain;
