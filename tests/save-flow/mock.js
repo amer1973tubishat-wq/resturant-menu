@@ -15,7 +15,12 @@
    neither resolves nor rejects. The page has to time it out itself. The access
    probe is exempt, so the dashboard still opens as an editor. */
 window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
-                  shareReads: false, failContentWrites: false, mcpMode: 'ok', mcpCalls: [], latencyMs: 40, useDelayMs: 250, writeLog: [], attempts: [] };
+                  shareReads: false, failContentWrites: false, mcpMode: 'ok', mcpCalls: [],
+    /* Fail the first call with this code, marked safe to repeat. */
+    mcpFailFirst: null,
+    /* The permissions surface: 'granted', 'prompt', 'denied', or 'absent'
+       (no namespace). permAnswer is what a prompt resolves to. */
+    permState: 'granted', permAnswer: 'granted', permRequests: 0, permManage: 0, latencyMs: 40, useDelayMs: 250, writeLog: [], attempts: [] };
 /* Documents handed out by reference when shareReads is on. */
 var cache = {};
 
@@ -159,16 +164,36 @@ var cache = {};
      null — the view cannot run connectors at all. */
   var mcpNs = {
     callTool: function (server, tool, input) {
-      window.__MOCK.mcpCalls.push({ server: server, tool: tool, input: input });
+      window.__MOCK.mcpCalls.push({ server: server, tool: tool, input: input, at: Date.now() });
       var mode = window.__MOCK.mcpMode;
+      var first = window.__MOCK.mcpFailFirst;
+      if (first) window.__MOCK.mcpFailFirst = null;
       return new Promise(function (res, rej) {
         setTimeout(function () {
-          if (mode === 'ok') res({ content: [], payload: { ok: true } });
+          if (first) rej({ code: first, message: 'mock ' + first, retryable: true, retryAfterMs: 50 });
+          else if (mode === 'ok') res({ content: [], payload: { ok: true } });
           else rej({ code: mode, message: 'mock ' + mode });
         }, 30);
       });
     },
     listTools: function () { return Promise.resolve({ servers: [] }); }
+  };
+
+  /* The built-in permissions capability, as far as the Publish button uses it. */
+  var permNs = {
+    state: function (name) {
+      return Promise.resolve(window.__MOCK.permState);
+    },
+    request: function (names) {
+      window.__MOCK.permRequests++;
+      var out = {};
+      (names || []).forEach(function (n) {
+        out[n] = window.__MOCK.permState === 'prompt' ? window.__MOCK.permAnswer : window.__MOCK.permState;
+      });
+      if (window.__MOCK.permState === 'prompt') window.__MOCK.permState = window.__MOCK.permAnswer;
+      return Promise.resolve(out);
+    },
+    manage: function () { window.__MOCK.permManage++; return Promise.resolve(); }
   };
 
   window.claude = {
@@ -178,6 +203,7 @@ var cache = {};
         setTimeout(function () {
           if (name === 'db') res(ns);
           else if (name === 'mcp') res(window.__MOCK.mcpMode === 'absent' ? null : mcpNs);
+          else if (name === 'permissions') res(window.__MOCK.permState === 'absent' ? null : permNs);
           else res(null);
         }, window.__MOCK.useDelayMs);
       });

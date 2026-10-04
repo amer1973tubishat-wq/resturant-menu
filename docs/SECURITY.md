@@ -53,9 +53,13 @@ touch. The Publish button copies saved content to the customer page:
 
 1. it saves anything unsaved first;
 2. it records `{status: "requested"}` in `meta/publish`;
-3. through the `mcp` capability it calls `fire_trigger` on the Claude Code
-   Remote connector — the only tool the page declares — with the id of the
-   owner's "Baytna Burger — publish website" Routine;
+3. if the page has not yet been allowed to use the Claude Code Remote
+   connector, it asks, from the click itself; then, through the `mcp`
+   capability, it calls `fire_trigger` — the only tool the page declares —
+   with the id of the owner's "Baytna Burger — publish website" Routine. A
+   failure the platform marks safe to repeat is retried once; any failure is
+   shown with its own message, logged to the console, and recorded in
+   `meta/publish` with the platform's error code;
 4. that Routine starts a fresh Claude Code session which reads the database,
    runs `build.js content` and `build.js public`, republishes the customer page
    and sets `meta/publish` to `live` (or `failed`, with the reason). The page

@@ -3472,6 +3472,7 @@ function renderAdmin(){
                 ? '<a class="ad-mini" href="' + esc(safeLink(PUBLISH.publicUrl)) + '" target="_blank" rel="noopener noreferrer">'
                   + (lang === 'ar' ? 'عرض الموقع' : 'View website') + '</a>'
                 : '')
+            + '<button class="ad-mini" id="adPerms" hidden>' + (lang === 'ar' ? 'الأذونات' : 'Permissions') + '</button>'
             + '<button class="btn ad-savebtn ad-pubbtn" id="adPublish"'
             + (publishBusy || publishAfterSave || publishRunning() ? ' disabled' : '') + '>'
             + (lang === 'ar' ? 'نشر على الموقع' : 'Publish to website') + '</button>'
@@ -3540,6 +3541,7 @@ function renderAdmin(){
 
   renderedFrom = draft;
   lastBound = bindFields(root);
+  renderPermsButton();
 
   if(keep){
     var again = root.querySelector('[data-path="' + keep.path + '"]');
@@ -3944,6 +3946,7 @@ function adminClick(t){
     return;
   }
   if(t.id === 'adPublish'){ requestPublish(); return; }
+  if(t.id === 'adPerms'){ openPermissions(); return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
   if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
   if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
@@ -4215,11 +4218,14 @@ function publishLabel(){
   return ar ? 'لم يُنشر بعد' : 'Not published yet';
 }
 
-/* One message per failure that has its own fix; everything else gets the
-   generic retry copy. */
+/* One message per failure that has its own fix. A code this page does not
+   know is named in the message, so it can be reported rather than guessed. */
 function publishErrorText(e){
   var ar = lang === 'ar';
-  var code = e && e.code;
+  var code = publishCode(e);
+  if(code === 'save_request')
+    return (ar ? 'تعذّر تسجيل طلب النشر في قاعدة البيانات: ' : 'Could not record the publish request in the database: ')
+      + String((e && e.message) || '').slice(0, 100);
   if(code === 'unavailable' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed')
     return ar ? 'النشر يعمل فقط عند فتح هذه الصفحة على claude.ai.'
               : 'Publishing only works with this page open on claude.ai.';
@@ -4230,15 +4236,29 @@ function publishErrorText(e){
     return ar ? 'أعد ربط Claude Code Remote من إعدادات claude.ai ← Connectors.'
               : 'Reconnect Claude Code Remote in claude.ai Settings → Connectors.';
   /* Declined, or switched off for this page, when the first call asked. */
-  if(code === 'not_in_manifest' || code === 'consent_required')
-    return ar ? 'اسمح لهذه الصفحة باستخدام Claude Code Remote (قائمة الأذونات)، ثم اضغط نشر.'
-              : 'Allow this page to use Claude Code Remote (its Permissions menu), then press Publish.';
+  if(code === 'not_in_manifest' || code === 'consent_required' || code === 'denied')
+    return ar ? 'اسمح لهذه الصفحة باستخدام Claude Code Remote (زر الأذونات)، ثم اضغط نشر.'
+              : 'Allow this page to use Claude Code Remote (Permissions button), then press Publish.';
   if(code === 'blocked_by_policy' || code === 'approval_required')
     return ar ? 'إعدادات مؤسستك منعت النشر.' : 'Your organisation settings blocked publishing.';
   if(code === 'tool_error')
     return (ar ? 'لم تبدأ مهمة النشر: ' : 'The publishing task did not start: ') + String((e && e.message) || '').slice(0, 100);
-  return ar ? 'تعذّر الوصول إلى خدمة النشر — حاول بعد دقيقة.'
-            : 'Could not reach the publishing service — try again in a minute.';
+  if(code === 'cancelled')
+    return ar ? 'أُلغي النشر — اضغط نشر مرة أخرى.' : 'Publishing was cancelled — press Publish again.';
+  if(code === 'user_changed')
+    return ar ? 'تغيّر الحساب المسجّل — أعد تحميل الصفحة.' : 'The signed-in account changed — reload the page.';
+  if(code === 'upstream_error' || code === 'server_unavailable' || code === 'rate_limited')
+    return ar ? 'خدمة النشر لم تستجب — اضغط نشر مرة أخرى بعد دقيقة.'
+              : 'The publishing service did not answer — press Publish again in a minute.';
+  return (ar ? 'تعذّر بدء النشر — اضغط نشر مرة أخرى. (الرمز: ' : 'Could not start publishing — press Publish again. (code: ')
+    + code + ')';
+}
+
+/* The platform's error code, or the best name there is for anything else. */
+function publishCode(e){
+  if(e && typeof e.code === 'string' && e.code) return e.code.slice(0, 40);
+  if(e && typeof e.name === 'string' && e.name) return e.name.slice(0, 40);
+  return 'unknown';
 }
 
 /* Updated in place, never by redrawing the panel: a status change must not
@@ -4251,6 +4271,51 @@ function renderPublishStatus(){
   }
   var btn = document.getElementById('adPublish');
   if(btn) btn.disabled = publishBusy || publishAfterSave || publishRunning();
+  renderPermsButton();
+}
+
+var PUBLISH_SERVER = 'Claude Code Remote';
+
+/* The platform's own claude.use, or null outside a viewer. */
+function claudeUse(name){
+  return (window.claude && typeof window.claude.use === 'function')
+    ? Promise.resolve(window.claude.use(name)).catch(function(){ return null; })
+    : Promise.resolve(null);
+}
+
+/* Ask for the connector up front, from the click itself, instead of leaving
+   the first call to raise the prompt. A viewer's "no" stops here with its
+   own message; anything this view cannot answer falls through to the call,
+   which asks for itself. */
+function askPublishPermission(){
+  var name = 'mcp:' + PUBLISH_SERVER;
+  return claudeUse('permissions').then(function(perm){
+    if(!perm) return 'unavailable';
+    return Promise.resolve(perm.state(name)).catch(function(){ return 'unavailable'; })
+      .then(function(st){
+        if(st !== 'prompt') return st;
+        return Promise.resolve(perm.request([name]))
+          .then(function(r){ return (r && r[name]) || 'unavailable'; })
+          .catch(function(){ return 'unavailable'; });
+      });
+  }).then(function(st){
+    if(st === 'denied') throw { code:'denied' };
+  });
+}
+
+/* Start the task. A failure the platform marks as safe to repeat — a
+   connector that was briefly unreachable, or a consent prompt that could
+   not be shown just then — is retried once, after the wait it asks for.
+   Never more than once: a second failure is reported. */
+function firePublish(mcp, mayRetry){
+  return mcp.callTool(PUBLISH_SERVER, 'fire_trigger', { trigger_id: PUBLISH.trigger })
+    .catch(function(e){
+      if(!mayRetry || !e || e.retryable !== true) throw e;
+      var wait = Math.min(Math.max(Number(e.retryAfterMs) || 2000, 1000), 20000)
+        + Math.floor(Math.random() * 800);
+      return new Promise(function(done){ setTimeout(done, wait); })
+        .then(function(){ return firePublish(mcp, false); });
+    });
 }
 
 function requestPublish(){
@@ -4268,13 +4333,13 @@ function requestPublish(){
   publishBusy = true;
   renderPublishStatus();
   DB.doc('meta/publish').set({ status:'requested', at: Date.now() })
-    .then(function(){
-      return (window.claude && typeof window.claude.use === 'function')
-        ? window.claude.use('mcp') : null;
+    .catch(function(e){
+      throw { code:'save_request', message: (e && e.message) || publishCode(e) };
     })
+    .then(function(){ return claudeUse('mcp'); })
     .then(function(mcp){
       if(!mcp) throw { code:'unavailable' };
-      return mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: PUBLISH.trigger });
+      return askPublishPermission().then(function(){ return firePublish(mcp, true); });
     })
     .then(function(){
       publishBusy = false;
@@ -4282,14 +4347,41 @@ function requestPublish(){
     })
     .catch(function(e){
       publishBusy = false;
-      /* A failed start is recorded where the task would record its own
-         progress. If the task did start after all — an unanswered call is
+      var code = publishCode(e);
+      /* Kept in the console as it came, never swallowed. */
+      try { console.error('[publish] could not start the publishing task:', code, e); } catch(_){}
+      /* Recorded where the task would record its own progress, with the
+         platform's own code, so a failure can be traced rather than
+         guessed at. If the task did start after all — an unanswered call is
          ambiguous — it overwrites this the moment it begins. */
-      var msg = publishErrorText(e);
-      publishState = { status:'failed', at: Date.now(), error: msg };
-      if(DB) DB.doc('meta/publish').set(publishState).catch(function(){});
+      publishState = { status:'failed', at: Date.now(), error: publishErrorText(e), code: code };
+      if(e && e.message) publishState.detail = String(e.message).slice(0, 300);
+      if(code !== 'save_request') DB.doc('meta/publish').set(publishState).catch(function(){});
       renderPublishStatus();
+      renderPermsButton();
     });
+}
+
+/* The way out of a refused permission: the platform's own Permissions
+   panel, opened only from a click. */
+function renderPermsButton(){
+  var btn = document.getElementById('adPerms');
+  if(!btn) return;
+  var c = (publishState || {}).code;
+  btn.hidden = !((publishState || {}).status === 'failed'
+    && (c === 'denied' || c === 'not_in_manifest' || c === 'consent_required'));
+}
+
+function openPermissions(){
+  claudeUse('permissions').then(function(perm){
+    if(!perm) throw { code:'unavailable' };
+    return perm.manage();
+  }).catch(function(){
+    var label = document.getElementById('adPubStatus');
+    if(label) label.textContent = lang === 'ar'
+      ? 'افتح قائمة الأذونات (Permissions) لهذه الصفحة واسمح بـ Claude Code Remote.'
+      : 'Open this page’s Permissions menu and allow Claude Code Remote.';
+  });
 }
 
 /* ---------------------------------------------------------- routing */

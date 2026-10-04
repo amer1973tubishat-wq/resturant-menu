@@ -103,6 +103,8 @@ async function openAdmin(ctx, mock) {
   }, mock);
   page.errs = [];
   page.on('pageerror', e => page.errs.push(e.message));
+  page.consoleErrors = [];
+  page.on('console', m => { if (m.type() === 'error') page.consoleErrors.push(m.text()); });
   await page.goto(base + 'admin.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(4500);
   return page;
@@ -275,16 +277,96 @@ const panelOpen = (page) => page.evaluate(() => {
     ['needs_reauth', /Reconnect Claude Code Remote/],
     ['not_in_manifest', /Allow this page to use Claude Code Remote/],
     ['blocked_by_policy', /organisation settings blocked/],
-    ['server_unavailable', /try again in a minute/],
+    ['server_unavailable', /did not answer/],
+    ['upstream_error', /did not answer/],
+    ['cancelled', /cancelled/],
+    ['weird_new_code', /\(code: weird_new_code\)/],
   ]) {
     resetStore(seededAdmin());
     const page = await openAdmin(ctx, { mcpMode: mode });
     await page.click('#adPublish');
     await page.waitForTimeout(1500);
     const text = await page.$eval('#adPubStatus', el => el.textContent);
+    const rec = readStore()['meta/publish'] || {};
     check(`publish failure "${mode}" explains itself`, expect.test(text), text);
-    check(`and "${mode}" is recorded for later`, (readStore()['meta/publish'] || {}).status === 'failed');
+    check(`and "${mode}" is recorded for later, with its code`,
+      rec.status === 'failed' && rec.code === (mode === 'absent' ? 'unavailable' : mode), JSON.stringify(rec));
+    check(`and "${mode}" is logged to the console`,
+      page.consoleErrors.some(t => t.includes('[publish]')), page.consoleErrors.join(' | '));
     check(`and the button is usable again after "${mode}"`, !(await page.$eval('#adPublish', el => el.disabled)));
+    await page.close();
+  }
+
+  /* 7b — a failure the platform marks safe to repeat is retried once. */
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { mcpFailFirst: 'upstream_error' });
+    await page.click('#adPublish');
+    await page.waitForTimeout(3500);
+    const calls = await page.evaluate(() => window.__MOCK.mcpCalls);
+    check('a retryable failure is retried', calls.length === 2, String(calls.length));
+    check('and the retry waits as asked', calls.length === 2 && calls[1].at - calls[0].at >= 1000,
+      calls.length === 2 ? String(calls[1].at - calls[0].at) : '');
+    check('and its success counts', (readStore()['meta/publish'] || {}).status === 'requested',
+      JSON.stringify(readStore()['meta/publish']));
+    await page.close();
+  }
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { mcpFailFirst: 'upstream_error', mcpMode: 'upstream_error' });
+    await page.click('#adPublish');
+    await page.waitForTimeout(4500);
+    check('but only once', (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 2);
+    check('and a second failure is reported', (readStore()['meta/publish'] || {}).status === 'failed');
+    await page.close();
+  }
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { mcpMode: 'blocked_by_policy' });
+    await page.click('#adPublish');
+    await page.waitForTimeout(2500);
+    check('a failure not marked safe to repeat is not retried',
+      (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 1);
+    await page.close();
+  }
+
+  /* 7c — the permission is asked for from the click, before the call. */
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { permState: 'prompt', permAnswer: 'granted' });
+    await page.click('#adPublish');
+    await page.waitForTimeout(1500);
+    const m = await page.evaluate(() => ({ asks: window.__MOCK.permRequests, calls: window.__MOCK.mcpCalls.length }));
+    check('an unanswered permission is asked for on Publish', m.asks === 1, JSON.stringify(m));
+    check('and once allowed, the task is started', m.calls === 1, JSON.stringify(m));
+    await page.close();
+  }
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { permState: 'prompt', permAnswer: 'denied' });
+    check('the Permissions button is hidden until it is needed',
+      await page.$eval('#adPerms', el => el.hidden));
+    await page.click('#adPublish');
+    await page.waitForTimeout(1500);
+    const text = await page.$eval('#adPubStatus', el => el.textContent);
+    check('a refused permission starts nothing',
+      (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 0);
+    check('and says how to allow it', /Allow this page to use Claude Code Remote/.test(text), text);
+    check('and offers the Permissions button', !(await page.$eval('#adPerms', el => el.hidden)));
+    await page.click('#adPerms');
+    await page.waitForTimeout(400);
+    check('which opens the platform\'s Permissions panel',
+      (await page.evaluate(() => window.__MOCK.permManage)) === 1);
+    await page.close();
+  }
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx, { permState: 'absent' });
+    await page.click('#adPublish');
+    await page.waitForTimeout(1500);
+    check('without a permissions surface, the call still goes ahead',
+      (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 1);
+    check('no page errors in any of it', page.errs.length === 0, page.errs.join(' | '));
     await page.close();
   }
 
