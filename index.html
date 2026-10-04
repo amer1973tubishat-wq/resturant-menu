@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0A0A0B">
-<title>Baytna Burger — Grilled in Amman, Loved Everywhere</title>
+<title>Baytna Burger</title>
 <meta name="description" content="Baytna Burger — smashed local beef, za'atar, halloumi and shatta. A modern burger joint on Rainbow Street, Jabal Amman.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,7 @@
    BAYTNA BURGER — design tokens
    ============================================================ */
 :root{
+  color-scheme: dark;       /* a single, deliberately dark look */
   /* base — charred black → charcoal */
   --char-900:#0A0A0B;
   --char-800:#101012;
@@ -826,6 +827,7 @@ html[lang="ar"] .cat-name{ text-transform:none; font-size:18px; line-height:1.4 
   .cat-ico{ width:52px; height:52px }
 }
 
+/* @admin-css:begin */
 /* ============================================================
    ADMIN PANEL  (route: #admin)
    Authorisation is server-side: the artifact database only accepts
@@ -990,6 +992,11 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
 }
 .ad-link:hover{ color:var(--flame) }
 
+.ad-pub{ font-size:12px; color:var(--muted); max-width:240px; line-height:1.3 }
+.ad-pub.bad{ color:#FF6B7E }
+.ad-pubbtn{ background:var(--gold); color:#1A1203; box-shadow:0 6px 18px -8px rgba(242,179,61,.7) }
+.ad-bar a.ad-mini{ text-decoration:none; display:inline-flex; align-items:center }
+
 /* The owner's way in. Rendered only for an account the database accepts
    writes from, so a customer never sees it. */
 .owner-btn{
@@ -1008,6 +1015,7 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
   .ad-hours{ grid-template-columns:1fr 1fr; gap:8px }
   .ad-hours > span:first-child{ grid-column:1/-1 }
 }
+/* @admin-css:end */
 </style>
 </head>
 <body class="is-loading no-js">
@@ -1340,7 +1348,9 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
 </footer>
 
 <!-- Admin dashboard — rendered by JS at the #admin route -->
+<!-- @admin-html:begin -->
 <section id="admin-root" role="region" aria-label="Admin dashboard" hidden></section>
+<!-- @admin-html:end -->
 
 <script>
 (function(){
@@ -2242,6 +2252,66 @@ setTimeout(once, 2600);
 
 
 /* ============================================================
+   CONTENT — shared by the public site and the admin page
+   ============================================================ */
+
+/* A deep copy of anything the store hands over, so nothing this page edits is
+   still owned — and refreshable — by the store. */
+function own(v){
+  try { return v == null ? v : JSON.parse(JSON.stringify(v)); }
+  catch(e){ return v; }
+}
+
+/* ---------------------------------------------------------- apply */
+
+/* Anything in the arrays that is not an object would throw somewhere in a
+   render and take the whole page down with it. Stored content is data from a
+   shared database, so its shape is checked rather than assumed. */
+function objectsOnly(list){
+  return list.filter(function(x){ return x && typeof x === 'object' && !Array.isArray(x); });
+}
+
+function applyContent(d){
+  if(!d) return;
+  d = own(d);          /* the page keeps its own copy; see loadDraft() */
+  /* Presence checks, never truthiness: an empty menu, a cleared phone number
+     and a blank heading are all legitimate saved states. Treating them as
+     "missing" was silently reverting deletions to the built-in defaults. */
+  if(Array.isArray(d.categories)) CATEGORIES = objectsOnly(d.categories);
+  if(Array.isArray(d.items))      ITEMS = objectsOnly(d.items);
+  if(Array.isArray(d.hours) && d.hours.length === 7){
+    HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
+  }
+  if(d.text && typeof d.text === 'object'){
+    OVERRIDES.en = d.text.en || {};
+    OVERRIDES.ar = d.text.ar || {};
+  }
+  if(d.brand && typeof d.brand === 'object') BRAND = d.brand;
+  if(Array.isArray(d.steps) && d.steps.length) STEPS = objectsOnly(d.steps);
+  if(d.ings && typeof d.ings === 'object'){
+    if(Array.isArray(d.ings.en)) T.en.ings = d.ings.en.filter(isText);
+    if(Array.isArray(d.ings.ar)) T.ar.ings = d.ings.ar.filter(isText);
+  }
+  if(d.links && typeof d.links === 'object') LINKS = d.links;
+  if(d.theme && typeof d.theme === 'object'){
+    THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(d.theme[k]); });
+    applyTheme();
+  }
+  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
+  if(d.contact && typeof d.contact === 'object'){
+    if(typeof d.contact.whatsapp === 'string') WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
+    if(typeof d.contact.phone === 'string') CONTACT_PHONE = d.contact.phone;
+  }
+  if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
+    activeCat = (CATEGORIES[0] || {}).id || '';
+  }
+  setLang(lang);
+  observeReveals();
+  sweepPassed();
+}
+
+/* @admin-js:begin */
+/* ============================================================
    ADMIN DASHBOARD  —  route: #admin
    ------------------------------------------------------------
    Authorisation is NOT done in this file. The page declares the `db`
@@ -2452,13 +2522,6 @@ function sameValue(a, b){
   return true;
 }
 
-/* A deep copy of anything the store hands over, so nothing this page edits is
-   still owned — and refreshable — by the store. */
-function own(v){
-  try { return v == null ? v : JSON.parse(JSON.stringify(v)); }
-  catch(e){ return v; }
-}
-
 function snapshotDefaults(){
   var clone = function(x){ return JSON.parse(JSON.stringify(x)); };
   return {
@@ -2474,54 +2537,6 @@ function snapshotDefaults(){
     heroImage:  HERO_IMAGE,
     contact:    { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
   };
-}
-
-/* ---------------------------------------------------------- apply */
-
-/* Anything in the arrays that is not an object would throw somewhere in a
-   render and take the whole page down with it. Stored content is data from a
-   shared database, so its shape is checked rather than assumed. */
-function objectsOnly(list){
-  return list.filter(function(x){ return x && typeof x === 'object' && !Array.isArray(x); });
-}
-
-function applyContent(d){
-  if(!d) return;
-  d = own(d);          /* the page keeps its own copy; see loadDraft() */
-  /* Presence checks, never truthiness: an empty menu, a cleared phone number
-     and a blank heading are all legitimate saved states. Treating them as
-     "missing" was silently reverting deletions to the built-in defaults. */
-  if(Array.isArray(d.categories)) CATEGORIES = objectsOnly(d.categories);
-  if(Array.isArray(d.items))      ITEMS = objectsOnly(d.items);
-  if(Array.isArray(d.hours) && d.hours.length === 7){
-    HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
-  }
-  if(d.text && typeof d.text === 'object'){
-    OVERRIDES.en = d.text.en || {};
-    OVERRIDES.ar = d.text.ar || {};
-  }
-  if(d.brand && typeof d.brand === 'object') BRAND = d.brand;
-  if(Array.isArray(d.steps) && d.steps.length) STEPS = objectsOnly(d.steps);
-  if(d.ings && typeof d.ings === 'object'){
-    if(Array.isArray(d.ings.en)) T.en.ings = d.ings.en.filter(isText);
-    if(Array.isArray(d.ings.ar)) T.ar.ings = d.ings.ar.filter(isText);
-  }
-  if(d.links && typeof d.links === 'object') LINKS = d.links;
-  if(d.theme && typeof d.theme === 'object'){
-    THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(d.theme[k]); });
-    applyTheme();
-  }
-  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
-  if(d.contact && typeof d.contact === 'object'){
-    if(typeof d.contact.whatsapp === 'string') WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
-    if(typeof d.contact.phone === 'string') CONTACT_PHONE = d.contact.phone;
-  }
-  if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
-    activeCat = (CATEGORIES[0] || {}).id || '';
-  }
-  setLang(lang);
-  observeReveals();
-  sweepPassed();
 }
 
 /* ---------------------------------------------------------- images */
@@ -2621,6 +2636,13 @@ function connectDb(){
     });
 
     probeAccess();
+
+    if(PUBLISH.trigger){
+      db.doc('meta/publish').onSnapshot(function(snap){
+        publishState = snap.exists ? own(snap.data()) : null;
+        renderPublishStatus();
+      }, function(){});
+    }
   });
 }
 
@@ -3444,6 +3466,16 @@ function renderAdmin(){
     +       (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
                     : (lang === 'ar' ? 'حفظ' : 'Save'))
     +       (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+    +     (PUBLISH.trigger
+          ? '<span class="ad-pub" id="adPubStatus">' + esc(publishLabel()) + '</span>'
+            + (safeLink(PUBLISH.publicUrl)
+                ? '<a class="ad-mini" href="' + esc(safeLink(PUBLISH.publicUrl)) + '" target="_blank" rel="noopener noreferrer">'
+                  + (lang === 'ar' ? 'عرض الموقع' : 'View website') + '</a>'
+                : '')
+            + '<button class="btn ad-savebtn ad-pubbtn" id="adPublish"'
+            + (publishBusy || publishAfterSave || publishRunning() ? ' disabled' : '') + '>'
+            + (lang === 'ar' ? 'نشر على الموقع' : 'Publish to website') + '</button>'
+          : '')
     +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
     +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
     +   '</div>'
@@ -3723,6 +3755,11 @@ function afterSave(ok){
     savePending = false;
     if(ok) autoSave();
   }
+  if(publishAfterSave){
+    publishAfterSave = false;
+    if(ok && !hasChanges()) requestPublish();
+    else renderPublishStatus();
+  }
 }
 
 /* Leaving a control commits it: click out of the field and it is written. */
@@ -3901,7 +3938,12 @@ function adminClick(t){
      about to be pressed may renumber them. */
   harvestForm();
 
-  if(t.id === 'adClose'){ location.hash = ''; return; }
+  if(t.id === 'adClose'){
+    if(ADMIN_PAGE){ adminHidden = true; syncRoute(); renderOwnerButton(); }
+    else location.hash = '';
+    return;
+  }
+  if(t.id === 'adPublish'){ requestPublish(); return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
   if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
   if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
@@ -4130,6 +4172,126 @@ window.addEventListener('beforeunload', function(e){
   if(dirty && canEdit){ e.preventDefault(); e.returnValue = ''; }
 });
 
+/* ---------------------------------------------------------- publishing */
+
+/**
+ * Publishing the public site.
+ *
+ * The public site is a separate page with no database, so it cannot read
+ * this one — and a page cannot publish another page. So the Publish button
+ * starts a background Claude task (a Routine) through the built-in Claude
+ * Code Remote connector. That task reads this page's database, rebuilds the
+ * public site's content file, publishes it, and records its progress in
+ * meta/publish, which this page shows live. The trigger id is not a secret:
+ * only the account that owns the task can fire it.
+ */
+var publishState = null;      /* the meta/publish document, live */
+var publishBusy = false;      /* the button press itself is in flight */
+var publishAfterSave = false; /* pressed with unsaved work: save, then publish */
+var PUBLISH_STALE = 10 * 60 * 1000;
+
+function publishRunning(){
+  var st = publishState || {};
+  return (st.status === 'requested' || st.status === 'building')
+    && typeof st.at === 'number' && Date.now() - st.at < PUBLISH_STALE;
+}
+
+function publishLabel(){
+  var ar = lang === 'ar';
+  var st = publishState || {};
+  var when = '';
+  try {
+    if(typeof st.at === 'number') when = new Date(st.at).toLocaleString(ar ? 'ar' : 'en',
+      { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
+  } catch(e){}
+  if(publishBusy) return ar ? 'جارٍ بدء النشر…' : 'Starting…';
+  if(publishAfterSave) return ar ? 'يُحفظ أولاً ثم يُنشر…' : 'Saving first, then publishing…';
+  if(st.status === 'requested' && publishRunning()) return ar ? 'بدأ النشر — دقائق قليلة' : 'Publishing — a few minutes';
+  if(st.status === 'building' && publishRunning()) return ar ? 'جارٍ تحديث الموقع…' : 'Updating the website…';
+  if(st.status === 'requested' || st.status === 'building')
+    return ar ? 'النشر يتأخر أكثر من المعتاد — جرّب مرة أخرى' : 'Publishing is taking too long — try again';
+  if(st.status === 'live') return (ar ? 'الموقع محدّث · ' : 'Website up to date · ') + when;
+  if(st.status === 'failed') return (ar ? 'تعذّر النشر: ' : 'Could not publish: ') + String(st.error || '').slice(0, 140);
+  return ar ? 'لم يُنشر بعد' : 'Not published yet';
+}
+
+/* One message per failure that has its own fix; everything else gets the
+   generic retry copy. */
+function publishErrorText(e){
+  var ar = lang === 'ar';
+  var code = e && e.code;
+  if(code === 'unavailable' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed')
+    return ar ? 'النشر يعمل فقط عند فتح هذه الصفحة على claude.ai.'
+              : 'Publishing only works with this page open on claude.ai.';
+  if(code === 'server_not_connected' || code === 'server_not_found' || code === 'selection_required')
+    return ar ? 'أضف Claude Code Remote من إعدادات claude.ai ← Connectors، ثم اضغط نشر.'
+              : 'Add Claude Code Remote in claude.ai Settings → Connectors, then press Publish.';
+  if(code === 'needs_reauth')
+    return ar ? 'أعد ربط Claude Code Remote من إعدادات claude.ai ← Connectors.'
+              : 'Reconnect Claude Code Remote in claude.ai Settings → Connectors.';
+  /* Declined, or switched off for this page, when the first call asked. */
+  if(code === 'not_in_manifest' || code === 'consent_required')
+    return ar ? 'اسمح لهذه الصفحة باستخدام Claude Code Remote (قائمة الأذونات)، ثم اضغط نشر.'
+              : 'Allow this page to use Claude Code Remote (its Permissions menu), then press Publish.';
+  if(code === 'blocked_by_policy' || code === 'approval_required')
+    return ar ? 'إعدادات مؤسستك منعت النشر.' : 'Your organisation settings blocked publishing.';
+  if(code === 'tool_error')
+    return (ar ? 'لم تبدأ مهمة النشر: ' : 'The publishing task did not start: ') + String((e && e.message) || '').slice(0, 100);
+  return ar ? 'تعذّر الوصول إلى خدمة النشر — حاول بعد دقيقة.'
+            : 'Could not reach the publishing service — try again in a minute.';
+}
+
+/* Updated in place, never by redrawing the panel: a status change must not
+   take focus out of a field someone is typing in. */
+function renderPublishStatus(){
+  var label = document.getElementById('adPubStatus');
+  if(label){
+    label.textContent = publishLabel();
+    label.className = 'ad-pub' + ((publishState || {}).status === 'failed' ? ' bad' : '');
+  }
+  var btn = document.getElementById('adPublish');
+  if(btn) btn.disabled = publishBusy || publishAfterSave || publishRunning();
+}
+
+function requestPublish(){
+  if(!PUBLISH.trigger || !DB || !canEdit) return;
+  if(publishBusy || publishRunning()) return;
+
+  /* What gets published is what is saved. Unsaved work goes first. */
+  if(saving || hasChanges()){
+    publishAfterSave = true;
+    renderPublishStatus();
+    if(!saving) pressSave(false);
+    return;
+  }
+
+  publishBusy = true;
+  renderPublishStatus();
+  DB.doc('meta/publish').set({ status:'requested', at: Date.now() })
+    .then(function(){
+      return (window.claude && typeof window.claude.use === 'function')
+        ? window.claude.use('mcp') : null;
+    })
+    .then(function(mcp){
+      if(!mcp) throw { code:'unavailable' };
+      return mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: PUBLISH.trigger });
+    })
+    .then(function(){
+      publishBusy = false;
+      renderPublishStatus();
+    })
+    .catch(function(e){
+      publishBusy = false;
+      /* A failed start is recorded where the task would record its own
+         progress. If the task did start after all — an unanswered call is
+         ambiguous — it overwrites this the moment it begins. */
+      var msg = publishErrorText(e);
+      publishState = { status:'failed', at: Date.now(), error: msg };
+      if(DB) DB.doc('meta/publish').set(publishState).catch(function(){});
+      renderPublishStatus();
+    });
+}
+
 /* ---------------------------------------------------------- routing */
 
 /**
@@ -4143,12 +4305,17 @@ window.addEventListener('beforeunload', function(e){
  */
 var ADMIN_ROUTE = '#manage-e6d7e34b271462c0';
 
-/* The address above only works when it is changed from inside the page. The
-   site runs in a frame on claude.ai, and a link to claude.ai/artifact/…#manage
-   puts the fragment on the outer page, where this code never sees it — the
-   owner clicked the link and landed on the customer site. So the way in is a
-   button, shown only once the store has confirmed this viewer may write.
-   Customers never see it; the owner gets one click. */
+/* Switched on by scripts/build.js for the admin page. In this source file —
+   the one the tests drive — both stay off and the page behaves as the
+   combined site it always was. */
+var ADMIN_PAGE = false;
+var PUBLISH = { trigger: '', publicUrl: '' };
+var adminHidden = false;   /* admin page: the owner chose to preview the site */
+
+/* A one-click way in for the owner, shown only once the store has confirmed
+   this viewer may write. Customers never see it. (The address above also
+   works as a link: the viewer passes a plain #anchor of letters, digits and
+   dashes through to the page.) */
 function renderOwnerButton(){
   var btn = document.getElementById('ownerBtn');
   var show = !!(DB && canEdit);
@@ -4158,17 +4325,23 @@ function renderOwnerButton(){
     btn.id = 'ownerBtn';
     btn.type = 'button';
     btn.className = 'owner-btn';
-    btn.addEventListener('click', function(){ location.hash = ADMIN_ROUTE; });
+    btn.addEventListener('click', function(){
+      if(ADMIN_PAGE){ adminHidden = false; syncRoute(); renderOwnerButton(); }
+      else location.hash = ADMIN_ROUTE;
+    });
     document.body.appendChild(btn);
   }
   btn.textContent = lang === 'ar' ? '⚙ لوحة التحكم' : '⚙ Dashboard';
-  btn.hidden = false;
+  /* On the admin page the button only matters while previewing. */
+  btn.hidden = ADMIN_PAGE ? !adminHidden : false;
 }
 
 function syncRoute(){
   var root = document.getElementById('admin-root');
   if(!root) return;
-  var open = location.hash === ADMIN_ROUTE;
+  /* On the admin page the dashboard IS the page; closing it previews the
+     site, and the corner button brings it back. */
+  var open = ADMIN_PAGE ? !adminHidden : location.hash === ADMIN_ROUTE;
   root.classList.toggle('open', open);
   if(open){
     root.removeAttribute('hidden');
@@ -4193,6 +4366,7 @@ setInterval(renderHours, 30000);
    renders exactly as before, from the defaults in this file. */
 syncRoute();
 connectDb();
+/* @admin-js:end */
 })();
 </script>
 </body>

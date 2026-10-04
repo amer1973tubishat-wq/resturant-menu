@@ -15,7 +15,7 @@
    neither resolves nor rejects. The page has to time it out itself. The access
    probe is exempt, so the dashboard still opens as an editor. */
 window.__MOCK = { canEdit: true, failWrites: false, hangWrites: false,
-                  shareReads: false, failContentWrites: false, latencyMs: 40, useDelayMs: 250, writeLog: [], attempts: [] };
+                  shareReads: false, failContentWrites: false, mcpMode: 'ok', mcpCalls: [], latencyMs: 40, useDelayMs: 250, writeLog: [], attempts: [] };
 /* Documents handed out by reference when shareReads is on. */
 var cache = {};
 
@@ -153,11 +153,33 @@ var cache = {};
 
   var ns = Object.freeze({ doc: docRef, collection: collRef });
 
+  /* The mcp capability, for the admin page's Publish button. mcpMode picks
+     what the connector does: 'ok' records the call and answers, an error code
+     rejects with exactly that code, and 'absent' makes use('mcp') resolve
+     null — the view cannot run connectors at all. */
+  var mcpNs = {
+    callTool: function (server, tool, input) {
+      window.__MOCK.mcpCalls.push({ server: server, tool: tool, input: input });
+      var mode = window.__MOCK.mcpMode;
+      return new Promise(function (res, rej) {
+        setTimeout(function () {
+          if (mode === 'ok') res({ content: [], payload: { ok: true } });
+          else rej({ code: mode, message: 'mock ' + mode });
+        }, 30);
+      });
+    },
+    listTools: function () { return Promise.resolve({ servers: [] }); }
+  };
+
   window.claude = {
     use: function (name) {
       // Deliberately asynchronous, exactly as the real contract promises.
       return new Promise(function (res) {
-        setTimeout(function () { res(name === 'db' ? ns : null); }, window.__MOCK.useDelayMs);
+        setTimeout(function () {
+          if (name === 'db') res(ns);
+          else if (name === 'mcp') res(window.__MOCK.mcpMode === 'absent' ? null : mcpNs);
+          else res(null);
+        }, window.__MOCK.useDelayMs);
       });
     }
   };

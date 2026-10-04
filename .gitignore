@@ -10,3 +10,7 @@ __pycache__/
 
 # Playwright, installed on demand for tests/save-flow (see its README)
 node_modules/
+
+# Build output and database dumps — regenerated, never committed
+dist/
+.dump/

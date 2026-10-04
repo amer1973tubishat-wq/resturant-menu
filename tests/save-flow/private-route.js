@@ -89,9 +89,7 @@ const controls = (page) => page.evaluate(() =>
   check('the panel is closed on the site', (await panelOpen(page)) === false);
   await page.close();
 
-  /* 2b — the owner's way in: a button on the site, for the owner only.
-     A link to claude.ai/artifact/…#route puts the fragment on the outer page,
-     where the site never sees it, so the address alone was not a way in. */
+  /* 2b — the owner's way in: a button on the site, for the owner only. */
   page = await load(ctx, '');
   const ownerBtn = await page.evaluate(() => {
     const b = document.getElementById('ownerBtn');

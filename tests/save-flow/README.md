@@ -35,6 +35,7 @@ node tests/save-flow/save-button.js   # the save control itself
 node tests/save-flow/live-editing.js  # edits survive database snapshots
 node tests/save-flow/operations.js    # every edit reports success honestly
 node tests/save-flow/resilience.js    # a save survives a lost change log
+node tests/save-flow/split.js         # public page has no dashboard; admin page publishes
 ```
 
 The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;

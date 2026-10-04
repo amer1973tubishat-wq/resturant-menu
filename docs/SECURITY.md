@@ -4,56 +4,100 @@ Two things live in this repository, and they have very different exposure.
 
 | | `index.html` | `admin/` |
 |---|---|---|
-| What it is | The restaurant site and its dashboard, one file | A Next.js admin application |
-| Deployed | Yes, as a Claude artifact | No — never has been |
+| What it is | The restaurant site and its dashboard, one source file | A Next.js admin application |
+| Deployed | Yes, as two Claude artifacts built from it | No — never has been |
 | Authorisation | Enforced by the artifact platform | Its own, in code |
 
-The live product is `index.html`. The `admin/` app was built earlier and
-superseded by the dashboard inside the artifact; it is kept for its schema and
-API design, and it is not running anywhere.
+The live product is built from `index.html`. The `admin/` app was built earlier
+and superseded by the dashboard; it is kept for its schema and API design, and
+it is not running anywhere.
 
-## The dashboard is unlisted, and gated
+## Two pages: the customer site carries no dashboard
 
-Nothing on the site links to the dashboard. It lives at its own address —
-`#manage-` followed by sixteen hex characters — and a customer browsing the
-menu never meets it.
+`scripts/build.js` turns `index.html` into two separate pages, each published
+at its own address:
 
-That is a convenience, not a control. The address is in the page source, and
-anyone who looks can read it. The control is the gate: the panel renders only
-for a viewer the database accepts writes from. Someone who finds the address
-anyway gets a short "not available" page — no form controls, and not even a
-read-only copy of the content. The access question is asked again each time
-the route is opened, because access can be granted or withdrawn while a page
-sits open, and a stale answer either locks the owner out or lets someone in.
+| | Customer page | Admin page |
+|---|---|---|
+| Address | `claude.ai/artifact/UTkA8CPyEyiqpLFmUvEikg` | `claude.ai/artifact/UozoNEQNyZSkLSZ8jJ9vJj` |
+| Built by | `build.js public` | `build.js admin` |
+| Contains | the menu site, and its content as `content.json` | the whole site plus the dashboard, which opens on load |
+| Capabilities | none | `db` (read: interact, write: admin) and `mcp` (one tool) |
+| Shared with | whoever the owner shares it with | the owner only |
 
-The owner's way in is a button on the site, shown only after the store has
-confirmed the viewer may write. The address alone turned out not to be a way
-in: the site runs in a frame on claude.ai, and a link to
-`claude.ai/artifact/…#manage-…` puts the fragment on the outer page, where the
-site never sees it. The button changes the address from inside the page, which
-works. A customer never sees it, for the same reason they never see the panel:
-the store refuses their writes, so the probe that would reveal it fails.
+The customer page is not the admin page with the dashboard hidden. The build
+deletes every region of `index.html` marked `@admin-css`, `@admin-html` and
+`@admin-js` — the dashboard's markup, styles and code, the database
+connection and the access probe — and then refuses to write the file if any
+dashboard-only name survives. There is no route to guess, no button to find and
+no database to call: a customer who reads the page source finds a menu.
 
-`tests/save-flow/private-route.js` holds all of it: that no link points at the
-route, that `#admin` and other guesses open nothing, that the real address
-works for an editor, and that it yields nothing to anyone else.
+The customer page gets its content from `content.json`, a data file published
+beside it. The page fetches it and reads it as JSON; nothing in it is ever run.
+It is applied through the same rendering paths as before, so the protections
+under "Stored content is untrusted" below cover it too.
+
+The admin page declares the `mcp` capability, and the platform does not allow
+a page with that capability to be shared publicly, so it cannot be opened by
+"anyone with the link" by mistake.
+
+`tests/save-flow/split.js` holds this: that the customer page's source has no
+dashboard markup, styles or code and no database calls; that it renders
+published content, hostile content safely, and a missing `content.json` without
+breaking; and that the admin page opens straight into the dashboard.
+
+## Publishing
+
+The dashboard saves into the admin page's database, which customers never
+touch. The Publish button copies saved content to the customer page:
+
+1. it saves anything unsaved first;
+2. it records `{status: "requested"}` in `meta/publish`;
+3. through the `mcp` capability it calls `fire_trigger` on the Claude Code
+   Remote connector — the only tool the page declares — with the id of the
+   owner's "Baytna Burger — publish website" Routine;
+4. that Routine starts a fresh Claude Code session which reads the database,
+   runs `build.js content` and `build.js public`, republishes the customer page
+   and sets `meta/publish` to `live` (or `failed`, with the reason). The page
+   shows the status as it changes.
+
+The Routine id is in the admin page's source. That is not a key: `mcp` calls
+run with the viewer's own connector, and a Routine can only be fired by the
+account that owns it. Anyone else's call is refused.
+
+## The dashboard is gated, as well as private
+
+The admin page is shared with no one. If it ever is — someone given access,
+or a copy of `index.html` opened elsewhere — the gate still holds: the panel
+renders only for a viewer the database accepts writes from. Anyone else gets a
+short "not available" page — no form controls, and not even a read-only copy
+of the content. The access question is asked again each time the dashboard is
+opened, because access can be granted or withdrawn while a page sits open, and
+a stale answer either locks the owner out or lets someone in.
+
+`index.html` on its own (as the test suites drive it) still opens the
+dashboard at an unlisted address, `#manage-` followed by sixteen hex
+characters, behind the same gate. `tests/save-flow/private-route.js` holds
+that: no link points at the route, `#admin` and other guesses open nothing,
+the real address works for an editor, and it yields nothing to anyone else.
 
 ## Where authorisation actually happens
 
 There is deliberately no password in `index.html`. A password checked in
 browser JavaScript is visible in view-source and protects nothing.
 
-The page declares the `db` capability with `{ read: "interact", write:
+The admin page declares the `db` capability with `{ read: "interact", write:
 "admin" }`. The platform accepts writes only from viewers with edit access to
-the artifact. Anyone with the link can open `#admin` and read the dashboard;
-every save they attempt is refused by the server. The read-only state in the
-interface is a courtesy, not the control — it tells an honest viewer what will
-happen, and does nothing to stop a dishonest one, because it does not need to.
+the artifact; every save anyone else attempts is refused by the server. The
+gate and the read-only state in the interface are courtesies, not the control
+— they tell an honest viewer what will happen, and do nothing to stop a
+dishonest one, because they do not need to. (Checked against the live store:
+a write at the `interact` level is refused.)
 
 The three ways that can be checked:
 
-- open the page as a viewer without edit access — the status pill reads
-  "Read-only", and pressing Save answers with the refusal from the server;
+- open the dashboard as a viewer without edit access — it shows "not
+  available", and a forced Save answers with the refusal from the server;
 - `tests/save-flow/button-answers.js` holds that behaviour;
 - the stored content is unchanged afterwards, which that suite also asserts.
 
@@ -152,7 +196,11 @@ verified across all 17 commits in the history.
 - The artifact platform's own access control is trusted. If someone is given
   edit access to the artifact, they can change the menu; that is what edit
   access means.
-- Anyone with the link can read the dashboard's contents. The content is the
-  public menu, so this costs nothing, but it is not a private admin area.
+- The customer page shows what was last published, not what was last saved.
+  Publishing takes a few minutes and runs a Claude Code session on the owner's
+  account; if the Claude Code Remote connector is unavailable, the dashboard
+  says so and the customer page keeps its last published content.
+- The source of the dashboard is in this repository, which is public. It holds
+  no secrets, and knowing it gives no access: access is the platform's.
 - `admin/` has not been run, built or penetration-tested in its upgraded form.
   It typechecks; that is all that is claimed.
