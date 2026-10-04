@@ -1,9 +1,10 @@
 # resturant-menu
 ## Editing the site
 
-The dashboard is not linked from the site. It lives at its own address —
-see `ADMIN_ROUTE` in `index.html` — and renders only for an account with edit
-access; anyone else gets a short "not available" page. Everything on the site
+The dashboard is not linked from the site for customers. Open the site while
+signed in to the account that owns it and a **⚙ Dashboard** button appears in
+the corner — one click opens it. Nobody else sees that button, and anyone who
+reaches the dashboard's address another way gets a short "not available" page. Everything on the site
 is editable there, in both Arabic and English:
 
 | Tab | What it covers |

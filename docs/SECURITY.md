@@ -26,6 +26,14 @@ read-only copy of the content. The access question is asked again each time
 the route is opened, because access can be granted or withdrawn while a page
 sits open, and a stale answer either locks the owner out or lets someone in.
 
+The owner's way in is a button on the site, shown only after the store has
+confirmed the viewer may write. The address alone turned out not to be a way
+in: the site runs in a frame on claude.ai, and a link to
+`claude.ai/artifact/…#manage-…` puts the fragment on the outer page, where the
+site never sees it. The button changes the address from inside the page, which
+works. A customer never sees it, for the same reason they never see the panel:
+the store refuses their writes, so the probe that would reveal it fails.
+
 `tests/save-flow/private-route.js` holds all of it: that no link points at the
 route, that `#admin` and other guesses open nothing, that the real address
 works for an editor, and that it yields nothing to anyone else.

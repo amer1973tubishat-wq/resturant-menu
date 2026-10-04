@@ -990,6 +990,19 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
 }
 .ad-link:hover{ color:var(--flame) }
 
+/* The owner's way in. Rendered only for an account the database accepts
+   writes from, so a customer never sees it. */
+.owner-btn{
+  position:fixed; bottom:20px; inset-inline-start:20px; z-index:950;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 20px; border-radius:100px; border:0; cursor:pointer;
+  background:var(--flame); color:#160A02; font-weight:700; font-size:14px;
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.8);
+  transition:transform .25s var(--ease-spring);
+}
+.owner-btn:hover{ transform:translateY(-3px) }
+.owner-btn[hidden]{ display:none }
+
 @media (max-width:640px){
   .ad-grid{ grid-template-columns:1fr }
   .ad-hours{ grid-template-columns:1fr 1fr; gap:8px }
@@ -1964,6 +1977,7 @@ function setLang(next){
 
   renderBrand(); renderCategories(); renderMenu(); renderIngredients();
   renderHeroImage(); renderLinks();
+  if(typeof renderOwnerButton === 'function') renderOwnerButton();
   renderSteps(); renderOptions(); renderReceipt(); renderHours();
   buildWaLink();
   try{ localStorage.setItem('baytna-lang', next); }catch(e){}
@@ -2653,7 +2667,7 @@ function probeAccess(tries){
   if(!DB) return;
   tries = tries || 0;
   DB.doc('meta/access-probe').set({ at: Date.now() })
-    .then(function(){ canEdit = true; probeDone = true; renderAdmin(); })
+    .then(function(){ canEdit = true; probeDone = true; renderAdmin(); renderOwnerButton(); })
     .catch(function(e){
       canEdit = false;
       var code = e && (e.code || e.kind);
@@ -2663,6 +2677,7 @@ function probeAccess(tries){
          not be told they lack access while the page is still asking. */
       if(!again) probeDone = true;
       renderAdmin();
+      renderOwnerButton();
     });
 }
 
@@ -4127,6 +4142,28 @@ window.addEventListener('beforeunload', function(e){
  * writes from, and the database is the one enforcing that, not this file.
  */
 var ADMIN_ROUTE = '#manage-e6d7e34b271462c0';
+
+/* The address above only works when it is changed from inside the page. The
+   site runs in a frame on claude.ai, and a link to claude.ai/artifact/…#manage
+   puts the fragment on the outer page, where this code never sees it — the
+   owner clicked the link and landed on the customer site. So the way in is a
+   button, shown only once the store has confirmed this viewer may write.
+   Customers never see it; the owner gets one click. */
+function renderOwnerButton(){
+  var btn = document.getElementById('ownerBtn');
+  var show = !!(DB && canEdit);
+  if(!show){ if(btn) btn.hidden = true; return; }
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'ownerBtn';
+    btn.type = 'button';
+    btn.className = 'owner-btn';
+    btn.addEventListener('click', function(){ location.hash = ADMIN_ROUTE; });
+    document.body.appendChild(btn);
+  }
+  btn.textContent = lang === 'ar' ? '⚙ لوحة التحكم' : '⚙ Dashboard';
+  btn.hidden = false;
+}
 
 function syncRoute(){
   var root = document.getElementById('admin-root');

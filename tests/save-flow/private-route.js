@@ -89,6 +89,30 @@ const controls = (page) => page.evaluate(() =>
   check('the panel is closed on the site', (await panelOpen(page)) === false);
   await page.close();
 
+  /* 2b — the owner's way in: a button on the site, for the owner only.
+     A link to claude.ai/artifact/…#route puts the fragment on the outer page,
+     where the site never sees it, so the address alone was not a way in. */
+  page = await load(ctx, '');
+  const ownerBtn = await page.evaluate(() => {
+    const b = document.getElementById('ownerBtn');
+    return b ? { shown: !b.hidden, text: b.textContent } : { shown: false };
+  });
+  check('the owner sees a dashboard button on the site', ownerBtn.shown === true, JSON.stringify(ownerBtn));
+  await page.click('#ownerBtn');
+  await page.waitForTimeout(1500);
+  check('one click opens the dashboard', (await panelOpen(page)) === true);
+  check('and it is usable', (await controls(page)) > 0);
+  await page.close();
+
+  page = await load(ctx, '', { canEdit: false });
+  await page.waitForTimeout(9000);          /* past every probe retry */
+  check('a customer never sees the button',
+    (await page.evaluate(() => {
+      const b = document.getElementById('ownerBtn');
+      return !b || b.hidden;
+    })) === true);
+  await page.close();
+
   /* 3 — the old address, and a wrong guess, open nothing. */
   for (const guess of ['#admin', '#manage', '#manage-0000000000000000', '#dashboard']) {
     page = await load(ctx, guess);
