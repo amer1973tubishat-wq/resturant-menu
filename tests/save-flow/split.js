@@ -163,6 +163,29 @@ const panelOpen = (page) => page.evaluate(() => {
     await page.close();
   }
 
+  /* 2b — a map picture published as a media id, and the Google Maps link. */
+  {
+    const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const c = JSON.parse(content());
+    c.site.mapImage = 'mapimg1';
+    c.site.links = { instagram: '', facebook: '', tiktok: '', maps: 'https://maps.app.goo.gl/xyz' };
+    c.media = { mapimg1: PNG };
+    contentJson = JSON.stringify(c);
+    const page = await ctx.newPage();
+    const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3500);
+    const r = await page.evaluate(() => {
+      const img = document.querySelector('#mapCard .map-photo');
+      return { src: img && !img.hidden ? img.getAttribute('src') : '',
+               open: document.getElementById('mapOpen').getAttribute('href') };
+    });
+    check('the published map picture is shown', r.src === PNG);
+    check('and the map opens the published Google Maps link', r.open === 'https://maps.app.goo.gl/xyz', r.open);
+    check('no errors with a map picture', errs.length === 0, errs.join(' | '));
+    await page.close();
+  }
+
   /* 3 — hostile content in content.json is data, never code. */
   {
     const evil = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>';

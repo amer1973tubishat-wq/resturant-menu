@@ -56,6 +56,7 @@ const hostile = () => ({
     text: { en: { hero_l1: XSS[0], menu_title: XSS[3], hero_tag: XSS[11] }, ar: {} },
     brand: { en: { a: XSS[0], b: XSS[2] }, ar: { a: XSS[3], b: XSS[4] }, logo: 'javascript:window.__pwned=1' },
     heroImage: XSS[8],
+    mapImage: 'javascript:window.__pwned=1',
     contact: { whatsapp: '962700000000"><script>window.__pwned=1</script>', phone: XSS[0] },
     updatedAt: 1
   },
@@ -116,6 +117,8 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
     JSON.stringify(await dangerousAttributes(page)));
   check('public page: no frame or object was created',
     (await page.evaluate(() => document.querySelectorAll('iframe,object,embed').length)) === 0);
+  check('public page: a script URL as the map picture shows no picture',
+    (await page.evaluate(() => { const i = document.querySelector('.map-photo'); return !i || i.hidden; })));
 
   await page.click('.lang-toggle button[data-lang="ar"]');
   await page.waitForTimeout(800);
@@ -192,7 +195,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   }, ADMIN_HASH);
   check('the dashboard opens on a malformed document', page.errs.length === 0, page.errs.join(' | '));
   check('and shows its tabs',
-    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 8);   /* the Builder tab was removed */
+    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 9);   /* Builder removed, Location added */
 
   await ctx.close();
   await b.close();

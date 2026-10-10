@@ -149,6 +149,7 @@ function referencedIds(menu, site) {
   (menu.categories || []).forEach(c => c && add(c.img));
   (menu.items || []).forEach(i => i && add(i.img));
   add(site.heroImage);
+  add(site.mapImage);
   if (site.brand) add(site.brand.logo);
   return ids;
 }

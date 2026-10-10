@@ -19,9 +19,10 @@ and English:
 | الاسم / Brand | The restaurant name, in two parts, and the logo |
 | الواجهة / Hero | The main photograph |
 | النصوص / Text | Every string on the site — navigation, headlines, buttons, story, opening status, currency, footer — plus the ingredient chips |
+| الموقع / Location | The Google Maps link the map and directions open, the name and address on the map, and a picture of the map (a screenshot) in place of the drawn one |
 | الألوان / Colours | The four colours the whole site is built from |
 | الأوقات / Hours | Opening and closing times, per day |
-| التواصل / Contact | WhatsApp, phone, Instagram, Facebook, TikTok, map link |
+| التواصل / Contact | WhatsApp, phone, Instagram, Facebook, TikTok |
 
 Saving is automatic: a change is written about a second after you stop typing,
 immediately when you leave a field, and again if the page is closed. The Save

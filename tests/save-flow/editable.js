@@ -215,6 +215,87 @@ const setField = async (page, selector, value) => {
     await page.close();
   }
 
+  /* 10 — the location: the Google Maps link, and a picture of the map in
+     place of the drawn one. */
+  {
+    const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const MAPS = 'https://maps.app.goo.gl/abc123';
+    page = await load(ctx, seeded(), ADMIN_HASH);
+    await tab(page, 'location');
+    check('the Location tab offers the map picture',
+      (await page.$('#admin-root [data-upload="mapImage"]')) !== null);
+    check('the map link is edited there, not in Contact',
+      (await page.$('#admin-root [data-path="links.maps"]')) !== null);
+    await setField(page, '#admin-root [data-path="links.maps"]', MAPS);
+    await setField(page, '#admin-root [data-path="mapImage"]', PNG);
+    await setField(page, '#admin-root [data-path="text.en.map_addr"]', 'King Hussein St, Amman');
+    const st = readStore()['content/site'];
+    check('the map link is stored', (st.links || {}).maps === MAPS, JSON.stringify(st.links));
+    check('the map picture is stored', st.mapImage === PNG, String(st.mapImage).slice(0, 40));
+    check('the address is stored', (st.text.en || {}).map_addr === 'King Hussein St, Amman');
+    await tab(page, 'contact');
+    check('Contact no longer carries the map link',
+      (await page.$('#admin-root [data-path="links.maps"]')) === null);
+    await page.close();
+
+    page = await load(ctx, readStore(), '');
+    const site = await page.evaluate(() => {
+      const img = document.querySelector('#mapCard .map-photo');
+      return {
+        src: img && !img.hidden ? img.getAttribute('src') : '',
+        svgHidden: getComputedStyle(document.querySelector('#mapCard .map-svg')).display === 'none',
+        dir: document.getElementById('directions').getAttribute('href'),
+        open: document.getElementById('mapOpen').getAttribute('href'),
+        addr: document.querySelector('[data-i18n="map_addr"]').textContent,
+      };
+    });
+    check('the site shows the map picture', site.src === PNG);
+    check('in place of the drawn map', site.svgHidden);
+    check('directions open the stored link', site.dir === MAPS, site.dir);
+    check('and so does tapping the map', site.open === MAPS, site.open);
+    check('the map label shows the address', site.addr === 'King Hussein St, Amman', site.addr);
+    await page.close();
+
+    page = await load(ctx, readStore(), ADMIN_HASH);
+    await tab(page, 'location');
+    await page.click('#admin-root [data-clearimg="mapImage"]');
+    await page.waitForTimeout(2400);
+    check('clearing the picture is stored', readStore()['content/site'].mapImage === '');
+    await page.close();
+    page = await load(ctx, readStore(), '');
+    check('and the drawn map comes back', await page.evaluate(() => {
+      const img = document.querySelector('#mapCard .map-photo');
+      return (!img || img.hidden) && getComputedStyle(document.querySelector('#mapCard .map-svg')).display !== 'none';
+    }));
+    await page.close();
+  }
+
+  /* 11 — Upload really stores the picture. The URL box beside it used to hand
+     its old value back at the next render, undoing every upload and Clear. */
+  {
+    const file = path.join(process.env.TMPDIR || '/tmp', 'baytna-map-test.png');
+    fs.writeFileSync(file, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEklEQVR4nGP4z8DAwMDAxAAAHxcCBQWqpWAAAAAASUVORK5CYII=', 'base64'));
+    for (const [tabName, p] of [['location', 'mapImage'], ['hero', 'heroImage']]) {
+      page = await load(ctx, seeded(), ADMIN_HASH);
+      await tab(page, tabName);
+      const [chooser] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.click(`#admin-root [data-upload="${p}"]`),
+      ]);
+      await chooser.setFiles(file);
+      await page.waitForTimeout(3500);
+      const st = readStore();
+      const id = st['content/site'][p];
+      check(`an uploaded ${p} is stored`, typeof id === 'string' && /^m/.test(id), String(id));
+      check(`and its picture is in the database`, !!(st['media/' + id] && /^data:image\//.test(st['media/' + id].url)));
+      await page.close();
+    }
+    page = await load(ctx, readStore(), '');
+    check('the uploaded hero picture shows on the site',
+      await page.evaluate(() => { const i = document.querySelector('.hero-photo'); return !!(i && !i.hidden && /^data:image\//.test(i.src)); }));
+    await page.close();
+  }
+
   /* 9 — the phone number drives the link, not just the text. */
   page = await load(ctx, seeded(), '');
   const tel = await page.$eval('.vmeta a[href^="tel:"]', el => el.getAttribute('href'));

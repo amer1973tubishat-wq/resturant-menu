@@ -526,6 +526,8 @@ html[lang="ar"] .pull{ text-transform:none; line-height:1.5 }
 .map-card{ position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--line);
   background:var(--char-700); min-height:390px; }
 .map-svg{ position:absolute; inset:0; width:100%; height:100%; }
+.map-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.map-open{ position:absolute; inset:0; z-index:2; }
 
 .pin{ opacity:0; transform-box:fill-box; transform-origin:50% 100%; }
 .in .pin{ animation:pinDrop .78s var(--ease-spring) .25s forwards; }
@@ -1162,6 +1164,7 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
             </g>
           </g>
         </svg>
+        <a class="map-open" id="mapOpen" href="https://www.google.com/maps/search/?api=1&amp;query=Rainbow+Street+Jabal+Amman+Jordan" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"></a>
         <div class="map-label">
           <b data-i18n="map_name">Baytna Burger</b>
           <span data-i18n="map_addr">Rainbow St, Jabal Amman · Amman, Jordan</span>
@@ -1322,6 +1325,7 @@ var THEME = { flame:'', gold:'', red:'', bg:'' };
 var CONTACT_PHONE = '+962 7 9000 0000';
 var isText = function(x){ return typeof x === 'string'; };
 var HERO_IMAGE = '';
+var MAP_IMAGE = '';   /* the Visit map picture; empty keeps the drawn map */
 var MEDIA = {};   /* id -> data URL, loaded from the database */
 
 /* The old build-your-own options. The site no longer shows a builder, but
@@ -1622,6 +1626,30 @@ function renderHeroImage(){
   }
 }
 
+/* The Visit map: the owner's picture of the location when there is one,
+   otherwise the drawn map. */
+function renderMapImage(){
+  var card = $('#mapCard');
+  if(!card) return;
+  var pic = imgSrc(MAP_IMAGE);
+  var svg = card.querySelector('.map-svg');
+  var img = card.querySelector('.map-photo');
+  if(pic){
+    if(!img){
+      img = document.createElement('img');
+      img.className = 'map-photo';
+      img.alt = '';
+      card.insertBefore(img, card.firstChild);
+    }
+    img.src = pic;
+    img.hidden = false;
+    if(svg) svg.style.display = 'none';
+  } else {
+    if(img) img.hidden = true;
+    if(svg) svg.style.display = '';
+  }
+}
+
 function renderIngredients(){
   $('#ingList').innerHTML = T[lang].ings.map(function(x){
     return '<span class="ing">' + x + '</span>';
@@ -1732,7 +1760,7 @@ function setLang(next){
   });
 
   renderBrand(); renderCategories(); renderMenu(); renderIngredients();
-  renderHeroImage(); renderLinks();
+  renderHeroImage(); renderMapImage(); renderLinks();
   if(typeof renderOwnerButton === 'function') renderOwnerButton();
   renderHours();
   buildWaLink();
@@ -1802,6 +1830,9 @@ function renderLinks(){
     var maps = safeLink(LINKS.maps);
     dir.href = maps || ('https://www.google.com/maps/search/?api=1&query='
       + encodeURIComponent(textOf('map_addr') || 'Rainbow Street Jabal Amman Jordan'));
+    /* Tapping the map opens the same place. */
+    var open = document.getElementById('mapOpen');
+    if(open) open.href = dir.href;
   }
 
   /* The phone number in the visit panel is the one from the dashboard. */
@@ -2041,6 +2072,7 @@ function applyContent(d){
     applyTheme();
   }
   if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
+  if(typeof d.mapImage === 'string') MAP_IMAGE = d.mapImage;
   if(d.contact && typeof d.contact === 'object'){
     if(typeof d.contact.whatsapp === 'string') WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
     if(typeof d.contact.phone === 'string') CONTACT_PHONE = d.contact.phone;
@@ -2271,6 +2303,7 @@ function snapshotDefaults(){
     theme:      { flame:'', gold:'', red:'', bg:'' },
     brand:      clone(BRAND),
     heroImage:  HERO_IMAGE,
+    mapImage:   MAP_IMAGE,
     contact:    { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
   };
 }
@@ -2319,7 +2352,15 @@ function pickImage(onDone){
     var f = inp.files && inp.files[0];
     if(!f) return;
     readImage(f, function(dataUrl, err){
-      if(err || !dataUrl){ alert(err || 'Could not use that image'); return; }
+      if(err || !dataUrl){
+        /* alert() never shows on a claude.ai page, so the reason goes where
+           every other dashboard error goes. */
+        try { console.error('[image] could not use the file:', err); } catch(_){}
+        lastError = (lang === 'ar' ? 'تعذّر استخدام الصورة: ' : 'Could not use that image: ')
+          + (err || (lang === 'ar' ? 'ملف غير صالح' : 'unreadable file'));
+        renderAdmin();
+        return;
+      }
       var id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       pendingMedia[id] = dataUrl;
       MEDIA[id] = dataUrl;
@@ -2466,6 +2507,7 @@ function loadDraft(){
           text:       (st.text && typeof st.text === 'object')   ? st.text   : base.text,
           brand:      (st.brand && typeof st.brand === 'object') ? st.brand  : base.brand,
           heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+          mapImage:   typeof st.mapImage === 'string' ? st.mapImage : base.mapImage,
           contact:    (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
           steps:      Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
           ings:       (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
@@ -2486,7 +2528,7 @@ function loadDraft(){
 }
 
 var MENU_FIELDS = ['categories', 'items'];
-var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'contact', 'steps', 'ings', 'links', 'theme'];
+var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'mapImage', 'contact', 'steps', 'ings', 'links', 'theme'];
 
 /**
  * The top-level fields whose current value differs from the copy that was
@@ -2552,6 +2594,7 @@ function save(){
         text:      (st.text && typeof st.text === 'object')   ? st.text  : base.text,
         brand:     (st.brand && typeof st.brand === 'object') ? st.brand : base.brand,
         heroImage: typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+        mapImage:  typeof st.mapImage === 'string' ? st.mapImage : base.mapImage,
         contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
         steps:     Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
         ings:      (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
@@ -2611,7 +2654,7 @@ function save(){
       }));
       if(wantSite) writes.push(DB.doc(DOC_SITE).set({
         hours: siteDoc.hours, text: siteDoc.text, brand: siteDoc.brand,
-        heroImage: siteDoc.heroImage, contact: siteDoc.contact,
+        heroImage: siteDoc.heroImage, mapImage: siteDoc.mapImage, contact: siteDoc.contact,
         steps: siteDoc.steps, ings: siteDoc.ings, links: siteDoc.links,
         theme: siteDoc.theme,
         updatedAt: Date.now()
@@ -3032,9 +3075,43 @@ function tabContact(){
     + field('Instagram', l.instagram || '', 'links.instagram', 'text', { max: MAX_URL, placeholder:'https://…' })
     + field('Facebook',  l.facebook  || '', 'links.facebook',  'text', { max: MAX_URL, placeholder:'https://…' })
     + field('TikTok',    l.tiktok    || '', 'links.tiktok',    'text', { max: MAX_URL, placeholder:'https://…' })
-    + field(lang === 'ar' ? 'رابط الخريطة' : 'Map link', l.maps || '', 'links.maps', 'text',
-        { full:1, max: MAX_URL, placeholder: lang === 'ar' ? 'اتركه فارغاً ليُبنى من العنوان' : 'leave empty to build it from the address' })
     + '</div></div>';
+}
+
+/* Where the restaurant is: the Google Maps link that the map and the
+   directions button open, the name and address on the map, and a picture
+   of the location to show instead of the drawn map. A live Google map
+   cannot be embedded in a claude.ai page, so the picture is uploaded. */
+function tabLocation(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var l = draft.links || {};
+  var t = draft.text[L] || {};
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'رابط الموقع على Google Maps' : 'Google Maps link') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'افتح المطعم في Google Maps ← مشاركة ← نسخ الرابط، ثم الصقه هنا. الخريطة وزر الاتجاهات يفتحان هذا الرابط. اتركه فارغاً ليُبنى من العنوان.'
+        : 'Open the restaurant in Google Maps → Share → Copy link, and paste it here. The map and the directions button open it. Leave it empty to build one from the address.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field(lang === 'ar' ? 'رابط الخريطة' : 'Map link', l.maps || '', 'links.maps', 'text',
+        { full:1, max: MAX_URL, placeholder:'https://maps.app.goo.gl/…' })
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'الاسم والعنوان على الخريطة' : 'Name and address on the map') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + field(own_(TEXT_LABEL, 'map_name'), t.map_name || '', 'text.' + L + '.map_name', 'text', { rtl: L === 'ar' })
+    + field(own_(TEXT_LABEL, 'map_addr'), t.map_addr || '', 'text.' + L + '.map_addr', 'text', { rtl: L === 'ar' })
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'صورة الخريطة' : 'Map picture') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'خذ لقطة شاشة لموقع المطعم على Google Maps وارفعها. اتركها فارغة لتبقى الخريطة المرسومة. روابط الصور من مواقع أخرى لا تظهر على صفحات claude.ai — ارفع الصورة نفسها.'
+        : 'Take a screenshot of the restaurant on Google Maps and upload it. Leave it empty to keep the drawn map. Links to images on other sites do not show on claude.ai pages — upload the picture itself.')
+    + '</p>'
+    + '<div class="ad-grid">' + imageField(lang === 'ar' ? 'الصورة' : 'Picture', draft.mapImage, 'mapImage') + '</div>'
+    + '</div>';
 }
 
 /* ---------------------------------------------------------- shell */
@@ -3105,6 +3182,7 @@ function renderAdmin(){
     ['brand',   lang === 'ar' ? 'الاسم'    : 'Brand'],
     ['hero',    lang === 'ar' ? 'الواجهة'  : 'Hero'],
     ['text',    lang === 'ar' ? 'النصوص'   : 'Text'],
+    ['location', lang === 'ar' ? 'الموقع'  : 'Location'],
     ['theme',   lang === 'ar' ? 'الألوان'   : 'Colours'],
     ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
     ['contact', lang === 'ar' ? 'التواصل'  : 'Contact']
@@ -3115,6 +3193,7 @@ function renderAdmin(){
            : adminTab === 'brand' ? tabBrand()
            : adminTab === 'hero'  ? tabHero()
            : adminTab === 'text'  ? tabText()
+           : adminTab === 'location' ? tabLocation()
            : adminTab === 'theme' ? tabTheme()
            : adminTab === 'hours' ? tabHours()
            : tabContact();
@@ -3494,6 +3573,16 @@ function bindFields(root){
 function setPath(path, value){
   setPathOn(draft, path, value);
   markTouched(path);
+  /* A control already showing this path would otherwise hand its old value
+     straight back at the next harvest — which is what undid every image
+     upload and every Clear: the URL box beside the picture still held the
+     previous value, and the render that followed read it over the new one. */
+  var root = document.getElementById('admin-root');
+  if(!root) return;
+  var list = root.querySelectorAll('input,textarea,select');
+  for(var i = 0; i < list.length; i++){
+    try { if(controlPath(list[i]) === path) list[i].value = value == null ? '' : String(value); } catch(e){}
+  }
 }
 
 /* Updates the save bar in place. Re-rendering the whole panel on every
