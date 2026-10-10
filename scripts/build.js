@@ -174,6 +174,9 @@ function buildContent(dumpDir) {
 
   /* Drop the bookkeeping fields; customers need the content only. */
   delete menu.updatedAt; delete site.updatedAt;
+  /* The build-your-own options are still saved, but the site no longer has a
+     builder to show them in. */
+  delete site.steps;
 
   /* Plain JSON, parsed by the page as data. Nothing stored in the dashboard
      can become code on the public site. */

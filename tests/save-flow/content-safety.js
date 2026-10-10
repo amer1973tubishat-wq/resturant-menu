@@ -192,7 +192,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   }, ADMIN_HASH);
   check('the dashboard opens on a malformed document', page.errs.length === 0, page.errs.join(' | '));
   check('and shows its tabs',
-    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 9);
+    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 8);   /* the Builder tab was removed */
 
   await ctx.close();
   await b.close();

@@ -4,8 +4,7 @@
  *
  * Before this, 41 of the site's 64 strings were literals in the file — the
  * navigation, the hero buttons, the story, the whole footer, the opening
- * status, the currency — along with the entire build-your-own menu and its
- * prices, the ingredient chips, the badge wording and every social link. They
+ * status, the currency — along with the ingredient chips, the badge wording and every social link. They
  * could only be changed by editing the page.
  *
  * The first test is the one that keeps it true: every data-i18n key in the
@@ -99,25 +98,28 @@ const setField = async (page, selector, value) => {
     (await page.$eval('.nav-links a[href="#menu"]', el => el.textContent.trim())) === 'Our Food');
   await page.close();
 
-  /* 3 — a build-your-own option price, which is money. */
-  page = await load(ctx, seeded(), ADMIN_HASH);
-  await tab(page, 'build');
-  const priceSel = '#admin-root [data-path="steps.1.opts.0.p"]';
-  check('the builder exposes option prices', (await page.$(priceSel)) !== null);
-  await setField(page, priceSel, '7.25');
-  const storedSteps = readStore()['content/site'].steps;
-  check('the new price is stored', Number(storedSteps[1].opts[0].p) === 7.25, String(storedSteps[1].opts[0].p));
-  await page.close();
+  /* 3 — the build-your-own section was removed at the owner's request: not
+     on the site, not in the dashboard — but options already saved are kept,
+     not deleted, by an unrelated save. */
+  {
+    const st = seeded();
+    st['content/site'].steps = [{ key: 'bun', multi: false, en: 'Bun', ar: 'الخبز',
+      opts: [{ id: 'brioche', p: 0.4, en: { n: 'Brioche' }, ar: { n: 'بريوش' } }] }];
+    page = await load(ctx, st, '');
+    check('the site has no builder section', (await page.$('#build')) === null);
+    check('and nothing links to it', (await page.$('a[href="#build"]')) === null);
+    check('the menu cards have no builder button', (await page.$('[data-add]')) === null);
+    await page.close();
 
-  page = await load(ctx, readStore(), '');
-  await page.click('.step-tab[data-step="1"]');
-  await page.waitForTimeout(400);
-  await page.click('.opt[data-opt="single"]');
-  await page.waitForTimeout(700);
-  check('and the customer is charged it',
-    /7\.25/.test(await page.$eval('#totalPrice', el => el.textContent)),
-    await page.$eval('#totalPrice', el => el.textContent));
-  await page.close();
+    page = await load(ctx, st, ADMIN_HASH);
+    check('the dashboard has no Builder tab', (await page.$('#admin-root [data-tab="build"]')) === null);
+    await tab(page, 'text');
+    await setField(page, '#admin-root [data-path="text.en.nav_menu"]', 'Food');
+    const kept = readStore()['content/site'].steps;
+    check('saved builder options survive another save',
+      Array.isArray(kept) && kept[0] && kept[0].opts[0].p === 0.4, JSON.stringify(kept));
+    await page.close();
+  }
 
   /* 4 — the ingredient chips, edited as a list. */
   page = await load(ctx, seeded(), ADMIN_HASH);

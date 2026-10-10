@@ -461,13 +461,6 @@ html[lang="ar"] .card-name{ text-transform:none; font-size:21px; line-height:1.4
 .card:hover .spice-dots i.on:nth-child(3){ transition-delay:.1s }
 .card:hover .spice-dots i.on:nth-child(4){ transition-delay:.15s }
 .card:hover .spice-dots i.on:nth-child(5){ transition-delay:.2s }
-.add-btn{
-  border:1px solid var(--line); background:var(--char-700); color:var(--cream-dim);
-  border-radius:100px; padding:7px 15px; font-size:12.5px; font-weight:600;
-  transition:background .26s, color .26s, border-color .26s, transform .26s var(--ease-spring);
-}
-.add-btn:hover{ background:var(--flame); color:#120802; border-color:var(--flame); transform:scale(1.05); }
-
 /* ============================================================
    SIDES & DRINKS
    ============================================================ */
@@ -486,75 +479,6 @@ html[lang="ar"] .card-name{ text-transform:none; font-size:21px; line-height:1.4
 .side-name{ font-weight:600; font-size:14.5px; margin:0; }
 .side-price{ font-family:var(--f-display); font-size:17px; color:var(--gold); }
 .side-note{ font-size:11.5px; color:var(--muted); margin:0; }
-
-/* ============================================================
-   BUILD YOUR OWN
-   ============================================================ */
-#build{ background:var(--char-800); }
-.build-layout{ display:grid; grid-template-columns:1fr 372px; gap:34px; align-items:start; }
-
-.steps{ display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; }
-.step-tab{
-  flex:1; min-width:132px; position:relative;
-  padding:13px 15px; border-radius:13px; text-align:start;
-  background:var(--char-700); border:1px solid var(--line); color:var(--cream-dim);
-  transition:background .3s, border-color .3s, color .3s, transform .3s var(--ease-spring);
-}
-.step-tab .n{ font-family:var(--f-display); font-size:12px; color:var(--muted); display:block; }
-.step-tab .l{ font-size:14px; font-weight:600; }
-.step-tab[aria-selected="true"]{ background:linear-gradient(150deg,var(--flame),var(--flame-deep)); border-color:transparent; color:#160A02; transform:translateY(-3px); }
-.step-tab[aria-selected="true"] .n{ color:rgba(22,10,2,.65); }
-.step-tab.done{ border-color:rgba(242,179,61,.45); }
-.step-tab.done .n::after{ content:' ✓'; color:var(--gold); }
-
-.opts{ display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:12px; }
-.opt{
-  position:relative; padding:15px; border-radius:14px; text-align:start;
-  background:var(--char-700); border:1.5px solid var(--line); color:var(--cream);
-  transition:border-color .28s, background .28s, transform .28s var(--ease-spring);
-}
-.opt:hover{ border-color:rgba(255,106,26,.5); transform:translateY(-4px); }
-.opt[aria-pressed="true"]{ border-color:var(--flame); background:rgba(255,106,26,.10); }
-.opt[aria-pressed="true"]::after{
-  content:'✓'; position:absolute; top:9px; inset-inline-end:11px;
-  width:20px; height:20px; border-radius:50%; background:var(--flame); color:#160A02;
-  font-size:12px; font-weight:800; display:grid; place-items:center;
-  animation:pop .34s var(--ease-spring);
-}
-@keyframes pop{ from{ transform:scale(0) } to{ transform:scale(1) } }
-.opt{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
-.opt .on{ font-weight:600; font-size:14.5px; line-height:1.3; }
-.opt .od{ display:block; font-size:11.5px; color:var(--muted); line-height:1.4; }
-.opt .op{ display:block; margin-top:6px; font-size:12.5px; color:var(--gold); font-weight:700; }
-
-/* receipt / live price panel */
-.receipt{
-  position:sticky; top:calc(var(--nav-h) + 16px);
-  border-radius:20px; padding:24px;
-  background:
-    repeating-linear-gradient(0deg,transparent 0 27px,rgba(0,0,0,.16) 27px 28px),
-    linear-gradient(165deg,var(--char-700),var(--char-600));
-  border:1px solid var(--line);
-}
-.receipt h3{ font-family:var(--f-display); font-size:21px; text-transform:uppercase; margin:0 0 4px; }
-html[lang="ar"] .receipt h3{ text-transform:none }
-.receipt-sub{ font-size:12px; color:var(--muted); margin:0 0 18px; }
-.receipt-lines{ display:flex; flex-direction:column; gap:9px; min-height:112px; margin-bottom:16px; }
-.rline{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; align-items:baseline;
-  animation:slideIn .34s var(--ease-out); }
-@keyframes slideIn{ from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
-.rline .rl{ color:var(--cream-dim); }
-.rline .rl b{ color:var(--muted); font-weight:500; font-size:11px; display:block; }
-.rline .rp{ color:var(--gold); font-weight:600; white-space:nowrap; }
-.rempty{ font-size:13px; color:var(--muted); font-style:italic; }
-.receipt-total{
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding-top:15px; border-top:1.5px dashed var(--line); margin-bottom:16px;
-}
-.receipt-total span{ font-size:13px; color:var(--cream-dim); }
-#totalPrice{ font-family:var(--f-display); font-size:34px; color:var(--flame); line-height:1; font-variant-numeric:tabular-nums; }
-.receipt .btn{ width:100%; }
-.receipt .btn[disabled]{ opacity:.42; pointer-events:none; filter:grayscale(.5); }
 
 /* ============================================================
    STORY (parallax)
@@ -696,17 +620,14 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
    RESPONSIVE
    ============================================================ */
 /* Grid/flex children default to min-width:auto and refuse to shrink below
-   their content — which lets the scrollable step row widen the whole page.
-   Opting them back to 0 keeps overflow-x:auto scrolling inside its own box. */
-.build-layout > *,.hero-grid > *,.story-grid > *,.visit-grid > *,
+   their content — which lets a long word or a scrolling row widen the whole
+   page. Opting them back to 0 keeps overflow inside its own box. */
+.hero-grid > *,.story-grid > *,.visit-grid > *,
 .foot-grid > *,.menu-grid > *,.side-grid > *,.nav-in > *{ min-width:0; }
-.steps{ max-width:100%; }
 @media (max-width:1000px){
   .hero-grid{ grid-template-columns:1fr; gap:14px; text-align:start; }
   .hero-art{ order:-1; max-width:400px; margin-inline:auto; }
   .hero-burger{ width:min(78%,330px) }
-  .build-layout{ grid-template-columns:1fr; }
-  .receipt{ position:static; }
   .story-grid,.visit-grid{ grid-template-columns:1fr; gap:30px; }
   .foot-grid{ grid-template-columns:1fr 1fr; gap:28px; }
 }
@@ -726,8 +647,6 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   #hero{ min-height:auto; padding-block:calc(var(--nav-h) + 44px) 72px; }
   .scroll-cue{ display:none }
   .hero-stats{ gap:22px; margin-top:32px }
-  .steps{ overflow-x:auto; flex-wrap:nowrap; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
-  .step-tab{ min-width:124px; flex:none }
   .foot-grid{ grid-template-columns:1fr; }
   .foot-bottom{ justify-content:center; text-align:center }
 }
@@ -1109,7 +1028,6 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
     <nav class="nav-links" id="navLinks" aria-label="Main">
       <a href="#menu"  data-i18n="nav_menu">Menu</a>
       <a href="#categories" data-i18n="nav_sides">Categories</a>
-      <a href="#build" data-i18n="nav_build">Build Yours</a>
       <a href="#story" data-i18n="nav_story">Our Story</a>
       <a href="#visit" data-i18n="nav_visit">Visit</a>
     </nav>
@@ -1139,7 +1057,6 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
       <p class="hero-tag" data-i18n="hero_tag">Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.</p>
       <div class="hero-actions">
         <a class="btn" href="#menu" data-i18n="hero_cta1">See the Menu</a>
-        <a class="btn btn--ghost" href="#build" data-i18n="hero_cta2">Build Your Own</a>
       </div>
       <div class="hero-stats">
         <div class="hstat"><b data-i18n="stat1v">100%</b><span data-i18n="stat1">Jordanian beef</span></div>
@@ -1180,35 +1097,6 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
   </div>
 </section>
 
-
-<!-- ========== BUILD YOUR OWN ========== -->
-<section id="build" class="sec">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <p class="eyebrow" data-i18n="eyebrow_build">Build Your Own</p>
-      <h2 class="title" data-i18n="build_title">FOUR STEPS<br>TO YOUR BURGER</h2>
-      <p class="lede" data-i18n="build_lede">Pick a bun, a patty, your toppings and a sauce. The price updates as you go.</p>
-    </div>
-
-    <div class="build-layout">
-      <div class="rv">
-        <div class="steps" role="tablist" aria-label="Burger builder steps" id="stepTabs"></div>
-        <div id="stepPanel"></div>
-      </div>
-
-      <aside class="receipt rv rv-d2" aria-live="polite">
-        <h3 data-i18n="receipt_title">Your Burger</h3>
-        <p class="receipt-sub" data-i18n="receipt_sub">Baytna Burger · Rainbow Street</p>
-        <div class="receipt-lines" id="receiptLines"></div>
-        <div class="receipt-total">
-          <span data-i18n="total">Total</span>
-          <strong id="totalPrice">0.00 JD</strong>
-        </div>
-        <a class="btn btn--red" id="orderBtn" href="#" data-i18n="send_wa">Send Order on WhatsApp</a>
-      </aside>
-    </div>
-  </div>
-</section>
 
 <!-- ========== STORY ========== -->
 <section id="story" class="sec">
@@ -1319,7 +1207,6 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
         <ul>
           <li><a href="#menu" data-i18n="nav_menu">Menu</a></li>
           <li><a href="#categories" data-i18n="nav_sides">Categories</a></li>
-          <li><a href="#build" data-i18n="nav_build">Build Yours</a></li>
         </ul>
       </div>
       <div class="foot">
@@ -1437,6 +1324,9 @@ var isText = function(x){ return typeof x === 'string'; };
 var HERO_IMAGE = '';
 var MEDIA = {};   /* id -> data URL, loaded from the database */
 
+/* The old build-your-own options. The site no longer shows a builder, but
+   these stay in the data model so the options already saved in the database
+   are carried through every save instead of being deleted. */
 var STEPS = [
   { key:'bun',      multi:false, en:"Bun",      ar:"الخبز",
     opts:[ {id:'brioche', p:0,    en:{n:"Sesame Brioche", d:"House standard"}, ar:{n:"بريوش بالسمسم", d:"الأساسي"}},
@@ -1476,21 +1366,17 @@ var HOURS = [
 var T = {
   en:{
     brand:'BAYTNA <b>BURGER</b>', loading:'FIRING UP THE GRILL',
-    nav_menu:'Menu', nav_sides:'Categories', nav_build:'Build Yours', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
+    nav_menu:'Menu', nav_sides:'Categories', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
     hero_badge:'Rainbow Street · Jabal Amman',
     hero_l1:'SMASHED', hero_l2:'OVER FIRE', hero_l3:'SINCE 2016',
     hero_tag:"Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.",
-    hero_cta1:'See the Menu', hero_cta2:'Build Your Own',
+    hero_cta1:'See the Menu',
     stat1:'Jordanian beef', stat2:'Average grill time', stat3:'1,200+ reviews', scroll:'SCROLL',
     stat1v:'100%', stat2v:'7 min', stat3v:'4.9★',
     eyebrow_menu:'The Signatures', menu_title:'SIX BURGERS.<br>NO FILLER.',
     menu_lede:'Every patty is smashed to order on a 260°C flat-top. Prices in Jordanian Dinar, taxes included.',
     eyebrow_cats:'Choose a section', cats_title:'WHAT ARE YOU<br>IN THE MOOD FOR?',
     cats_lede:'Pick a category and the menu below follows.', no_items:'Nothing in this section yet.',
-    eyebrow_build:'Build Your Own', build_title:'FOUR STEPS<br>TO YOUR BURGER',
-    build_lede:'Pick a bun, a patty, your toppings and a sauce. The price updates as you go.',
-    receipt_title:'Your Burger', receipt_sub:'Baytna Burger · Rainbow Street', total:'Total',
-    send_wa:'Send Order on WhatsApp', receipt_empty:'Nothing picked yet — start with a bun.',
     eyebrow_story:'Our Story', story_title:'A GRILL,<br>A GARAGE,<br>AND A CITY',
     story_p1:'Baytna started in 2016 in a converted garage off Rainbow Street, with one flat-top grill and a queue that spilled onto the pavement. Baytna means "our home" — the plan was never a chain, just a place that felt like one.',
     story_p2:'The beef comes from farms outside Madaba and is ground every morning. The olive oil is pressed in Ajloun. The za\'atar is a family blend from a neighbour who has been making it longer than we have been open.',
@@ -1507,28 +1393,24 @@ var T = {
     rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD',
     days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
     badges:{best:'Best Seller', chef:"Chef's Pick", spicy:'Bring Water', veg:'Vegetarian'},
-    spice:'Heat', add:'Add', open_now:'Open now', closed_now:'Closed',
+    spice:'Heat', open_now:'Open now', closed_now:'Closed',
     closes_in:'closes in', opens_at:'opens', mins:'m', hrs:'h', gap:'',
     ings:['Madaba beef','Ajloun olive oil','Jerash za\'atar','Irbid halloumi','Saj bread','House shatta'],
-    order_head:'New order from the website', order_total:'Total'
+    order_head:'New order from the website'
   },
   ar:{
     brand:'بيتنا <b>برجر</b>', loading:'نُشعل الشوّاية',
-    nav_menu:'المنيو', nav_sides:'الأقسام', nav_build:'اصنع برجرك', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
+    nav_menu:'المنيو', nav_sides:'الأقسام', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
     hero_badge:'شارع الرينبو · جبل عمّان',
     hero_l1:'سماش', hero_l2:'على النار', hero_l3:'منذ ٢٠١٦',
     hero_tag:'مشوي في عمّان، محبوب في كل مكان. لحم بلدي، خبز مضغوط على الصاج، وقشرة زعتر ستفكر فيها طوال الطريق إلى البيت.',
-    hero_cta1:'شوف المنيو', hero_cta2:'اصنع برجرك',
+    hero_cta1:'شوف المنيو',
     stat1:'لحم أردني', stat2:'متوسط وقت الشوي', stat3:'أكثر من ١٢٠٠ تقييم', scroll:'انزل',
     stat1v:'٪١٠٠', stat2v:'٧ دقائق', stat3v:'★٤٫٩',
     eyebrow_menu:'الأطباق المميّزة', menu_title:'ستة برجرات.<br>بلا حشو.',
     menu_lede:'كل قطعة لحم تُضغط عند الطلب على صاج بحرارة ٢٦٠ درجة. الأسعار بالدينار الأردني شاملة الضريبة.',
     eyebrow_cats:'اختر القسم', cats_title:'شو نفسك<br>تاكل اليوم؟',
     cats_lede:'اختر قسماً وسيتبعه المنيو في الأسفل.', no_items:'لا يوجد شيء في هذا القسم بعد.',
-    eyebrow_build:'اصنع برجرك', build_title:'أربع خطوات<br>إلى برجرك',
-    build_lede:'اختر الخبز واللحم والإضافات والصوص. السعر يتحدّث مع كل اختيار.',
-    receipt_title:'برجرك', receipt_sub:'بيتنا برجر · شارع الرينبو', total:'المجموع',
-    send_wa:'أرسل الطلب على واتساب', receipt_empty:'لم تختر شيئاً بعد — ابدأ بالخبز.',
     eyebrow_story:'قصتنا', story_title:'شوّاية،<br>وكراج،<br>ومدينة',
     story_p1:'بدأت بيتنا عام ٢٠١٦ في كراج مُحوَّل قرب شارع الرينبو، بشوّاية واحدة وطابور يمتد إلى الرصيف. «بيتنا» تعني بيتنا فعلاً — لم تكن الخطة سلسلة مطاعم، بل مكان يشبه البيت.',
     story_p2:'اللحم يأتي من مزارع خارج مادبا ويُفرم كل صباح. زيت الزيتون معصور في عجلون. والزعتر خلطة عائلية من جار يصنعها منذ زمن أطول من عمر مطعمنا.',
@@ -1545,10 +1427,10 @@ var T = {
     rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ',
     days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     badges:{best:'الأكثر مبيعاً', chef:'اختيار الشيف', spicy:'جهّز الماء', veg:'نباتي'},
-    spice:'الحرارة', add:'أضف', open_now:'مفتوح الآن', closed_now:'مغلق',
+    spice:'الحرارة', open_now:'مفتوح الآن', closed_now:'مغلق',
     closes_in:'يغلق بعد', opens_at:'يفتح', mins:'دقيقة', hrs:'ساعة', gap:' ',
     ings:['لحم مادبا','زيت زيتون عجلون','زعتر جرش','حلوم إربد','خبز الصاج','شطة البيت'],
-    order_head:'طلب جديد من الموقع', order_total:'المجموع'
+    order_head:'طلب جديد من الموقع'
   }
 };
 
@@ -1684,7 +1566,6 @@ function renderMenu(){
       +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
       +     '<span class="spice">' + esc(tx('spice')) + ' <span class="spice-dots">' + dots + '</span></span>'
-      +     '<button class="add-btn" type="button" data-add="' + esc(b.id) + '">' + esc(tx('add')) + '</button>'
       +   '</div>'
       + '</article>';
   }).join('');
@@ -1746,141 +1627,6 @@ function renderIngredients(){
     return '<span class="ing">' + x + '</span>';
   }).join('');
 }
-
-/* ============================================================
-   BUILD-YOUR-OWN
-   ============================================================ */
-var pick = { bun:null, patty:null, toppings:[], sauce:null };
-var activeStep = 0;
-
-function renderSteps(){
-  $('#stepTabs').innerHTML = STEPS.map(function(s,i){
-    var chosen = s.multi ? pick[s.key].length > 0 : !!pick[s.key];
-    return '<button class="step-tab' + (chosen ? ' done':'') + '" role="tab" type="button"'
-      +   ' aria-selected="' + (i===activeStep) + '" data-step="' + i + '">'
-      +   '<span class="n">0' + (i+1) + '</span><span class="l">' + s[lang] + '</span>'
-      + '</button>';
-  }).join('');
-}
-
-function renderOptions(){
-  var s = STEPS[activeStep];
-  $('#stepPanel').innerHTML = '<div class="opts" role="tabpanel">' + s.opts.map(function(o){
-    var on = s.multi ? pick[s.key].indexOf(o.id) > -1 : pick[s.key] === o.id;
-    var L = o[lang];
-    return '<button class="opt" type="button" aria-pressed="' + on + '" data-opt="' + o.id + '">'
-      +   '<span class="on">' + L.n + '</span>'
-      +   (L.d ? '<span class="od">' + L.d + '</span>' : '')
-      +   '<span class="op">' + (o.p > 0 ? '+' + Number(o.p).toFixed(2) + ' ' + esc(tx('cur')) : '—') + '</span>'
-      + '</button>';
-  }).join('') + '</div>';
-}
-
-function findOpt(key, id){
-  var s = STEPS.filter(function(x){ return x.key === key; })[0];
-  return s.opts.filter(function(o){ return o.id === id; })[0];
-}
-
-function calcTotal(){
-  var sum = 0;
-  ['bun','patty','sauce'].forEach(function(k){
-    if(pick[k]){ var o = findOpt(k, pick[k]); if(o) sum += o.p; }
-  });
-  pick.toppings.forEach(function(id){
-    var o = findOpt('toppings', id); if(o) sum += o.p;
-  });
-  return sum;
-}
-
-function renderReceipt(){
-  var t = T[lang], lines = [], total = calcTotal();
-  STEPS.forEach(function(s){
-    if(s.multi){
-      pick[s.key].forEach(function(id){
-        var o = findOpt(s.key, id);
-        if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
-      });
-    } else if(pick[s.key]){
-      var o = findOpt(s.key, pick[s.key]);
-      if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
-    }
-  });
-
-  $('#receiptLines').innerHTML = lines.length
-    ? lines.map(function(l){
-        return '<div class="rline"><span class="rl">' + l.label + '<b>' + l.sub + '</b></span>'
-          + '<span class="rp">' + (l.price > 0 ? l.price.toFixed(2) : '—') + '</span></div>';
-      }).join('')
-    : '<p class="rempty">' + esc(tx('receipt_empty')) + '</p>';
-
-  animateTotal(total);
-
-  var btn = $('#orderBtn');
-  var ready = pick.bun && pick.patty;
-  btn.toggleAttribute('disabled', !ready);
-  if(ready){
-    var msg = tx('order_head') + '\n\n'
-      + lines.map(function(l){ return '• ' + l.sub + ': ' + l.label; }).join('\n')
-      + '\n\n' + tx('order_total') + ': ' + money(total);
-    btn.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
-    btn.target = '_blank'; btn.rel = 'noopener noreferrer';
-  } else {
-    btn.removeAttribute('href');
-  }
-}
-
-/* count the price up rather than snapping it */
-var totalRAF = null, shownTotal = 0;
-function animateTotal(to){
-  var el = $('#totalPrice');
-  if(reduced){ shownTotal = to; el.textContent = money(to); return; }
-  var from = shownTotal, start = performance.now(), dur = 420;
-  if(totalRAF) cancelAnimationFrame(totalRAF);
-  (function tick(now){
-    var p = Math.min((now - start) / dur, 1);
-    var eased = 1 - Math.pow(1 - p, 3);
-    var v = from + (to - from) * eased;
-    el.textContent = money(v);
-    if(p < 1){ totalRAF = requestAnimationFrame(tick); }
-    else { shownTotal = to; el.textContent = money(to); }
-  })(start);
-}
-
-$('#stepTabs').addEventListener('click', function(e){
-  var b = e.target.closest('[data-step]'); if(!b) return;
-  activeStep = +b.dataset.step;
-  renderSteps(); renderOptions();
-});
-
-$('#stepPanel').addEventListener('click', function(e){
-  var b = e.target.closest('[data-opt]'); if(!b) return;
-  var s = STEPS[activeStep], id = b.dataset.opt;
-  if(s.multi){
-    var i = pick[s.key].indexOf(id);
-    if(i > -1) pick[s.key].splice(i,1); else pick[s.key].push(id);
-  } else {
-    pick[s.key] = (pick[s.key] === id) ? null : id;
-    /* single-choice steps advance on their own */
-    if(pick[s.key] && activeStep < STEPS.length - 1){
-      setTimeout(function(){ activeStep++; renderSteps(); renderOptions(); }, 240);
-    }
-  }
-  renderSteps(); renderOptions(); renderReceipt();
-});
-
-/* "Add" on a signature card seeds the builder */
-document.addEventListener('click', function(e){
-  var b = e.target.closest('[data-add]'); if(!b) return;
-  var burger = ITEMS.filter(function(x){ return x.id === b.dataset.add; })[0];
-  if(!burger) return;
-  pick.bun = 'brioche';
-  pick.patty = (burger.id === 'halloumi') ? 'halloumi' : (burger.id === 'jabal' || burger.id === 'petra' ? 'double' : 'single');
-  pick.toppings = burger.id === 'shatta' ? ['jalapeno'] : ['cheddar'];
-  pick.sauce = burger.id === 'shatta' ? 'shatta' : 'smash';
-  activeStep = 3;
-  renderSteps(); renderOptions(); renderReceipt();
-  $('#build').scrollIntoView({ behavior: reduced ? 'auto':'smooth', block:'start' });
-});
 
 /* Category chooser drives the menu below it. */
 document.addEventListener('click', function(e){
@@ -1988,7 +1734,7 @@ function setLang(next){
   renderBrand(); renderCategories(); renderMenu(); renderIngredients();
   renderHeroImage(); renderLinks();
   if(typeof renderOwnerButton === 'function') renderOwnerButton();
-  renderSteps(); renderOptions(); renderReceipt(); renderHours();
+  renderHours();
   buildWaLink();
   try{ localStorage.setItem('baytna-lang', next); }catch(e){}
 }
@@ -2162,7 +1908,7 @@ if(revealIO){
       });
     });
   }, { rootMargin:'-45% 0px -50% 0px' });
-  ['categories','menu','build','story','visit'].forEach(function(id){
+  ['categories','menu','story','visit'].forEach(function(id){
     var s = document.getElementById(id); if(s) linkIO.observe(s);
   });
 }
@@ -2240,9 +1986,6 @@ try{
 }catch(e){}
 
 setLang(lang);
-renderSteps();
-renderOptions();
-renderReceipt();
 
 /* never let a stalled font/asset trap the page behind the loader */
 var booted = false;
@@ -2352,20 +2095,17 @@ var DOC_SITE = 'content/site';
  * later. */
 var TEXT_GROUPS = [
   { title:{en:'Navigation',       ar:'القائمة العلوية'},
-    keys:['brand','nav_menu','nav_sides','nav_build','nav_story','nav_visit','nav_order'] },
+    keys:['brand','nav_menu','nav_sides','nav_story','nav_visit','nav_order'] },
   { title:{en:'Hero',             ar:'الواجهة'},
-    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag','hero_cta1','hero_cta2','scroll','loading'] },
+    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag','hero_cta1','scroll','loading'] },
   { title:{en:'Hero statistics',  ar:'أرقام الواجهة'},
     keys:['stat1v','stat1','stat2v','stat2','stat3v','stat3'] },
   { title:{en:'Categories',       ar:'قسم الأقسام'},
     keys:['eyebrow_cats','cats_title','cats_lede','no_items'] },
   { title:{en:'Menu',             ar:'قسم المنيو'},
-    keys:['eyebrow_menu','menu_title','menu_lede','spice','add','cur'] },
+    keys:['eyebrow_menu','menu_title','menu_lede','spice','cur'] },
   { title:{en:'Badges',           ar:'الشارات'},
     keys:['badge_best','badge_chef','badge_spicy','badge_veg'] },
-  { title:{en:'Build your own',   ar:'اصنع برجرك'},
-    keys:['eyebrow_build','build_title','build_lede','receipt_title','receipt_sub',
-          'receipt_empty','total','send_wa','order_head','order_total'] },
   { title:{en:'Story',            ar:'قسم القصة'},
     keys:['eyebrow_story','story_title','story_p1','story_p2','story_pull'] },
   { title:{en:'Story — suppliers',ar:'القصة — الموردون'},
@@ -2376,16 +2116,16 @@ var TEXT_GROUPS = [
     keys:['open_now','closed_now','closes_in','opens_at','mins','hrs'] },
   { title:{en:'Footer',           ar:'التذييل'},
     keys:['foot_blurb','foot_menu','foot_visit','foot_hours','foot_order',
-          'foot_order_note','wa_order','rights','made'] }
+          'foot_order_note','wa_order','order_head','rights','made'] }
 ];
 
 var TEXT_LABEL = {
   brand:'Brand wordmark (first word, then <b>second</b>)',
-  nav_menu:'Menu', nav_sides:'Categories', nav_build:'Build Yours',
+  nav_menu:'Menu', nav_sides:'Categories',
   nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order button',
   hero_badge:'Badge line', hero_l1:'Headline 1', hero_l2:'Headline 2 (flame)',
   hero_l3:'Headline 3', hero_tag:'Tagline',
-  hero_cta1:'Primary button', hero_cta2:'Secondary button',
+  hero_cta1:'Menu button',
   scroll:'Scroll hint', loading:'Loading screen',
   stat1v:'Stat 1 value', stat1:'Stat 1 label',
   stat2v:'Stat 2 value', stat2:'Stat 2 label',
@@ -2393,14 +2133,10 @@ var TEXT_LABEL = {
   eyebrow_cats:'Categories eyebrow', cats_title:'Categories title',
   cats_lede:'Categories intro', no_items:'Empty category message',
   eyebrow_menu:'Menu eyebrow', menu_title:'Menu title', menu_lede:'Menu intro',
-  spice:'Heat label', add:'Add button', cur:'Currency',
+  spice:'Heat label', cur:'Currency',
   badge_best:'Best seller', badge_chef:"Chef's pick",
   badge_spicy:'Spicy', badge_veg:'Vegetarian',
-  eyebrow_build:'Builder eyebrow', build_title:'Builder title', build_lede:'Builder intro',
-  receipt_title:'Receipt title', receipt_sub:'Receipt subtitle',
-  receipt_empty:'Empty receipt message', total:'Total label',
-  send_wa:'Send order button', order_head:'WhatsApp message heading',
-  order_total:'WhatsApp message total',
+  order_head:'WhatsApp message heading',
   eyebrow_story:'Story eyebrow', story_title:'Story title',
   story_p1:'Story paragraph 1', story_p2:'Story paragraph 2', story_pull:'Pull quote',
   s1n:'Supplier 1 place', s1l:'Supplier 1 note',
@@ -3200,48 +2936,6 @@ function tabMenu(){
   return out;
 }
 
-/* The build-your-own steps: their titles, every option, and every option's
-   price. These were literals in the file, which meant the one part of the
-   menu a customer assembles themselves — and pays for — could not be changed
-   without an edit to the page. */
-function tabBuild(){
-  var L = lang === 'ar' ? 'ar' : 'en';
-  var out = '<p class="ad-note" style="margin-bottom:14px">'
-    + (lang === 'ar'
-        ? 'خطوات «اصنع برجرك» وأسعار كل خيار. السعر يُضاف إلى المجموع الذي يراه الزبون.'
-        : 'The build-your-own steps and the price of each option. Prices add up to the total the customer sees.')
-    + '</p>';
-
-  draft.steps.forEach(function(st, si){
-    out += '<div class="ad-card">'
-      + '<div class="ad-row-top"><strong>' + esc(st[L] || st.key || '') + '</strong></div>'
-      + '<div class="ad-grid">'
-      + field(lang === 'ar' ? 'اسم الخطوة' : 'Step name', st[L] || '',
-          'steps.' + si + '.' + L, 'text', { rtl: L === 'ar' })
-      + '</div>';
-
-    (st.opts || []).forEach(function(o, oi){
-      var OL = o[L] || {};
-      var base = 'steps.' + si + '.opts.' + oi;
-      out += '<div class="ad-row">'
-        + '<div class="ad-row-top"><strong>' + esc(OL.n || o.id || '') + '</strong>'
-        + '<button class="ad-mini danger" data-optdel="' + si + ':' + oi + '"'
-        + (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
-        + '<div class="ad-grid">'
-        + field(lang === 'ar' ? 'الاسم' : 'Name', OL.n || '', base + '.' + L + '.n', 'text', { rtl: L === 'ar' })
-        + field(lang === 'ar' ? 'السعر الإضافي' : 'Extra price', o.p || 0, base + '.p', 'number')
-        + field(lang === 'ar' ? 'وصف قصير' : 'Short note', OL.d || '', base + '.' + L + '.d', 'text',
-            { full:1, rtl: L === 'ar' })
-        + '</div></div>';
-    });
-
-    out += '<button class="ad-mini" data-optadd="' + si + '"' + (canEdit ? '' : ' disabled') + '>+ '
-      + (lang === 'ar' ? 'خيار جديد' : 'Add option') + '</button>'
-      + '</div>';
-  });
-  return out;
-}
-
 /* The palette. A colour input always hands back #rrggbb, and the value is
    validated again before it reaches the style engine. Empty means "use the
    built-in colour", which is what Reset restores. */
@@ -3411,7 +3105,6 @@ function renderAdmin(){
     ['brand',   lang === 'ar' ? 'الاسم'    : 'Brand'],
     ['hero',    lang === 'ar' ? 'الواجهة'  : 'Hero'],
     ['text',    lang === 'ar' ? 'النصوص'   : 'Text'],
-    ['build',   lang === 'ar' ? 'اصنع برجرك' : 'Builder'],
     ['theme',   lang === 'ar' ? 'الألوان'   : 'Colours'],
     ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
     ['contact', lang === 'ar' ? 'التواصل'  : 'Contact']
@@ -3422,7 +3115,6 @@ function renderAdmin(){
            : adminTab === 'brand' ? tabBrand()
            : adminTab === 'hero'  ? tabHero()
            : adminTab === 'text'  ? tabText()
-           : adminTab === 'build' ? tabBuild()
            : adminTab === 'theme' ? tabTheme()
            : adminTab === 'hours' ? tabHours()
            : tabContact();
@@ -3995,26 +3687,6 @@ function adminClick(t){
     if(ct >= 0 && ct < draft.categories.length){
       draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
       markTouched('categories'); renumbered(); autoSave();
-    }
-    return;
-  }
-  if(t.dataset.optadd){
-    var si = Number(t.dataset.optadd);
-    var st = draft.steps[si];
-    if(st){
-      st.opts = st.opts || [];
-      st.opts.push({ id:'opt-' + Date.now().toString(36), p:0,
-        en:{ n:'New option', d:'' }, ar:{ n:'خيار جديد', d:'' } });
-      markTouched('steps'); renumbered(); autoSave();
-    }
-    return;
-  }
-  if(t.dataset.optdel){
-    var bits2 = t.dataset.optdel.split(':');
-    var st2 = draft.steps[Number(bits2[0])];
-    if(st2 && Array.isArray(st2.opts)){
-      st2.opts.splice(Number(bits2[1]), 1);
-      markTouched('steps'); renumbered(); autoSave();
     }
     return;
   }

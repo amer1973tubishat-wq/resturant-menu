@@ -19,7 +19,6 @@ and English:
 | الاسم / Brand | The restaurant name, in two parts, and the logo |
 | الواجهة / Hero | The main photograph |
 | النصوص / Text | Every string on the site — navigation, headlines, buttons, story, opening status, currency, footer — plus the ingredient chips |
-| اصنع برجرك / Builder | The build-your-own steps, every option and every price |
 | الألوان / Colours | The four colours the whole site is built from |
 | الأوقات / Hours | Opening and closing times, per day |
 | التواصل / Contact | WhatsApp, phone, Instagram, Facebook, TikTok, map link |
