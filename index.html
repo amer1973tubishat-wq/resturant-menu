@@ -324,6 +324,21 @@ html[lang="ar"] .hstat b{ font-size:27px; }
   animation:hover-float 6.5s ease-in-out 1.6s infinite;
 }
 .ready .hero-burger{ opacity:1; transform:none; }
+/* The hero burger's layers: they stack themselves on load, then come apart
+   as the visitor scrolls (transform, set by heroBurgerFrame) and lean with
+   the pointer. "translate" carries the stacking, "transform" the scroll, so
+   the two never fight over one property. */
+.hero-burger{ overflow:visible; }
+.hero-burger .bl{ transform-box:fill-box; transform-origin:50% 50%; will-change:transform; }
+.ready .hero-burger .bl{ animation:stackIn .75s var(--ease-spring) backwards; }
+.ready .hero-burger [data-l="bun-bot"]{ animation-delay:.35s }
+.ready .hero-burger [data-l="patty"]{ animation-delay:.45s }
+.ready .hero-burger [data-l="cheese"]{ animation-delay:.55s }
+.ready .hero-burger [data-l^="tomato"]{ animation-delay:.65s }
+.ready .hero-burger [data-l="lettuce"]{ animation-delay:.75s }
+.ready .hero-burger [data-l="bun-top"],.ready .hero-burger [data-l="seeds"]{ animation-delay:.9s }
+.ready .hero-burger [data-l="shadow"]{ animation:none }
+@keyframes stackIn{ from{ translate:0 -120px; opacity:0 } 60%{ opacity:1 } to{ translate:0 0; opacity:1 } }
 @keyframes hover-float{ 0%,100%{ translate:0 0 } 50%{ translate:0 -13px } }
 
 .flame-wrap{ position:absolute; inset-inline:0; bottom:6%; height:52%; z-index:1; pointer-events:none; filter:blur(1px); }
@@ -666,6 +681,7 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   .rv{ opacity:1 !important; transform:none !important; }
   .flip-line > span{ transform:none !important; opacity:1 !important; }
   .hero-tag,.hero-actions,.hero-stats,.hero-burger,.scroll-cue{ opacity:1 !important; transform:none !important; }
+  .hero-burger .bl{ animation:none !important; transform:none !important; }
   .pin{ opacity:1 !important }
 }
 
@@ -1068,7 +1084,34 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
     </div>
     <div class="hero-art" id="heroArt">
       <div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
-      <svg class="hero-burger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger"><use href="#burger"/></svg>
+      <svg class="hero-burger" id="heroBurger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger">
+        <!-- The same burger as the #burger symbol, split into its layers so
+             each can move on its own as the visitor scrolls. -->
+        <ellipse class="bl" data-l="shadow" cx="100" cy="158" rx="74" ry="8" fill="#000" opacity=".38"/>
+        <g class="bl" data-l="bun-bot"><path d="M182 148c0 9-8 14-20 14H38c-12 0-20-5-20-14z" fill="url(#gBunBot)"/></g>
+        <g class="bl" data-l="patty"><rect x="22" y="126" width="156" height="22" rx="11" fill="url(#gPatty)"/></g>
+        <g class="bl" data-l="cheese">
+          <path d="M26 118h148l-16 15H42z" fill="url(#gCheese)"/>
+          <path d="M40 132l-7 13h18zM96 132l-7 14h18zM152 132l-7 13h18z" fill="url(#gCheese)"/>
+        </g>
+        <g class="bl" data-l="tomato-l"><circle cx="58" cy="112" r="13" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="tomato-m"><circle cx="100" cy="114" r="14" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="tomato-r"><circle cx="142" cy="112" r="13" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="lettuce">
+          <path d="M14 96h172c0 8-5 12-12 12H26c-7 0-12-4-12-12z" fill="url(#gLettuce)"/>
+          <path d="M20 105c8 7 20 9 30 4 9 6 22 6 31 0 9 7 22 7 31 1 9 6 22 5 30-2 6 5 14 6 21 2v6H20z" fill="#5FA834"/>
+        </g>
+        <g class="bl" data-l="bun-top"><path d="M18 96c0-38 37-66 82-66s82 28 82 66z" fill="url(#gBunTop)"/></g>
+        <g class="bl" data-l="seeds" fill="#FBE9C4" opacity=".92">
+          <ellipse cx="66" cy="62" rx="5.5" ry="3.4" transform="rotate(-22 66 62)"/>
+          <ellipse cx="100" cy="52" rx="5.5" ry="3.4" transform="rotate(6 100 52)"/>
+          <ellipse cx="134" cy="63" rx="5.5" ry="3.4" transform="rotate(24 134 63)"/>
+          <ellipse cx="83" cy="78" rx="5" ry="3.1" transform="rotate(-10 83 78)"/>
+          <ellipse cx="117" cy="78" rx="5" ry="3.1" transform="rotate(14 117 78)"/>
+          <ellipse cx="48" cy="84" rx="4.6" ry="2.9" transform="rotate(-34 48 84)"/>
+          <ellipse cx="152" cy="85" rx="4.6" ry="2.9" transform="rotate(34 152 85)"/>
+        </g>
+      </svg>
       <div class="flame-wrap" aria-hidden="true"><span class="flame"></span><span class="flame"></span><span class="flame"></span><span class="flame"></span></div>
     </div>
   </div>
@@ -1965,6 +2008,72 @@ function onScroll(){
 window.addEventListener('scroll', function(){
   if(!ticking){ ticking = true; requestAnimationFrame(onScroll); }
 }, { passive:true });
+
+/* ============================================================
+   HERO BURGER — comes apart as the visitor scrolls
+   Each layer has where it ends up when the hero has scrolled away (dy, dx
+   in the burger's own units, r in degrees) and how far it leans with the
+   pointer (z). Scrolling back down the page puts it back together.
+   ============================================================ */
+var BURGER_LAYERS = {
+  'seeds':    { dy:-84,  dx:0,   r:-7,  z:1.6 },
+  'bun-top':  { dy:-66,  dx:0,   r:-6,  z:1.4 },
+  'lettuce':  { dy:-36,  dx:0,   r:4,   z:1.1 },
+  'tomato-l': { dy:-16,  dx:-34, r:-40, z:0.9 },
+  'tomato-m': { dy:-18,  dx:0,   r:30,  z:0.9 },
+  'tomato-r': { dy:-16,  dx:34,  r:45,  z:0.9 },
+  'cheese':   { dy:6,    dx:0,   r:-3,  z:0.7 },
+  'patty':    { dy:28,   dx:0,   r:3,   z:0.5 },
+  'bun-bot':  { dy:52,   dx:0,   r:-2,  z:0.3 },
+  'shadow':   { dy:60,   dx:0,   r:0,   z:0, fade:true }
+};
+var burgerEls = $$('#heroBurger .bl');
+var pointer = { x:0, y:0 }, burgerTick = false;
+
+function heroBurgerFrame(){
+  burgerTick = false;
+  if(reduced || !burgerEls.length) return;
+  var svg = document.getElementById('heroBurger');
+  if(!svg || svg.style.display === 'none') return;      /* an uploaded photo replaces it */
+  var hero = document.getElementById('hero');
+  /* Side by side with the text, the whole burger trails the scroll a little
+     so it stays on screen while it comes apart. On a phone it sits above the
+     headline: trailing would slide it over the words, so instead it opens
+     over a shorter scroll, while it is still in view, and spreads less. */
+  var wide = window.matchMedia('(min-width:1001px)').matches;
+  var span = wide ? Math.max(hero ? hero.offsetHeight * 0.75 : 600, 300) : 200;
+  var p = Math.min(Math.max(window.pageYOffset / span, 0), 1);
+  p = 1 - Math.pow(1 - p, 2);                             /* eases out as it opens */
+  var art = document.getElementById('heroArt');
+  if(art) art.style.transform = wide
+    ? 'translate3d(0,' + (Math.min(window.pageYOffset, span) * 0.3).toFixed(1) + 'px,0)' : '';
+  if(!wide) p *= 0.75;
+  burgerEls.forEach(function(el){
+    var L = BURGER_LAYERS[el.getAttribute('data-l')];
+    if(!L) return;
+    var x = L.dx * p + pointer.x * L.z * 7;
+    var y = L.dy * p + pointer.y * L.z * 4;
+    el.style.transform = 'translate(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px) rotate(' + (L.r * p).toFixed(2) + 'deg)';
+    if(L.fade) el.style.opacity = (0.38 * (1 - p * 0.7)).toFixed(3);
+  });
+}
+function queueBurger(){
+  if(!burgerTick){ burgerTick = true; requestAnimationFrame(heroBurgerFrame); }
+}
+if(!reduced && burgerEls.length){
+  window.addEventListener('scroll', queueBurger, { passive:true });
+  window.addEventListener('resize', queueBurger);
+  /* Leaning with the pointer is for mice only: on a phone the finger is
+     scrolling, and the scroll already moves every layer. */
+  if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    window.addEventListener('pointermove', function(e){
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+      if(window.pageYOffset < window.innerHeight * 1.2) queueBurger();
+    }, { passive:true });
+  }
+  queueBurger();
+}
 
 /* ============================================================
    DECOR — drifting sesame seeds behind the hero

@@ -163,6 +163,40 @@ const panelOpen = (page) => page.evaluate(() => {
     await page.close();
   }
 
+  /* 2a — the hero burger comes apart as the visitor scrolls, and back
+     together on the way up; with reduced motion it stays whole. */
+  {
+    contentJson = content();
+    const topOf = (page) => page.evaluate(() => {
+      const el = document.querySelector('#heroBurger [data-l="bun-top"]');
+      const m = /translate\(([-\d.]+)px, ?([-\d.]+)px\)/.exec(el.style.transform || '');
+      return m ? Number(m[2]) : 0;
+    });
+    const page = await ctx.newPage();
+    const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3500);
+    const rest = await topOf(page);
+    await page.evaluate(() => window.scrollTo(0, 400)); await page.waitForTimeout(500);
+    const open = await topOf(page);
+    await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(500);
+    const back = await topOf(page);
+    check('the hero burger is whole at the top of the page', Math.abs(rest) < 1, String(rest));
+    check('scrolling lifts the top bun away', open < -20, String(open));
+    check('scrolling back puts it together again', Math.abs(back) < 1, String(back));
+    check('no errors while it moves', errs.length === 0, errs.join(' | '));
+    await page.close();
+
+    const calm = await b.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+    const p2 = await calm.newPage();
+    await p2.goto(base, { waitUntil: 'domcontentloaded' });
+    await p2.waitForTimeout(2500);
+    await p2.evaluate(() => window.scrollTo(0, 400)); await p2.waitForTimeout(500);
+    check('with reduced motion the burger stays whole',
+      await p2.evaluate(() => getComputedStyle(document.querySelector('#heroBurger [data-l="bun-top"]')).transform === 'none'));
+    await calm.close();
+  }
+
   /* 2b — a map picture published as a media id, and the Google Maps link. */
   {
     const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
