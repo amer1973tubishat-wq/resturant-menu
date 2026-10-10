@@ -199,7 +199,8 @@ function buildAdmin() {
   swap("var PUBLISH = { trigger: '', publicUrl: '' };",
        "var PUBLISH = { trigger: " + JSON.stringify(CONFIG.triggerId)
        + ", publicUrl: " + JSON.stringify(CONFIG.publicUrl) + " };");
-  swap('<title>Baytna Burger</title>', '<title>Baytna Admin</title>');
+  /* The name the owner gave the admin page on claude.ai. */
+  swap('<title>Baytna Burger</title>', '<title>مشروع مطعم</title>');
   html = toArtifact(html);
   fs.mkdirSync(DIST, { recursive: true });
   const out = path.join(DIST, 'admin.html');
