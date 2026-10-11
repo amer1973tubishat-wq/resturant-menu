@@ -118,7 +118,7 @@ function buildPublic() {
 
 
   /* A last guard: nothing that only the dashboard uses may survive. */
-  const leaks = ['admin-root', 'claude.use', 'ADMIN_ROUTE', 'ensureDb', 'ownerBtn', 'adSave', 'pressSave']
+  const leaks = ['admin-root', 'claude.use', 'ADMIN_ROUTE', 'ensureDb', 'ownerBtn', 'adSave', 'pressSave', 'secure/lock', 'adLogin']
     .filter(t => html.includes(t));
   if (leaks.length) fail('dashboard code leaked into the public page: ' + leaks.join(', '));
 

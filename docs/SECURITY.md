@@ -85,6 +85,30 @@ characters, behind the same gate. `tests/save-flow/private-route.js` holds
 that: no link points at the route, `#admin` and other guesses open nothing,
 the real address works for an editor, and it yields nothing to anyone else.
 
+## The dashboard password
+
+On top of the account, the dashboard has a password of its own, set from its
+Security tab. It is a lock screen, not the access control: the page is shared
+with no one and the database takes writes only from the owner's account, with
+or without it. What it adds is protection for an open dashboard on a device
+someone else picks up.
+
+- The password is never stored. `secure/lock` holds a random 16-byte salt and
+  a PBKDF2-SHA-256 hash (310,000 iterations), computed in the browser with
+  WebCrypto. A database rule lets only the owner read that document.
+- The panel is not rendered at all until it is entered — no fields, no
+  content. The lock document is read before anything else and the check fails
+  closed: not yet read, unreadable, or damaged all mean locked.
+- A Lock button locks it on demand, saving unsaved work first; 30 idle
+  minutes lock it automatically; every page load asks again.
+- After five wrong tries each further try waits, doubling up to five minutes.
+- Changing or removing it needs the current password. A forgotten one can only
+  be cleared from the owner's account (deleting `secure/lock`), never from the
+  login screen.
+- The public page carries none of this; the build refuses it if it does.
+
+`tests/save-flow/login.js` holds all of it.
+
 ## Where authorisation actually happens
 
 There is deliberately no password in `index.html`. A password checked in

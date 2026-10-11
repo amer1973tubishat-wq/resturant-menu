@@ -9,8 +9,8 @@ Baytna Burger runs as two pages, both built from `index.html`:
 
 ## Editing the site
 
-Open the admin page. Everything on the site is editable there, in both Arabic
-and English:
+Open the admin page (and sign in, once you have set a password in the Security
+tab). Everything on the site is editable there, in both Arabic and English:
 
 | Tab | What it covers |
 |---|---|
@@ -23,6 +23,7 @@ and English:
 | الألوان / Colours | The four colours the whole site is built from |
 | الأوقات / Hours | Opening and closing times, per day |
 | التواصل / Contact | WhatsApp, phone, Instagram, Facebook, TikTok |
+| الأمان / Security | The dashboard password: set, change or remove it |
 
 Saving is automatic: a change is written about a second after you stop typing,
 immediately when you leave a field, and again if the page is closed. The Save

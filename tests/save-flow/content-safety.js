@@ -195,7 +195,7 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   }, ADMIN_HASH);
   check('the dashboard opens on a malformed document', page.errs.length === 0, page.errs.join(' | '));
   check('and shows its tabs',
-    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 9);   /* Builder removed, Location added */
+    (await page.evaluate(() => document.querySelectorAll('#admin-root .ad-tab').length)) === 10);   /* Builder removed; Location and Security added */
 
   await ctx.close();
   await b.close();

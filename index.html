@@ -952,6 +952,26 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
   .ad-hours{ grid-template-columns:1fr 1fr; gap:8px }
   .ad-hours > span:first-child{ grid-column:1/-1 }
 }
+/* login screen */
+.ad-lock{ min-height:calc(100vh - 140px); display:grid; place-items:center; padding:24px 16px; }
+.ad-lock-card{ width:min(100%,380px); display:flex; flex-direction:column; gap:14px;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600)); border:1px solid var(--line);
+  border-radius:20px; padding:28px 24px; }
+.ad-lock-card h2{ margin:0; font-size:22px; }
+.ad-lock-card p{ margin:0; font-size:13.5px; color:var(--muted); line-height:1.5; }
+.ad-lock-ico{ width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+  background:rgba(255,106,26,.12); color:var(--flame); }
+.ad-lock-card label, .ad-pw label{ display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted); }
+.ad-lock-card input, .ad-pw input{ font:inherit; font-size:15px; padding:12px 14px; border-radius:12px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream); }
+.ad-lock-card input:focus, .ad-pw input:focus{ outline:2px solid var(--flame); outline-offset:1px; }
+.ad-lock-msg{ min-height:1.2em; }
+.ad-lock-msg.bad{ color:#FF6B7E !important; }
+.ad-lock-msg.ok{ color:#5FD38D !important; }
+.ad-pw{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:14px; }
+.ad-lockbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  margin-bottom:16px; padding:12px 16px; border-radius:14px; border:1px solid rgba(242,179,61,.4);
+  background:rgba(242,179,61,.08); font-size:13.5px; }
 /* @admin-css:end */
 </style>
 </head>
@@ -2523,6 +2543,20 @@ function connectDb(){
 
     probeAccess();
 
+    db.doc(LOCK_DOC).onSnapshot(function(snap){
+      var d = snap.exists ? own(snap.data()) : null;
+      var was = lockActive();
+      lockDoc = d;
+      lockReadFailed = false;
+      /* A password set or removed elsewhere takes effect here too. */
+      if(lockActive() && !was && !justSetLock) unlocked = false;
+      justSetLock = false;
+      renderAdmin();
+    }, function(){
+      lockReadFailed = true;
+      if(lockDoc === undefined) renderAdmin();
+    });
+
     if(PUBLISH.trigger){
       db.doc('meta/publish').onSnapshot(function(snap){
         publishState = snap.exists ? own(snap.data()) : null;
@@ -3260,6 +3294,26 @@ function renderAdmin(){
     return;
   }
 
+  /* The password. Read before anything of the content is shown, and failing
+     closed: until the store has answered, or if it cannot, the panel stays
+     shut. */
+  if(DB && lockDoc === undefined){
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (lockReadFailed
+          ? (lang === 'ar' ? 'تعذّرت قراءة إعدادات الدخول. أعد تحميل الصفحة.' : 'Could not read the login settings. Reload the page.')
+          : (lang === 'ar' ? 'جارٍ التحقق…' : 'Checking…'))
+      + '</p></div>';
+    renderedFrom = null;
+    return;
+  }
+  if(isLocked()){
+    renderLogin(root);
+    renderedFrom = null;
+    return;
+  }
+
   if(!draft){
     /* Show that we are reading, rather than an editor pre-filled with
        defaults that a save would then write over the stored content. */
@@ -3294,7 +3348,8 @@ function renderAdmin(){
     ['location', lang === 'ar' ? 'الموقع'  : 'Location'],
     ['theme',   lang === 'ar' ? 'الألوان'   : 'Colours'],
     ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
-    ['contact', lang === 'ar' ? 'التواصل'  : 'Contact']
+    ['contact', lang === 'ar' ? 'التواصل'  : 'Contact'],
+    ['security', lang === 'ar' ? 'الأمان'  : 'Security']
   ];
 
   var body = adminTab === 'menu'  ? tabMenu()
@@ -3305,9 +3360,17 @@ function renderAdmin(){
            : adminTab === 'location' ? tabLocation()
            : adminTab === 'theme' ? tabTheme()
            : adminTab === 'hours' ? tabHours()
+           : adminTab === 'security' ? tabSecurity()
            : tabContact();
 
   var notice = '';
+  if(DB && canEdit && lockDoc === null && adminTab !== 'security'){
+    notice = '<div class="ad-lockbar"><span>'
+      + (lang === 'ar' ? '🔒 لوحة التحكم بلا كلمة سر بعد. اختر كلمة سر ليُطلب تسجيل الدخول كل مرة.'
+                       : '🔒 The dashboard has no password yet. Choose one and it will ask you to sign in each time.')
+      + '</span><button class="ad-mini" data-tab="security">'
+      + (lang === 'ar' ? 'اختيار كلمة سر' : 'Set a password') + '</button></div>';
+  }
   if(!DB){
     notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
       + (lang === 'ar' ? 'لا توجد قاعدة بيانات في هذا العرض.' : 'No database on this view.') + '</b><br>'
@@ -3358,6 +3421,7 @@ function renderAdmin(){
             + (lang === 'ar' ? 'نشر على الموقع' : 'Publish to website') + '</button>'
           : '')
     +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
+    +     (lockActive() ? '<button class="ad-mini" id="adLock">' + (lang === 'ar' ? 'قفل' : 'Lock') + '</button>' : '')
     +     '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
     +   '</div>'
     + '</div>'
@@ -3826,6 +3890,9 @@ document.addEventListener('click', function(e){
 });
 
 function adminClick(t){
+  /* Behind the login screen only leaving and switching language work. */
+  if(isLocked() && t.id !== 'adClose' && t.id !== 'adLang') return;
+
   /* Read the form while its paths still line up with the draft: the button
      about to be pressed may renumber them. */
   harvestForm();
@@ -3837,8 +3904,10 @@ function adminClick(t){
   }
   if(t.id === 'adPublish'){ requestPublish(); return; }
   if(t.id === 'adPerms'){ openPermissions(); return; }
+  if(t.id === 'adLock'){ lockNow(); return; }
+  if(t.id === 'adPwSet' || t.id === 'adPwChange' || t.id === 'adPwRemove'){ passwordAction(t.id); return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
-  if(t.dataset.tab){ adminTab = t.dataset.tab; renderAdmin(); return; }
+  if(t.dataset.tab){ adminTab = t.dataset.tab; lockMsg = ''; renderAdmin(); return; }
   if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
 
   /* Below here the controls only make sense for an editor. Save is handled
@@ -4251,6 +4320,245 @@ function openPermissions(){
     if(label) label.textContent = lang === 'ar'
       ? 'افتح قائمة الأذونات (Permissions) لهذه الصفحة واسمح بـ Claude Code Remote.'
       : 'Open this page’s Permissions menu and allow Claude Code Remote.';
+  });
+}
+
+/* ---------------------------------------------------------- login */
+
+/**
+ * A password in front of the dashboard.
+ *
+ * What it is: a lock screen. The page itself is shared with no one, and the
+ * database accepts writes only from the owner's claude.ai account — that is
+ * the access control, and it does not depend on anything here. The password
+ * guards the open dashboard against whoever else uses the owner's device.
+ *
+ * The password is never stored. A random salt and a PBKDF2-SHA-256 hash of it
+ * are kept in secure/lock, which the database rules let only the owner read.
+ * The dashboard asks for it on every load, offers a Lock button, locks itself
+ * after 30 idle minutes, and slows down guessing after five wrong tries.
+ * Forgotten, it can only be cleared from the owner's account (ask Claude to
+ * reset it), never from this screen.
+ */
+var LOCK_DOC = 'secure/lock';
+var LOCK_ITER = 310000;
+var LOCK_MIN = 6;
+var LOCK_IDLE = 30 * 60 * 1000;
+var lockDoc;                 /* undefined: not read yet; null: no password */
+var lockReadFailed = false;
+var unlocked = false;
+var justSetLock = false;
+var lockFails = 0, lockUntil = 0, lockBusy = false, lockMsg = '', lockMsgOk = false;
+var lastActive = Date.now();
+
+function lockActive(){
+  return !!(lockDoc && typeof lockDoc.salt === 'string' && lockDoc.salt
+    && typeof lockDoc.hash === 'string' && lockDoc.hash);
+}
+/* A document that is there but unreadable locks too: failing open would
+   turn a damaged record into no password at all. */
+function isLocked(){
+  if(!DB || lockDoc === undefined || lockDoc === null) return false;
+  return !unlocked;
+}
+
+function b64(buf){
+  var bytes = new Uint8Array(buf), out = '';
+  for(var i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+  return btoa(out);
+}
+function unb64(str){
+  var bin = atob(str), out = new Uint8Array(bin.length);
+  for(var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function deriveHash(password, saltBytes, iter){
+  if(!(window.crypto && crypto.subtle)) return Promise.reject(new Error('no-crypto'));
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+    .then(function(key){
+      return crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt:saltBytes, iterations:iter }, key, 256);
+    })
+    .then(b64);
+}
+function checkPassword(password){
+  if(!lockActive()) return Promise.resolve(false);
+  var iter = Number(lockDoc.iter);
+  if(!isFinite(iter) || iter < 100000 || iter > 5000000) return Promise.resolve(false);
+  var salt;
+  try { salt = unb64(lockDoc.salt); } catch(e){ return Promise.resolve(false); }
+  return deriveHash(password, salt, iter).then(function(h){
+    var a = String(h), b = String(lockDoc.hash), diff = a.length ^ b.length;
+    for(var i = 0; i < Math.min(a.length, b.length); i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+  });
+}
+function makeLock(password){
+  var salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  return deriveHash(password, salt, LOCK_ITER).then(function(h){
+    return { alg:'PBKDF2-SHA256', iter:LOCK_ITER, salt:b64(salt), hash:h, setAt:Date.now() };
+  });
+}
+
+function lockText(key){
+  var ar = lang === 'ar';
+  return ({
+    title:   ar ? 'تسجيل الدخول' : 'Sign in',
+    lede:    ar ? 'أدخل كلمة السر لفتح لوحة التحكم.' : 'Enter the password to open the dashboard.',
+    label:   ar ? 'كلمة السر' : 'Password',
+    go:      ar ? 'دخول' : 'Sign in',
+    busy:    ar ? 'جارٍ التحقق…' : 'Checking…',
+    wrong:   ar ? 'كلمة السر غير صحيحة.' : 'That password is not right.',
+    wait:    ar ? 'محاولات كثيرة. انتظر ثم حاول مجدداً.' : 'Too many tries. Wait a moment, then try again.',
+    broken:  ar ? 'سجل كلمة السر تالف. اطلب من Claude إعادة تعيينها.' : 'The password record is damaged. Ask Claude to reset it.',
+    nocrypto:ar ? 'هذا المتصفح لا يدعم التحقق الآمن من كلمة السر.' : 'This browser cannot check the password securely.',
+    forgot:  ar ? 'نسيت كلمة السر؟ اطلب من Claude إعادة تعيين كلمة سر لوحة التحكم — لا يستطيع ذلك إلا حسابك.'
+                : 'Forgot it? Ask Claude to reset the dashboard password — only your account can.'
+  })[key];
+}
+
+function renderLogin(root){
+  var waiting = Date.now() < lockUntil;
+  var msg = lockMsg || (lockDoc && !lockActive() ? lockText('broken') : '');
+  root.innerHTML = '<div class="ad-bar"><h1>'
+    + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
+    + '<div style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">'
+    +   '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
+    +   '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>'
+    + '</div></div>'
+    + '<div class="ad-lock"><form class="ad-lock-card" id="adLogin" autocomplete="on">'
+    +   '<div class="ad-lock-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg></div>'
+    +   '<h2>' + esc(lockText('title')) + '</h2>'
+    +   '<p>' + esc(lockText('lede')) + '</p>'
+    +   '<label>' + esc(lockText('label'))
+    +     '<input type="password" id="adPw" autocomplete="current-password" maxlength="200" required'
+    +     (waiting || lockBusy ? ' disabled' : '') + '></label>'
+    +   '<p class="ad-lock-msg' + (msg ? ' bad' : '') + '" role="alert">' + esc(msg) + '</p>'
+    +   '<button type="submit" class="btn ad-savebtn" id="adLoginBtn"' + (waiting || lockBusy ? ' disabled' : '') + '>'
+    +     esc(lockBusy ? lockText('busy') : lockText('go')) + '</button>'
+    +   '<p style="font-size:12px">' + esc(lockText('forgot')) + '</p>'
+    + '</form></div>';
+  var inp = document.getElementById('adPw');
+  if(inp && !inp.disabled){ try { inp.focus(); } catch(e){} }
+  if(waiting){
+    setTimeout(function(){ if(Date.now() >= lockUntil){ lockMsg = ''; renderAdmin(); } }, lockUntil - Date.now() + 50);
+  }
+}
+
+function tryLogin(){
+  if(lockBusy || Date.now() < lockUntil) return;
+  var inp = document.getElementById('adPw');
+  var pw = inp ? inp.value : '';
+  if(!pw) return;
+  lockBusy = true; lockMsg = ''; renderAdmin();
+  checkPassword(pw).then(function(ok){
+    lockBusy = false;
+    if(ok){
+      unlocked = true; lockFails = 0; lockMsg = ''; lastActive = Date.now();
+    } else {
+      lockFails++;
+      lockMsg = lockActive() ? lockText('wrong') : lockText('broken');
+      if(lockFails >= 5){
+        lockUntil = Date.now() + Math.min(30000 * Math.pow(2, lockFails - 5), 5 * 60 * 1000);
+        lockMsg = lockText('wait');
+      }
+    }
+    renderAdmin();
+  }, function(e){
+    lockBusy = false;
+    lockMsg = (e && e.message === 'no-crypto') ? lockText('nocrypto') : lockText('wrong');
+    renderAdmin();
+  });
+}
+
+/* Lock, keeping the work: anything not yet saved is written first. */
+function lockNow(){
+  if(!lockActive()) return;
+  try { if(hasChanges()) flushSave(); } catch(e){}
+  unlocked = false; lockMsg = '';
+  renderAdmin();
+}
+
+document.addEventListener('submit', function(e){
+  if(!e.target || e.target.id !== 'adLogin') return;
+  e.preventDefault();
+  tryLogin();
+});
+['pointerdown', 'keydown', 'input', 'wheel', 'touchstart'].forEach(function(ev){
+  document.addEventListener(ev, function(){ lastActive = Date.now(); }, { passive:true, capture:true });
+});
+setInterval(function(){
+  if(lockActive() && unlocked && Date.now() - lastActive > LOCK_IDLE) lockNow();
+}, 20000);
+
+/* The Security tab: set, change or remove the password. */
+function tabSecurity(){
+  var ar = lang === 'ar';
+  var has = lockActive();
+  var pw = function(id, label, ac){
+    return '<label>' + esc(label) + '<input type="password" id="' + id + '" autocomplete="' + ac + '" maxlength="200"'
+      + (canEdit ? '' : ' disabled') + '></label>';
+  };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (ar ? 'كلمة سر لوحة التحكم' : 'Dashboard password') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (has
+        ? (ar ? 'لوحة التحكم محمية بكلمة سر. تُطلب عند كل فتح، وتُقفل تلقائياً بعد ٣٠ دقيقة بلا استخدام.'
+              : 'The dashboard is protected by a password. It is asked for on every visit, and the dashboard locks itself after 30 idle minutes.')
+        : (ar ? 'لا توجد كلمة سر بعد. اختر واحدة (' + LOCK_MIN + ' أحرف على الأقل) ليُطلب تسجيل الدخول عند كل فتح.'
+              : 'No password yet. Choose one (at least ' + LOCK_MIN + ' characters) and the dashboard will ask for it on every visit.'))
+    + '<br>' + (ar ? 'القفل الأساسي يبقى حسابك على claude.ai: لا أحد غيرك يستطيع فتح هذه الصفحة أو الحفظ فيها.'
+                   : 'The main lock is still your claude.ai account: no one else can open this page or save to it.')
+    + '</p>'
+    + '<div class="ad-pw">'
+    + (has ? pw('adPwCur', ar ? 'كلمة السر الحالية' : 'Current password', 'current-password') : '')
+    + pw('adPwNew', ar ? 'كلمة السر الجديدة' : 'New password', 'new-password')
+    + pw('adPwNew2', ar ? 'أعد كتابتها' : 'Repeat it', 'new-password')
+    + '</div>'
+    + '<p class="ad-lock-msg' + (lockMsg ? (lockMsgOk ? ' ok' : ' bad') : '') + '" id="adPwMsg" role="alert" style="margin:0 0 12px;font-size:13px">' + esc(lockMsg) + '</p>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    + (has
+        ? '<button class="btn ad-savebtn" id="adPwChange">' + (ar ? 'تغيير كلمة السر' : 'Change password') + '</button>'
+          + '<button class="ad-mini danger" id="adPwRemove">' + (ar ? 'إزالة كلمة السر' : 'Remove password') + '</button>'
+        : '<button class="btn ad-savebtn" id="adPwSet">' + (ar ? 'حفظ كلمة السر' : 'Save password') + '</button>')
+    + '</div>'
+    + '<p class="ad-note" style="margin-top:14px">' + esc(lockText('forgot')) + '</p>'
+    + '</div>';
+}
+
+function passwordAction(which){
+  if(!DB || !canEdit || lockBusy) return;
+  var ar = lang === 'ar';
+  var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
+  var cur = val('adPwCur'), next = val('adPwNew'), again = val('adPwNew2');
+  var say = function(text, ok){ lockMsg = text; lockMsgOk = !!ok; renderAdmin(); };
+
+  if(which !== 'adPwRemove'){
+    if(next.length < LOCK_MIN) return say(ar ? 'كلمة السر قصيرة — ' + LOCK_MIN + ' أحرف على الأقل.' : 'Too short — at least ' + LOCK_MIN + ' characters.');
+    if(next !== again) return say(ar ? 'الكلمتان غير متطابقتين.' : 'The two entries do not match.');
+  }
+  lockBusy = true;
+  var verified = which === 'adPwSet' ? Promise.resolve(!lockActive()) : checkPassword(cur);
+  verified.then(function(ok){
+    if(!ok) throw { mine: true, text: ar ? 'كلمة السر الحالية غير صحيحة.' : 'The current password is not right.' };
+    if(which === 'adPwRemove') return DB.doc(LOCK_DOC).delete().then(function(){ return 'removed'; });
+    return makeLock(next).then(function(doc){
+      justSetLock = true; unlocked = true;
+      return DB.doc(LOCK_DOC).set(doc).then(function(){ return 'set'; });
+    });
+  }).then(function(done){
+    lockBusy = false;
+    unlocked = true; lastActive = Date.now();
+    if(done === 'removed'){ lockDoc = null; }
+    say(done === 'removed'
+      ? (ar ? 'أُزيلت كلمة السر.' : 'Password removed.')
+      : (ar ? 'حُفظت كلمة السر. ستُطلب عند فتح لوحة التحكم المرة القادمة.' : 'Password saved. It will be asked for the next time the dashboard opens.'), true);
+  }, function(e){
+    lockBusy = false; justSetLock = false;
+    try { if(!(e && e.mine)) console.error('[login] could not change the password:', e); } catch(_){}
+    say(e && e.mine ? e.text
+      : (e && e.message === 'no-crypto' ? lockText('nocrypto')
+      : (ar ? 'تعذّر الحفظ: ' : 'Could not save: ') + ((e && (e.message || e.code)) || 'error')));
   });
 }
 
