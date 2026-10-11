@@ -84,7 +84,7 @@ async function btnState(page, sel){
     // clicking with nothing pending answers instead of sitting silent
     await page.click('#adSaveTop'); await page.waitForTimeout(900);
     const msg = await page.evaluate(()=> (document.querySelector('.ad-save p')||{}).textContent );
-    check(`${label}: idle click gives feedback`, /Nothing to save/i.test(msg||''), msg);
+    check(`${label}: idle click says it is saved`, /Saved — all your edits are in the database|محفوظة في قاعدة البيانات/.test(msg||''), msg);
 
     await page.screenshot({ path: `${__dirname}/vis-${label}.png` });
     await ctx.close();

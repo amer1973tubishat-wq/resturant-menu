@@ -931,6 +931,7 @@ html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
 
 .ad-pub{ font-size:12px; color:var(--muted); max-width:240px; line-height:1.3 }
 .ad-pub.bad{ color:#FF6B7E }
+.ad-pub.due{ color:var(--gold); font-weight:700 }
 .ad-pubbtn{ background:var(--gold); color:#1A1203; box-shadow:0 6px 18px -8px rgba(242,179,61,.7) }
 .ad-bar a.ad-mini{ text-decoration:none; display:inline-flex; align-items:center }
 
@@ -2521,8 +2522,13 @@ function connectDb(){
 
     [DOC_MENU, DOC_SITE].forEach(function(path){
       db.doc(path).onSnapshot(function(snap){
-        if(snap.exists) applyContent(snap.data());
+        if(snap.exists){
+          var at = Number((snap.data() || {}).updatedAt);
+          if(isFinite(at) && at > contentChangedAt) contentChangedAt = at;
+          applyContent(snap.data());
+        }
         onStoreChange();
+        renderPublishStatus();
       }, function(e){
         lastError = (e && e.code === 'revoked')
           ? 'Access to the database was withdrawn. Reload the page.'
@@ -3451,8 +3457,7 @@ function renderAdmin(){
               : hasChanges()
                 ? '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
                 : (Date.now() - nothingAt < 5000)
-                  ? '<p class="ad-quiet">' + (lang === 'ar'
-                      ? 'لا توجد تغييرات لحفظها' : 'Nothing to save') + '</p>'
+                  ? '<p class="ad-quiet">' + esc(savedAlreadyText()) + '</p>'
                   : '<p class="ad-quiet">' + (lang === 'ar'
                       ? 'كل التعديلات محفوظة — الحفظ تلقائي'
                       : 'All changes saved — saving is automatic') + '</p>')
@@ -3463,7 +3468,9 @@ function renderAdmin(){
     +   '<button class="btn ad-savebtn" id="adSave" style="padding:10px 24px;font-size:13.5px"'
     +     (saving ? ' disabled' : '') + '>'
     +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
-                  : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish'))
+                  : PUBLISH.trigger
+                    ? (lang === 'ar' ? 'حفظ ونشر على الموقع' : 'Save & publish to website')
+                    : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish'))
     +     (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
     + '</div>'
     + (lastSaved && !hasChanges() && !lastError
@@ -3757,6 +3764,17 @@ function hasChanges(){
   return dirty || Object.keys(pendingMedia).length > 0 || changedFields().length > 0;
 }
 
+/* Said when Save is pressed and the form already matches the database. This
+   used to read "Nothing to save", which, after the automatic save had just
+   written everything, read like a failure to the owner pressing the button. */
+function savedAlreadyText(){
+  var unpublished = PUBLISH.trigger && hasUnpublished();
+  if(lang === 'ar') return '✓ محفوظ — كل تعديلاتك محفوظة في قاعدة البيانات'
+    + (unpublished ? '. اضغط «نشر على الموقع» ليراها الزبائن.' : '');
+  return '✓ Saved — all your edits are in the database'
+    + (unpublished ? '. Press “Publish to website” for customers to see them.' : '');
+}
+
 function markDirty(){
   var bar = document.querySelector('#admin-root .ad-save');
   if(!bar) return;
@@ -3785,7 +3803,7 @@ function markDirty(){
       msg.textContent = lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes';
     } else if(Date.now() - nothingAt < 5000){
       msg.className = 'ad-quiet';
-      msg.textContent = lang === 'ar' ? 'لا توجد تغييرات لحفظها' : 'Nothing to save';
+      msg.textContent = savedAlreadyText();
     } else {
       msg.className = 'ad-quiet';
       msg.textContent = lang === 'ar'
@@ -3896,6 +3914,15 @@ function adminClick(t){
   if(t.id === 'adPwSet' || t.id === 'adPwChange' || t.id === 'adPwRemove'){ passwordAction(t.id); return; }
   if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
   if(t.dataset.tab){ adminTab = t.dataset.tab; lockMsg = ''; renderAdmin(); return; }
+  /* On the admin page the bottom button does what it says: it saves, then
+     puts the saved content on the customer website. Before the two pages were
+     separated, saving was publishing; this keeps that one press meaning both. */
+  if(t.id === 'adSave' && PUBLISH.trigger){
+    /* A publish already under way, or no way to publish here: the press
+       still saves — it never does nothing. */
+    if(publishBusy || publishRunning() || !DB || !canEdit) pressSave(); else requestPublish();
+    return;
+  }
   if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
 
   /* Below here the controls only make sense for an editor. Save is handled
@@ -4116,6 +4143,14 @@ window.addEventListener('beforeunload', function(e){
  * only the account that owns the task can fire it.
  */
 var publishState = null;      /* the meta/publish document, live */
+var contentChangedAt = 0;     /* newest updatedAt of the saved content */
+/* Saved since the website was last published? */
+function hasUnpublished(){
+  var st = publishState || {};
+  if(!contentChangedAt) return false;
+  if(st.status !== 'live' || typeof st.at !== 'number') return true;
+  return contentChangedAt > st.at;
+}
 var publishBusy = false;      /* the button press itself is in flight */
 var publishAfterSave = false; /* pressed with unsaved work: save, then publish */
 var PUBLISH_STALE = 10 * 60 * 1000;
@@ -4140,6 +4175,8 @@ function publishLabel(){
   if(st.status === 'building' && publishRunning()) return ar ? 'جارٍ تحديث الموقع…' : 'Updating the website…';
   if(st.status === 'requested' || st.status === 'building')
     return ar ? 'النشر يتأخر أكثر من المعتاد — جرّب مرة أخرى' : 'Publishing is taking too long — try again';
+  if(st.status === 'live' && hasUnpublished())
+    return ar ? 'تعديلات محفوظة لم تُنشر بعد على موقع الزبائن' : 'Saved edits not on the website yet';
   if(st.status === 'live') return (ar ? 'الموقع محدّث · ' : 'Website up to date · ') + when;
   if(st.status === 'failed') return (ar ? 'تعذّر النشر: ' : 'Could not publish: ') + String(st.error || '').slice(0, 140);
   return ar ? 'لم يُنشر بعد' : 'Not published yet';
@@ -4194,7 +4231,8 @@ function renderPublishStatus(){
   var label = document.getElementById('adPubStatus');
   if(label){
     label.textContent = publishLabel();
-    label.className = 'ad-pub' + ((publishState || {}).status === 'failed' ? ' bad' : '');
+    label.className = 'ad-pub' + ((publishState || {}).status === 'failed' ? ' bad'
+      : (hasUnpublished() && !publishRunning() ? ' due' : ''));
   }
   var btn = document.getElementById('adPublish');
   if(btn) btn.disabled = publishBusy || publishAfterSave || publishRunning();

@@ -171,7 +171,7 @@ const itemName = () => (readStore()['content/menu'] || {}).items?.[0]?.en?.n;
     await saveAndWait(page);
     const note = readStore()['meta/last-save'] || {};
     check('an untouched form reports nothing to save', note.outcome === 'nothing', String(note.outcome));
-    check('and says so on screen', /Nothing to save|لا توجد تغييرات/.test(
+    check('and says so on screen', /already|in the database|محفوظة في قاعدة البيانات/.test(
       await page.$eval('#admin-root .ad-save p', el => el.textContent)));
     check('without writing content', itemName() === 'Item A', String(itemName()));
     await ctx.close();

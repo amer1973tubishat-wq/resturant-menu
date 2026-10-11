@@ -449,6 +449,53 @@ const panelOpen = (page) => page.evaluate(() => {
     await page.close();
   }
 
+  /* 8b — on the admin page the bottom "Save & publish" button does both. */
+  {
+    resetStore(seededAdmin());
+    const page = await openAdmin(ctx);
+    check('the bottom button says it publishes',
+      /publish to website|نشر على الموقع/i.test(await page.$eval('#adSave', el => el.textContent)));
+    await page.fill('#admin-root [data-path="items.0.en.n"]', 'Saved And Published');
+    await page.click('#adSave');
+    await page.waitForTimeout(4000);
+    check('it saves the edit', readStore()['content/menu'].items[0].en.n === 'Saved And Published');
+    check('and starts the publish', (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 1);
+
+    /* Pressed again while that publish runs: an edit is still saved, and no
+       second publish is started. */
+    await page.fill('#admin-root [data-path="items.0.en.n"]', 'Edited While Publishing');
+    await page.click('#adSave');
+    await page.waitForTimeout(3000);
+    check('during a publish it still saves', readStore()['content/menu'].items[0].en.n === 'Edited While Publishing');
+    check('without starting another publish', (await page.evaluate(() => window.__MOCK.mcpCalls.length)) === 1);
+
+    /* The task finishes, but the content changed after it started: the page
+       says the newest edits are not on the website yet. */
+    const store = readStore();
+    store['meta/publish'] = { status: 'live', at: store['content/menu'].updatedAt - 1000 };
+    fs.writeFileSync(STORE, JSON.stringify(store, null, 1));
+    await page.evaluate(() => window.__MOCK.forceNotify());
+    await page.waitForTimeout(900);
+    check('saved edits newer than the website are flagged',
+      /not on the website yet|لم تُنشر بعد/.test(await page.$eval('#adPubStatus', el => el.textContent)),
+      await page.$eval('#adPubStatus', el => el.textContent));
+    store['meta/publish'] = { status: 'live', at: Date.now() + 1000 };
+    fs.writeFileSync(STORE, JSON.stringify(store, null, 1));
+    await page.evaluate(() => window.__MOCK.forceNotify());
+    await page.waitForTimeout(900);
+    check('and clear once published',
+      /up to date|محدّث/.test(await page.$eval('#adPubStatus', el => el.textContent)),
+      await page.$eval('#adPubStatus', el => el.textContent));
+    await page.click('#adSaveTop');
+    await page.waitForTimeout(1200);
+    check('pressing Save with everything saved says it is saved',
+      /Saved — all your edits are in the database|محفوظة في قاعدة البيانات/.test(
+        await page.$eval('#admin-root .ad-save p', el => el.textContent)),
+      await page.$eval('#admin-root .ad-save p', el => el.textContent));
+    check('no errors', page.errs.length === 0, page.errs.join(' | '));
+    await page.close();
+  }
+
   /* 9 — the admin page gives nothing to an account without edit access. */
   {
     resetStore(seededAdmin());
