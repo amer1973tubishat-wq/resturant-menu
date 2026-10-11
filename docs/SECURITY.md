@@ -37,6 +37,11 @@ beside it. The page fetches it and reads it as JSON; nothing in it is ever run.
 It is applied through the same rendering paths as before, so the protections
 under "Stored content is untrusted" below cover it too.
 
+Nothing on the customer site leads to the dashboard — no link and no button,
+for customers or for the owner. And the admin page shows the dashboard only:
+it has no Close button, and the customer site that the same source file
+contains is hidden there entirely. The two are separate pages.
+
 The admin page declares the `mcp` capability, and the platform does not allow
 a page with that capability to be shared publicly, so it cannot be opened by
 "anyone with the link" by mistake.

@@ -283,16 +283,20 @@ const panelOpen = (page) => page.evaluate(() => {
     check('it says nothing has been published yet',
       /Not published yet|لم يُنشر/.test(await page.$eval('#adPubStatus', el => el.textContent)));
 
-    /* Close previews the site; the corner button brings the dashboard back. */
-    await page.click('#adClose');
-    await page.waitForTimeout(600);
-    check('Close shows the site preview', (await panelOpen(page)) === false);
-    check('with a way back', await page.evaluate(() => {
-      const b = document.getElementById('ownerBtn'); return !!b && !b.hidden;
-    }));
-    await page.click('#ownerBtn');
-    await page.waitForTimeout(800);
-    check('the corner button reopens the dashboard', (await panelOpen(page)) === true);
+    /* The admin page is the dashboard only: no Close, no website behind it,
+       and no dashboard button anywhere. */
+    const shell = await page.evaluate(() => {
+      const visible = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0;
+      return {
+        close: !!document.getElementById('adClose'),
+        site: ['hero', 'menu', 'visit'].some(id => visible(document.getElementById(id))),
+        nav: visible(document.querySelector('nav, .nav')),
+        button: !!document.getElementById('ownerBtn'),
+      };
+    });
+    check('the admin page has no Close button', shell.close === false);
+    check('and shows none of the customer site', shell.site === false && shell.nav === false, JSON.stringify(shell));
+    check('and has no dashboard button', shell.button === false);
     check('no errors', page.errs.length === 0, page.errs.join(' | '));
     await page.close();
   }
