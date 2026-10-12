@@ -57,6 +57,7 @@ const hostile = () => ({
     brand: { en: { a: XSS[0], b: XSS[2] }, ar: { a: XSS[3], b: XSS[4] }, logo: 'javascript:window.__pwned=1' },
     heroImage: XSS[8],
     mapImage: 'javascript:window.__pwned=1',
+    ings: { en: ['<img src=x onerror="window.__pwned=1">'], ar: ['<img src=x onerror="window.__pwned=1">'] },
     contact: { whatsapp: '962700000000"><script>window.__pwned=1</script>', phone: XSS[0] },
     updatedAt: 1
   },
@@ -117,6 +118,11 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
     JSON.stringify(await dangerousAttributes(page)));
   check('public page: no frame or object was created',
     (await page.evaluate(() => document.querySelectorAll('iframe,object,embed').length)) === 0);
+  check('public page: an ingredient chip shows markup as text',
+    (await page.evaluate(() => {
+      const chip = document.querySelector('#ingList .ing');
+      return !!chip && chip.textContent.includes('<img') && !chip.querySelector('img');
+    })));
   check('public page: a script URL as the map picture shows no picture',
     (await page.evaluate(() => { const i = document.querySelector('.map-photo'); return !i || i.hidden; })));
 

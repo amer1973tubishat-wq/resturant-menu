@@ -1716,7 +1716,7 @@ function renderMapImage(){
 
 function renderIngredients(){
   $('#ingList').innerHTML = T[lang].ings.map(function(x){
-    return '<span class="ing">' + x + '</span>';
+    return '<span class="ing">' + esc(x) + '</span>';
   }).join('');
 }
 
