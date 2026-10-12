@@ -296,6 +296,89 @@ const setField = async (page, selector, value) => {
     await page.close();
   }
 
+  /* 12 — uploading from a phone. Emulated as an iPhone: touch, a phone
+     screen, and a browser that cannot encode WebP (Safari hands back a PNG,
+     which made nearly every iPhone photo "too large"). The photo is a large,
+     detailed camera-sized JPEG, and arrives with no type set, as some phone
+     galleries send it. */
+  {
+    const tmp = await b.newPage();
+    const photo = await tmp.evaluate(() => {
+      const c = document.createElement('canvas'); c.width = 3024; c.height = 4032;
+      const g = c.getContext('2d');
+      for (let i = 0; i < 6000; i++) {
+        g.fillStyle = 'hsl(' + (i * 37 % 360) + ',70%,' + (30 + i % 40) + '%)';
+        g.fillRect(Math.random() * 3024, Math.random() * 4032, 40 + Math.random() * 160, 40 + Math.random() * 160);
+      }
+      return c.toDataURL('image/jpeg', 0.92);
+    });
+    await tmp.close();
+    const buf = Buffer.from(photo.split(',')[1], 'base64');
+    check('the test photo is a full-size camera photo (12 MP, over 900 KB)', buf.length > 900000, String(buf.length));
+
+    const phone = await b.newContext({
+      viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+    });
+    resetStore(seeded());
+    page = await phone.newPage();
+    await page.exposeFunction('__storeRead', async () => { try { return fs.readFileSync(STORE, 'utf8'); } catch { return '{}'; } });
+    await page.exposeFunction('__storeWrite', async (t) => { fs.writeFileSync(STORE, t); return true; });
+    await page.addInitScript(fs.readFileSync(path.join(__dirname, 'mock.js'), 'utf8'));
+    await page.addInitScript(() => {
+      /* Safari: no WebP encoder — asking for WebP returns a PNG. */
+      const orig = HTMLCanvasElement.prototype.toDataURL;
+      HTMLCanvasElement.prototype.toDataURL = function (type, q) {
+        return orig.call(this, type === 'image/webp' ? 'image/png' : type, q);
+      };
+    });
+    page.errs = [];
+    page.on('pageerror', e => page.errs.push(e.message));
+    await page.goto(PAGE + ADMIN_HASH, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(4200);
+    await page.tap('#admin-root .ad-tab[data-tab="hero"]');
+    await page.waitForTimeout(400);
+    const control = await page.$('#admin-root [data-upload="heroImage"] input[type=file]');
+    check('the upload control is a real file input in the page', control !== null);
+    check('that offers every image type, camera included',
+      control && (await control.getAttribute('accept')) === 'image/*');
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      page.tap('#admin-root [data-upload="heroImage"]'),
+    ]);
+    check('tapping Upload on a phone opens the picker', !!chooser);
+    await chooser.setFiles({ name: 'IMG_0042.JPG', mimeType: '', buffer: buf });
+    await page.waitForTimeout(4500);
+    const st = readStore();
+    const id = st['content/site'].heroImage;
+    const url = (st['media/' + id] || {}).url || '';
+    check('the phone photo is stored', typeof id === 'string' && /^m/.test(id), String(id));
+    check('as a JPEG when WebP cannot be written', /^data:image\/jpeg;base64,/.test(url), url.slice(0, 30));
+    check('small enough for the database', url.length > 0 && url.length < 190000, String(url.length));
+    check('no error is shown', !/Could not use that image|تعذّر استخدام الصورة/.test(await page.$eval('#admin-root', e => e.textContent)));
+    check('no page errors on the phone', page.errs.length === 0, page.errs.join(' | '));
+    await page.close();
+
+    /* A file that is not an image says so, instead of failing silently. */
+    resetStore(seeded());
+    page = await phone.newPage();
+    await page.exposeFunction('__storeRead', async () => { try { return fs.readFileSync(STORE, 'utf8'); } catch { return '{}'; } });
+    await page.exposeFunction('__storeWrite', async (t) => { fs.writeFileSync(STORE, t); return true; });
+    await page.addInitScript(fs.readFileSync(path.join(__dirname, 'mock.js'), 'utf8'));
+    await page.goto(PAGE + ADMIN_HASH, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(4200);
+    await page.tap('#admin-root .ad-tab[data-tab="hero"]');
+    await page.waitForTimeout(400);
+    const [ch2] = await Promise.all([page.waitForEvent('filechooser'), page.tap('#admin-root [data-upload="heroImage"]')]);
+    await ch2.setFiles({ name: 'photo.heic', mimeType: '', buffer: Buffer.from('not really an image') });
+    await page.waitForTimeout(2000);
+    check('an unreadable photo is explained on screen',
+      /cannot open that photo format|غير مدعومة/.test(await page.$eval('#admin-root', e => e.textContent)));
+    check('and nothing is stored', readStore()['content/site'].heroImage === '');
+    await page.close();
+    await phone.close();
+  }
+
   /* 9 — the phone number drives the link, not just the text. */
   page = await load(ctx, seeded(), '');
   const tel = await page.$eval('.vmeta a[href^="tel:"]', el => el.getAttribute('href'));

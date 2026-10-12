@@ -909,6 +909,15 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
 .ad-img-prev span{ font-size:11px; color:var(--muted); text-align:center; padding:6px }
 .ad-img-ctl{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:0 }
 .ad-img-ctl .ad-mini{ align-self:flex-start }
+.ad-upload{ position:relative; cursor:pointer; display:inline-flex; align-items:center; }
+/* It is a <label>, so undo the small grey field-label style it would inherit. */
+.ad-field label.ad-upload{ font-size:12px; font-weight:600; color:var(--cream-dim); letter-spacing:0; text-transform:none }
+.ad-field label.ad-upload:hover{ border-color:var(--flame); color:var(--flame) }
+.ad-upload.off{ opacity:.5; pointer-events:none; }
+.ad-upload.busy{ opacity:.6; pointer-events:none; }
+/* Visually hidden, never display:none: some phone browsers will not open a
+   picker for an input that is not rendered. */
+.ad-file{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:0; }
 .ad-url{
   width:100%; padding:9px 11px; border-radius:9px; font-size:12.5px;
   border:1px solid var(--line); background:var(--char-800); color:var(--cream);
@@ -2432,63 +2441,113 @@ function snapshotDefaults(){
 
 /* Images are downscaled and re-encoded in the browser, then stored one
    per document — a single document caps at 256 KiB, so keeping them out
-   of the menu document is what makes several photos possible at all. */
+   of the menu document is what makes several photos possible at all.
+
+   Written for phones as much as computers:
+   - The file is decoded from an object URL, not read into a data URL first:
+     a phone photo is several megabytes, and the data URL copy of it was
+     the largest thing in memory.
+   - The type is not trusted to be set: some galleries hand over a photo
+     with an empty type. Whether it decodes is the test.
+   - Safari (every iPhone browser) cannot encode WebP, and silently returns
+     a PNG instead — far too large, so nearly every iPhone photo used to be
+     refused as "too large". The encoder actually used is checked, and JPEG
+     takes over where WebP is not available.
+   - If a photo is still too large, it is made smaller and tried again,
+     rather than refused. */
+var IMG_MAX_CHARS = 190000;
+
 function readImage(file, cb){
-  if(!file || !/^image\//.test(file.type)){ cb(null, 'Not an image file'); return; }
-  var reader = new FileReader();
-  reader.onerror = function(){ cb(null, 'Could not read that file'); };
-  reader.onload = function(){
-    var img = new Image();
-    img.onerror = function(){ cb(null, 'That file is not a readable image'); };
-    img.onload = function(){
-      var max = 900, w = img.width, h = img.height;
-      if(w > max || h > max){
-        var r = Math.min(max / w, max / h);
-        w = Math.round(w * r); h = Math.round(h * r);
-      }
-      var c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-
-      var out = '';
-      var qualities = [0.72, 0.58, 0.45, 0.34];
-      for(var i = 0; i < qualities.length; i++){
-        out = c.toDataURL('image/webp', qualities[i]);
-        if(out.length < 190000) break;
-      }
-      if(out.length >= 190000){ cb(null, 'That image is too large even after compression'); return; }
-      cb(out, null);
-    };
-    img.src = reader.result;
+  if(!file){ cb(null, lang === 'ar' ? 'لم يُختر ملف' : 'No file was chosen'); return; }
+  if(file.type && !/^image\//i.test(file.type)){
+    cb(null, lang === 'ar' ? 'هذا الملف ليس صورة' : 'That file is not an image'); return;
+  }
+  var url;
+  try { url = URL.createObjectURL(file); }
+  catch(e){ cb(null, lang === 'ar' ? 'تعذّرت قراءة الملف' : 'Could not read that file'); return; }
+  var img = new Image();
+  img.onerror = function(){
+    URL.revokeObjectURL(url);
+    /* Most often an iPhone HEIC photo on a browser that cannot show HEIC. */
+    cb(null, lang === 'ar'
+      ? 'صيغة الصورة غير مدعومة في هذا المتصفح. اختر صورة JPG أو PNG، أو في الآيفون: الإعدادات ← الكاميرا ← التنسيقات ← «الأكثر توافقاً».'
+      : 'This browser cannot open that photo format. Choose a JPG or PNG — on iPhone: Settings → Camera → Formats → "Most Compatible".');
   };
-  reader.readAsDataURL(file);
+  img.onload = function(){
+    URL.revokeObjectURL(url);
+    var out = shrinkImage(img);
+    if(!out){
+      cb(null, lang === 'ar' ? 'الصورة كبيرة جداً حتى بعد ضغطها' : 'That image is too large even after compression');
+      return;
+    }
+    cb(out, null);
+  };
+  img.src = url;
 }
 
-function pickImage(onDone){
-  var inp = document.createElement('input');
-  inp.type = 'file';
-  inp.accept = 'image/png,image/jpeg,image/webp,image/gif,image/avif';
-  inp.addEventListener('change', function(){
-    var f = inp.files && inp.files[0];
-    if(!f) return;
-    readImage(f, function(dataUrl, err){
-      if(err || !dataUrl){
-        /* alert() never shows on a claude.ai page, so the reason goes where
-           every other dashboard error goes. */
-        try { console.error('[image] could not use the file:', err); } catch(_){}
-        lastError = (lang === 'ar' ? 'تعذّر استخدام الصورة: ' : 'Could not use that image: ')
-          + (err || (lang === 'ar' ? 'ملف غير صالح' : 'unreadable file'));
-        renderAdmin();
-        return;
+/* Smallest acceptable encoding: WebP where the browser can write it, JPEG
+   otherwise, at falling quality, then at falling size. */
+function shrinkImage(img){
+  var w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+  if(!w0 || !h0) return '';
+  var sizes = [900, 760, 620, 480];
+  var qualities = [0.72, 0.58, 0.45, 0.34];
+  var webp = null;            /* can this browser encode WebP? learnt on first try */
+  for(var s = 0; s < sizes.length; s++){
+    var r = Math.min(1, sizes[s] / w0, sizes[s] / h0);
+    var w = Math.max(1, Math.round(w0 * r)), h = Math.max(1, Math.round(h0 * r));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var g = c.getContext('2d');
+    g.fillStyle = '#ffffff';                 /* JPEG has no transparency */
+    g.fillRect(0, 0, w, h);
+    g.drawImage(img, 0, 0, w, h);
+    for(var q = 0; q < qualities.length; q++){
+      var out = '';
+      if(webp !== false){
+        out = c.toDataURL('image/webp', qualities[q]);
+        webp = out.indexOf('data:image/webp') === 0;
       }
-      var id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      pendingMedia[id] = dataUrl;
-      MEDIA[id] = dataUrl;
-      onDone(id);
-    });
-  });
-  inp.click();
+      if(!webp) out = c.toDataURL('image/jpeg', qualities[q]);
+      if(out.length < IMG_MAX_CHARS) return out;
+    }
+  }
+  return '';
 }
+
+/* A photo chosen in an upload control: shrink it, keep it, point the field
+   at it, save. */
+function handleImageFile(input){
+  var target = input.getAttribute('data-upload-input');
+  var file = input.files && input.files[0];
+  if(!target || !file || !canEdit) return;
+  var holder = input.closest('.ad-upload');
+  if(holder) holder.classList.add('busy');
+  readImage(file, function(dataUrl, err){
+    if(holder) holder.classList.remove('busy');
+    try { input.value = ''; } catch(e){}     /* the same photo can be chosen again */
+    if(err || !dataUrl){
+      /* alert() never shows on a claude.ai page, so the reason goes where
+         every other dashboard error goes. */
+      try { console.error('[image] could not use the file:', err); } catch(_){}
+      lastError = (lang === 'ar' ? 'تعذّر استخدام الصورة: ' : 'Could not use that image: ')
+        + (err || (lang === 'ar' ? 'ملف غير صالح' : 'unreadable file'));
+      renderAdmin();
+      return;
+    }
+    lastError = '';
+    var id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    pendingMedia[id] = dataUrl;
+    MEDIA[id] = dataUrl;
+    setPath(target, id);
+    renderAdmin(); markDirty(); autoSave();
+  });
+}
+
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if(t && t.matches && t.matches('#admin-root input[data-upload-input]')) handleImageFile(t);
+});
 
 /* ---------------------------------------------------------- database */
 
@@ -2954,8 +3013,14 @@ function imageField(label, value, path){
                 : '<span>' + (lang === 'ar' ? 'لا صورة' : 'No image') + '</span>')
     +   '</div>'
     +   '<div class="ad-img-ctl">'
-    +     '<button class="ad-mini" data-upload="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
-    +       (lang === 'ar' ? 'رفع صورة' : 'Upload') + '</button>'
+    /* A real file input inside a label, part of the page. Phones open the
+       picker reliably only for a tap on an input that is in the document;
+       one created on the fly and clicked from script often opens nothing,
+       or loses the chosen photo. */
+    +     '<label class="ad-mini ad-upload' + (canEdit ? '' : ' off') + '" data-upload="' + esc(path) + '">'
+    +       '<input type="file" class="ad-file" accept="image/*" data-upload-input="' + esc(path) + '"'
+    +       (canEdit ? '' : ' disabled') + '>'
+    +       (lang === 'ar' ? 'رفع صورة' : 'Upload') + '</label>'
     +     '<button class="ad-mini danger" data-clearimg="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
     +       (lang === 'ar' ? 'إزالة' : 'Clear') + '</button>'
     +     '<input class="ad-url" id="' + fieldId(path) + '" data-path="' + esc(path) + '"'
@@ -3933,11 +3998,6 @@ function adminClick(t){
      "your account cannot edit this page". */
   if(!canEdit) return;
 
-  if(t.dataset.upload){
-    var target = t.dataset.upload;
-    pickImage(function(id){ setPath(target, id); renderAdmin(); markDirty(); autoSave(); });
-    return;
-  }
   if(t.dataset.clearimg){ setPath(t.dataset.clearimg, ''); renderAdmin(); markDirty(); autoSave(); return; }
 
   if(t.dataset.badge){
