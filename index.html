@@ -2183,7 +2183,7 @@ function applyContent(d){
   if(Array.isArray(d.categories)) CATEGORIES = objectsOnly(d.categories);
   if(Array.isArray(d.items))      ITEMS = objectsOnly(d.items);
   if(Array.isArray(d.hours) && d.hours.length === 7){
-    HOURS = d.hours.map(function(h){ return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
+    HOURS = d.hours.map(function(h){ h = h || {}; return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
   }
   if(d.text && typeof d.text === 'object'){
     OVERRIDES.en = d.text.en || {};

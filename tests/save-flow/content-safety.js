@@ -193,6 +193,15 @@ const pwned = (page) => page.evaluate(() => !!window.__pwned);
   check('and the page still renders',
     (await page.evaluate(() => !!document.querySelector('#menu') && document.body.innerText.length > 200)) === true);
 
+  /* 6b — opening hours with an empty day must not blank the page either. */
+  if (page) await page.close();
+  page = await load(ctx, {
+    'content/site': { hours: [null, { o: 600, c: 1400 }, null, 'x', 42, { o: 600, c: 1400 }, null], updatedAt: 1 },
+  }, '');
+  check('an empty day in the opening hours does not throw', page.errs.length === 0, page.errs.join(' | '));
+  check('and the hours list still renders seven days',
+    (await page.evaluate(() => document.querySelectorAll('#hoursList li').length)) === 7);
+
   /* 7 — and the dashboard survives it too. */
   if (page) await page.close();
   page = await load(ctx, {
