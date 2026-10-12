@@ -32,8 +32,12 @@ connection and the access probe — and then refuses to write the file if any
 dashboard-only name survives. There is no route to guess, no button to find and
 no database to call: a customer who reads the page source finds a menu.
 
-The customer page gets its content from `content.json`, a data file published
-beside it. The page fetches it and reads it as JSON; nothing in it is ever run.
+The customer page carries its content inside itself: the build writes it into
+the page as a JSON data block (`<script type="application/json">`, with `<`
+escaped so stored text cannot close the element), and the page parses it as
+data; nothing in it is ever run. `content.json` is still written beside it as
+a fallback. (The page used to fetch that file at load; carried inside, the
+content cannot fail to arrive.)
 It is applied through the same rendering paths as before, so the protections
 under "Stored content is untrusted" below cover it too.
 

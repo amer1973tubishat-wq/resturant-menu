@@ -30,6 +30,9 @@ const check = (n, ok, extra = '') => {
 
 /* Build both pages fresh, with a test trigger wired into the admin one. */
 function build() {
+  /* Most checks swap content.json per test through the server, so the page
+     is built here without content of its own; section 2c builds it with. */
+  try { fs.unlinkSync(path.join(DIST, 'public', 'content.json')); } catch (e) {}
   execFileSync('node', [BUILD, 'public'], { cwd: ROOT, stdio: 'pipe' });
   execFileSync('node', [BUILD, 'admin'], {
     cwd: ROOT, stdio: 'pipe',
@@ -218,6 +221,37 @@ const panelOpen = (page) => page.evaluate(() => {
     check('and the map opens the published Google Maps link', r.open === 'https://maps.app.goo.gl/xyz', r.open);
     check('no errors with a map picture', errs.length === 0, errs.join(' | '));
     await page.close();
+  }
+
+  /* 2c — the content is carried inside the published page, so it shows even
+     when content.json cannot be loaded at all; and text in it cannot break
+     out of its data block. */
+  {
+    const evil = '</script><script>window.__pwned=1</script><img src=x onerror="window.__pwned=1">';
+    const c = JSON.parse(content());
+    c.menu.items[0].en.n = 'Embedded Burger ' + evil;
+    c.site.brand.en.a = 'INSIDE';
+    fs.writeFileSync(path.join(DIST, 'public', 'content.json'), JSON.stringify(c));
+    execFileSync('node', [BUILD, 'public'], { cwd: ROOT, stdio: 'pipe' });
+    fs.unlinkSync(path.join(DIST, 'public', 'content.json'));
+    contentJson = null;                       /* the server now answers 404 */
+    const page = await ctx.newPage();
+    const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(3500);
+    const r = await page.evaluate(() => ({
+      card: (document.querySelector('.card-name') || {}).textContent || '',
+      brand: document.querySelector('.brand-name').textContent.trim(),
+      pwned: !!window.__pwned,
+      scripts: document.querySelectorAll('script:not([type="application/json"])').length,
+    }));
+    check('with content.json unreachable, the published content still shows', r.card.startsWith('Embedded Burger'), r.card.slice(0, 60));
+    check('including the published name', r.brand.startsWith('INSIDE'), r.brand);
+    check('text in the content cannot close its data block', r.pwned === false);
+    check('and is shown as text', r.card.includes('</script>'));
+    check('no errors with embedded content', errs.length === 0, errs.join(' | '));
+    await page.close();
+    build();                                  /* back to the plain page for the rest */
   }
 
   /* 3 — hostile content in content.json is data, never code. */

@@ -82,20 +82,46 @@ function buildPublic() {
   html = strip(html, '<!-- @admin-html:begin -->', '<!-- @admin-html:end -->', 'html');
   html = strip(html, '/* @admin-js:begin */', '/* @admin-js:end */', 'js');
 
-  /* The published content, applied at the end of the page's own script. If
-     content.json is missing the page keeps its built-in menu rather than
-     breaking. */
+  /* The published content is written into the page itself, as a JSON data
+     block, and applied at the end of the page's own script.
+
+     It used to be fetched at load time from content.json beside the page.
+     That fetch could not be checked from outside claude.ai, and when it does
+     not come back the page quietly shows its built-in menu — which is exactly
+     what "my edits never appear" looks like. Carried inside the page, the
+     content is there whenever the page is, with nothing to load. content.json
+     is still written, for tools and as a fallback, but the page reads its own
+     copy first. */
+  const contentFile = path.join(DIST, 'public', 'content.json');
+  let embedded = '';
+  if (fs.existsSync(contentFile)) {
+    const parsed = readJson(contentFile);
+    if (!parsed || typeof parsed !== 'object') fail('content.json is not valid JSON');
+    /* JSON inside a script element: "<" is escaped so no stored text can
+       close the element, and the two line separators for older engines. */
+    embedded = JSON.stringify(parsed)
+      .replace(/</g, '\\u003c')
+      .split(String.fromCharCode(0x2028)).join('\\u2028')
+      .split(String.fromCharCode(0x2029)).join('\\u2029');
+  }
+  if (embedded) {
+    const anchor = '<script>\n(function(){\n\'use strict\';';
+    if (!html.includes(anchor)) fail('could not find the main script to place the content before');
+    html = html.replace(anchor,
+      '<script type="application/json" id="published-content">' + embedded + '</script>\n' + anchor);
+  }
+
   const loader = `
 /* ============================================================
    PUBLISHED CONTENT
    The public site has no database and no dashboard. Its content is
-   content.json, published beside this page by the admin page's
-   Publish button, and read as data — never run as code. If it is
-   missing, the page keeps its built-in menu rather than breaking.
+   the JSON block above (written in by the Publish button's task) and
+   is read as data — never run as code. Without it the page falls back
+   to content.json, and without that to its built-in menu.
    ============================================================ */
 (function(){
   function apply(c){
-    if(!c || typeof c !== 'object') return;
+    if(!c || typeof c !== 'object') return false;
     if(c.media && typeof c.media === 'object'){
       Object.keys(c.media).forEach(function(id){
         if(typeof c.media[id] === 'string') MEDIA[id] = c.media[id];
@@ -103,12 +129,18 @@ function buildPublic() {
     }
     if(c.menu && typeof c.menu === 'object') applyContent(c.menu);
     if(c.site && typeof c.site === 'object') applyContent(c.site);
+    return true;
+  }
+  var block = document.getElementById('published-content');
+  if(block){
+    try { if(apply(JSON.parse(block.textContent))) return; }
+    catch(e){ try { console.error('[content] the published content could not be read:', e); } catch(_){} }
   }
   try {
     fetch('content.json', { cache: 'no-cache' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(apply)
-      .catch(function(){});
+      .catch(function(e){ try { console.error('[content] content.json could not be loaded:', e); } catch(_){} });
   } catch(e){}
 })();
 `;
