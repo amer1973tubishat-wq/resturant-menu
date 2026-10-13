@@ -737,7 +737,7 @@ html[lang="ar"] .cat-name{ text-transform:none; font-size:18px; line-height:1.4 
 /* ---- photographs on menu cards ---- */
 .card-art.has-photo{ background:var(--char-800) }
 .card-photo{
-  width:100%; height:100%; object-fit:cover; display:block;
+  position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block;
   transition:transform .5s var(--ease-spring);
 }
 .card:hover .card-photo{ transform:scale(1.06) }
@@ -900,12 +900,12 @@ html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
 
 /* ---- image picker inside the dashboard ---- */
 .ad-img{ display:flex; gap:12px; align-items:flex-start }
-.ad-img-prev{
+.ad-img-prev{ position:relative;
   width:96px; height:96px; flex:none; border-radius:12px; overflow:hidden;
   border:1px solid var(--line); background:var(--char-900);
   display:grid; place-items:center;
 }
-.ad-img-prev img{ width:100%; height:100%; object-fit:cover }
+.ad-img-prev img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain }
 .ad-img-prev span{ font-size:11px; color:var(--muted); text-align:center; padding:6px }
 .ad-img-ctl{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:0 }
 .ad-img-ctl .ad-mini{ align-self:flex-start }
