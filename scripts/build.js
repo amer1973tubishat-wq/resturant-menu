@@ -92,7 +92,11 @@ function buildPublic() {
      content is there whenever the page is, with nothing to load. content.json
      is still written, for tools and as a fallback, but the page reads its own
      copy first. */
-  const contentFile = path.join(DIST, 'public', 'content.json');
+  /* Built by Cloudflare there is no database dump, only the repository, so
+     the copy the Publish task commits to published/content.json is used. */
+  const standalone = process.env.WORKERS_CI === '1' || process.env.BAYTNA_STANDALONE === '1';
+  let contentFile = path.join(DIST, 'public', 'content.json');
+  if (standalone && !fs.existsSync(contentFile)) contentFile = path.join(ROOT, 'published', 'content.json');
   let embedded = '';
   if (fs.existsSync(contentFile)) {
     const parsed = readJson(contentFile);
@@ -157,7 +161,6 @@ function buildPublic() {
   /* Served as a plain website (Cloudflare Workers Builds sets WORKERS_CI=1)
      there is no viewer to supply the charset and viewport tags, so the page
      keeps its own document shell; without it Arabic text renders as noise. */
-  const standalone = process.env.WORKERS_CI === '1' || process.env.BAYTNA_STANDALONE === '1';
   if (!standalone) html = toArtifact(html);
   fs.mkdirSync(path.join(DIST, 'public'), { recursive: true });
   const out = path.join(DIST, 'public', 'index.html');
