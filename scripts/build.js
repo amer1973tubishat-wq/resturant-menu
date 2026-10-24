@@ -76,6 +76,11 @@ function toArtifact(html) {
   return html;
 }
 
+/* Built by Cloudflare Workers Builds (it sets WORKERS_CI=1), or asked for. */
+function isStandalone() {
+  return process.env.WORKERS_CI === '1' || process.env.BAYTNA_STANDALONE === '1';
+}
+
 function buildPublic() {
   let html = fs.readFileSync(SRC, 'utf8');
   html = strip(html, '/* @admin-css:begin */', '/* @admin-css:end */', 'css');
@@ -92,13 +97,12 @@ function buildPublic() {
      content is there whenever the page is, with nothing to load. content.json
      is still written, for tools and as a fallback, but the page reads its own
      copy first. */
-  /* Built by Cloudflare there is no database dump, only the repository, so
-     the copy the Publish task commits to published/content.json is used. */
-  const standalone = process.env.WORKERS_CI === '1' || process.env.BAYTNA_STANDALONE === '1';
-  let contentFile = path.join(DIST, 'public', 'content.json');
-  if (standalone && !fs.existsSync(contentFile)) contentFile = path.join(ROOT, 'published', 'content.json');
+  /* On Cloudflare nothing is embedded: the Worker serves content.json live
+     from its database, so the page always shows what was last saved. */
+  const standalone = isStandalone();
+  const contentFile = path.join(DIST, 'public', 'content.json');
   let embedded = '';
-  if (fs.existsSync(contentFile)) {
+  if (!standalone && fs.existsSync(contentFile)) {
     const parsed = readJson(contentFile);
     if (!parsed || typeof parsed !== 'object') fail('content.json is not valid JSON');
     /* JSON inside a script element: "<" is escaped so no stored text can
@@ -235,18 +239,34 @@ function buildAdmin() {
     if (!html.includes(from)) fail('admin build: could not find ' + from);
     html = html.replace(from, to);
   };
+  const standalone = isStandalone();
   swap("var ADMIN_PAGE = false;", "var ADMIN_PAGE = true;");
-  swap("var PUBLISH = { trigger: '', publicUrl: '' };",
-       "var PUBLISH = { trigger: " + JSON.stringify(CONFIG.triggerId)
-       + ", publicUrl: " + JSON.stringify(CONFIG.publicUrl) + " };");
+  /* On Cloudflare a save is the publish: the Worker serves what is saved, so
+     there is no publishing task to start. */
+  if (!standalone) {
+    swap("var PUBLISH = { trigger: '', publicUrl: '' };",
+         "var PUBLISH = { trigger: " + JSON.stringify(CONFIG.triggerId)
+         + ", publicUrl: " + JSON.stringify(CONFIG.publicUrl) + " };");
+  }
   /* The name the owner gave the admin page on claude.ai. */
   swap('<title>Baytna Burger</title>', '<title>مشروع مطعم</title>');
-  html = toArtifact(html);
+  if (standalone) {
+    /* The database stand-in that talks to the Worker, ahead of every other
+       script, and no search engine listing for the sign-in page. */
+    const shim = fs.readFileSync(path.join(ROOT, 'worker', 'admin-shim.js'), 'utf8');
+    swap('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<script>' + shim + '</script>');
+  } else {
+    html = toArtifact(html);
+  }
   fs.mkdirSync(DIST, { recursive: true });
-  const out = path.join(DIST, 'admin.html');
-  fs.writeFileSync(out, html);
-  console.log('admin   → ' + path.relative(ROOT, out) + '  (' + html.length + ' bytes)'
-    + (CONFIG.triggerId ? '' : '  [no publishing task configured]'));
+  const outs = [path.join(DIST, 'admin.html')];
+  if (standalone) {
+    fs.mkdirSync(path.join(DIST, 'public'), { recursive: true });
+    outs.push(path.join(DIST, 'public', 'admin.html'));
+  }
+  outs.forEach(out => fs.writeFileSync(out, html));
+  console.log('admin   → ' + outs.map(o => path.relative(ROOT, o)).join(', ') + '  (' + html.length + ' bytes)'
+    + (standalone ? '  [Cloudflare]' : CONFIG.triggerId ? '' : '  [no publishing task configured]'));
 }
 
 const [mode, arg] = process.argv.slice(2);

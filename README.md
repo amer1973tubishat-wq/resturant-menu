@@ -47,3 +47,23 @@ node scripts/build.js admin               # dist/admin.html — the admin page
 
 The website build fails if any dashboard code would reach it. See
 `docs/SECURITY.md`.
+
+## Cloudflare
+
+The same site also runs as a Cloudflare Worker (`wrangler.jsonc`, `worker/`),
+with the dashboard on the Worker's own server instead of claude.ai:
+
+- `/` is the customer page; it loads `/content.json`, which the Worker builds
+  live from Workers KV, so a save in the dashboard shows up at once.
+- `/admin` is the dashboard. `worker/admin-shim.js` stands in for the Claude
+  database and saves through the Worker's `/api`. Every write needs a session
+  from `/api/login`, checked on the server.
+- The password is the `ADMIN_PASSWORD` secret (Worker → Settings → Variables
+  and Secrets → Secret). It is never in the repository. Changing it signs
+  everyone out.
+- Until the dashboard first saves, the menu and texts come from
+  `published/content.json`.
+
+Workers Builds settings: build command `node scripts/build.js all`, deploy
+command `npx wrangler deploy`, version command `npx wrangler versions upload`.
+The build sees `WORKERS_CI=1` and produces the standalone pages.

@@ -1,0 +1,17 @@
+// Cloudflare Worker for the Baytna Burger site: the customer page and the
+// dashboard (/admin) as static files, plus a small API that keeps the
+// dashboard's content in Workers KV. The dashboard password is the
+// ADMIN_PASSWORD secret, set in the Cloudflare dashboard, never in this file.
+{
+  "name": "resturant-demo-menu",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "dist/public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/content.json"]
+  },
+  "kv_namespaces": [
+    { "binding": "DB", "id": "5529d89cde254911823628c8728955ba" }
+  ]
+}
