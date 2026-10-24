@@ -21,6 +21,47 @@ python3 -m http.server 8000   # then open http://localhost:8000
 Burger art is inline SVG, so there are no image files to host. To use photos,
 replace the `<use href="#burger"/>` in `.card-art` and `.hero-art` with `<img>`.
 
+## The admin route
+
+The footer's **Admin** link opens `#admin` — a dashboard built into the page,
+with tabs for **Menu** (items, prices, photos, category, badges, spice, order),
+**Categories**, **Brand** (name and logo), **Hero** (background image),
+**Text** (every headline, the hero statistics and each section heading, per
+language), **Hours** and **Contact**.
+
+Photographs are downscaled and re-encoded to WebP in the browser, then stored
+one per document — a single document caps at 256 KiB, so keeping images out of
+the menu document is what makes several photos possible. Each image field also
+accepts a pasted `https://` URL instead of an upload. Saved changes
+land in the artifact's database and appear on the public view immediately, for
+every open tab.
+
+**Authorisation is server-side.** The published page declares the `db`
+capability with the rule `{ read: "interact", write: "admin" }`, so the platform
+accepts writes only from viewers who have *edit* access to the artifact. Someone
+with the link can open `#admin` and look, but every save is refused by the
+server. On opening the panel the page performs one real write to
+`meta/access-probe` to find out which side of that line the viewer is on, rather
+than assuming.
+
+There is deliberately **no password in this file**. A password checked in
+client-side JavaScript is visible in view-source and protects nothing; access is
+delegated to the platform's own sharing controls instead.
+
+Content read back from the database is escaped before it reaches `innerHTML` —
+the runtime contract treats shared data as untrusted, and so does this page.
+
+Opened as a local file there is no database, so the panel reports that plainly,
+disables every input, and the public page renders from the defaults in this file.
+
+## Categories before the menu
+
+A category chooser sits between the hero and the menu. Picking one filters the
+menu below rather than making a customer scroll one long list, and each card
+shows how many items it holds. Categories are editable, and deleting one moves
+its items to the first remaining category rather than making them disappear
+from the site.
+
 ## How a few things work
 
 **Open / closed indicator** is computed in Amman time via

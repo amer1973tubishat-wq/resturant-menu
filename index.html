@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0A0A0B">
-<title>Baytna Burger — Grilled in Amman, Loved Everywhere</title>
+<title>Baytna Burger</title>
 <meta name="description" content="Baytna Burger — smashed local beef, za'atar, halloumi and shatta. A modern burger joint on Rainbow Street, Jabal Amman.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,7 @@
    BAYTNA BURGER — design tokens
    ============================================================ */
 :root{
+  color-scheme: dark;       /* a single, deliberately dark look */
   /* base — charred black → charcoal */
   --char-900:#0A0A0B;
   --char-800:#101012;
@@ -323,6 +324,21 @@ html[lang="ar"] .hstat b{ font-size:27px; }
   animation:hover-float 6.5s ease-in-out 1.6s infinite;
 }
 .ready .hero-burger{ opacity:1; transform:none; }
+/* The hero burger's layers: they stack themselves on load, then come apart
+   as the visitor scrolls (transform, set by heroBurgerFrame) and lean with
+   the pointer. "translate" carries the stacking, "transform" the scroll, so
+   the two never fight over one property. */
+.hero-burger{ overflow:visible; }
+.hero-burger .bl{ transform-box:fill-box; transform-origin:50% 50%; will-change:transform; }
+.ready .hero-burger .bl{ animation:stackIn .75s var(--ease-spring) backwards; }
+.ready .hero-burger [data-l="bun-bot"]{ animation-delay:.35s }
+.ready .hero-burger [data-l="patty"]{ animation-delay:.45s }
+.ready .hero-burger [data-l="cheese"]{ animation-delay:.55s }
+.ready .hero-burger [data-l^="tomato"]{ animation-delay:.65s }
+.ready .hero-burger [data-l="lettuce"]{ animation-delay:.75s }
+.ready .hero-burger [data-l="bun-top"],.ready .hero-burger [data-l="seeds"]{ animation-delay:.9s }
+.ready .hero-burger [data-l="shadow"]{ animation:none }
+@keyframes stackIn{ from{ translate:0 -120px; opacity:0 } 60%{ opacity:1 } to{ translate:0 0; opacity:1 } }
 @keyframes hover-float{ 0%,100%{ translate:0 0 } 50%{ translate:0 -13px } }
 
 .flame-wrap{ position:absolute; inset-inline:0; bottom:6%; height:52%; z-index:1; pointer-events:none; filter:blur(1px); }
@@ -460,13 +476,6 @@ html[lang="ar"] .card-name{ text-transform:none; font-size:21px; line-height:1.4
 .card:hover .spice-dots i.on:nth-child(3){ transition-delay:.1s }
 .card:hover .spice-dots i.on:nth-child(4){ transition-delay:.15s }
 .card:hover .spice-dots i.on:nth-child(5){ transition-delay:.2s }
-.add-btn{
-  border:1px solid var(--line); background:var(--char-700); color:var(--cream-dim);
-  border-radius:100px; padding:7px 15px; font-size:12.5px; font-weight:600;
-  transition:background .26s, color .26s, border-color .26s, transform .26s var(--ease-spring);
-}
-.add-btn:hover{ background:var(--flame); color:#120802; border-color:var(--flame); transform:scale(1.05); }
-
 /* ============================================================
    SIDES & DRINKS
    ============================================================ */
@@ -485,75 +494,6 @@ html[lang="ar"] .card-name{ text-transform:none; font-size:21px; line-height:1.4
 .side-name{ font-weight:600; font-size:14.5px; margin:0; }
 .side-price{ font-family:var(--f-display); font-size:17px; color:var(--gold); }
 .side-note{ font-size:11.5px; color:var(--muted); margin:0; }
-
-/* ============================================================
-   BUILD YOUR OWN
-   ============================================================ */
-#build{ background:var(--char-800); }
-.build-layout{ display:grid; grid-template-columns:1fr 372px; gap:34px; align-items:start; }
-
-.steps{ display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; }
-.step-tab{
-  flex:1; min-width:132px; position:relative;
-  padding:13px 15px; border-radius:13px; text-align:start;
-  background:var(--char-700); border:1px solid var(--line); color:var(--cream-dim);
-  transition:background .3s, border-color .3s, color .3s, transform .3s var(--ease-spring);
-}
-.step-tab .n{ font-family:var(--f-display); font-size:12px; color:var(--muted); display:block; }
-.step-tab .l{ font-size:14px; font-weight:600; }
-.step-tab[aria-selected="true"]{ background:linear-gradient(150deg,var(--flame),var(--flame-deep)); border-color:transparent; color:#160A02; transform:translateY(-3px); }
-.step-tab[aria-selected="true"] .n{ color:rgba(22,10,2,.65); }
-.step-tab.done{ border-color:rgba(242,179,61,.45); }
-.step-tab.done .n::after{ content:' ✓'; color:var(--gold); }
-
-.opts{ display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:12px; }
-.opt{
-  position:relative; padding:15px; border-radius:14px; text-align:start;
-  background:var(--char-700); border:1.5px solid var(--line); color:var(--cream);
-  transition:border-color .28s, background .28s, transform .28s var(--ease-spring);
-}
-.opt:hover{ border-color:rgba(255,106,26,.5); transform:translateY(-4px); }
-.opt[aria-pressed="true"]{ border-color:var(--flame); background:rgba(255,106,26,.10); }
-.opt[aria-pressed="true"]::after{
-  content:'✓'; position:absolute; top:9px; inset-inline-end:11px;
-  width:20px; height:20px; border-radius:50%; background:var(--flame); color:#160A02;
-  font-size:12px; font-weight:800; display:grid; place-items:center;
-  animation:pop .34s var(--ease-spring);
-}
-@keyframes pop{ from{ transform:scale(0) } to{ transform:scale(1) } }
-.opt{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
-.opt .on{ font-weight:600; font-size:14.5px; line-height:1.3; }
-.opt .od{ display:block; font-size:11.5px; color:var(--muted); line-height:1.4; }
-.opt .op{ display:block; margin-top:6px; font-size:12.5px; color:var(--gold); font-weight:700; }
-
-/* receipt / live price panel */
-.receipt{
-  position:sticky; top:calc(var(--nav-h) + 16px);
-  border-radius:20px; padding:24px;
-  background:
-    repeating-linear-gradient(0deg,transparent 0 27px,rgba(0,0,0,.16) 27px 28px),
-    linear-gradient(165deg,var(--char-700),var(--char-600));
-  border:1px solid var(--line);
-}
-.receipt h3{ font-family:var(--f-display); font-size:21px; text-transform:uppercase; margin:0 0 4px; }
-html[lang="ar"] .receipt h3{ text-transform:none }
-.receipt-sub{ font-size:12px; color:var(--muted); margin:0 0 18px; }
-.receipt-lines{ display:flex; flex-direction:column; gap:9px; min-height:112px; margin-bottom:16px; }
-.rline{ display:flex; justify-content:space-between; gap:12px; font-size:13.5px; align-items:baseline;
-  animation:slideIn .34s var(--ease-out); }
-@keyframes slideIn{ from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
-.rline .rl{ color:var(--cream-dim); }
-.rline .rl b{ color:var(--muted); font-weight:500; font-size:11px; display:block; }
-.rline .rp{ color:var(--gold); font-weight:600; white-space:nowrap; }
-.rempty{ font-size:13px; color:var(--muted); font-style:italic; }
-.receipt-total{
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding-top:15px; border-top:1.5px dashed var(--line); margin-bottom:16px;
-}
-.receipt-total span{ font-size:13px; color:var(--cream-dim); }
-#totalPrice{ font-family:var(--f-display); font-size:34px; color:var(--flame); line-height:1; font-variant-numeric:tabular-nums; }
-.receipt .btn{ width:100%; }
-.receipt .btn[disabled]{ opacity:.42; pointer-events:none; filter:grayscale(.5); }
 
 /* ============================================================
    STORY (parallax)
@@ -601,6 +541,8 @@ html[lang="ar"] .pull{ text-transform:none; line-height:1.5 }
 .map-card{ position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--line);
   background:var(--char-700); min-height:390px; }
 .map-svg{ position:absolute; inset:0; width:100%; height:100%; }
+.map-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.map-open{ position:absolute; inset:0; z-index:2; }
 
 .pin{ opacity:0; transform-box:fill-box; transform-origin:50% 100%; }
 .in .pin{ animation:pinDrop .78s var(--ease-spring) .25s forwards; }
@@ -695,17 +637,14 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
    RESPONSIVE
    ============================================================ */
 /* Grid/flex children default to min-width:auto and refuse to shrink below
-   their content — which lets the scrollable step row widen the whole page.
-   Opting them back to 0 keeps overflow-x:auto scrolling inside its own box. */
-.build-layout > *,.hero-grid > *,.story-grid > *,.visit-grid > *,
+   their content — which lets a long word or a scrolling row widen the whole
+   page. Opting them back to 0 keeps overflow inside its own box. */
+.hero-grid > *,.story-grid > *,.visit-grid > *,
 .foot-grid > *,.menu-grid > *,.side-grid > *,.nav-in > *{ min-width:0; }
-.steps{ max-width:100%; }
 @media (max-width:1000px){
   .hero-grid{ grid-template-columns:1fr; gap:14px; text-align:start; }
   .hero-art{ order:-1; max-width:400px; margin-inline:auto; }
   .hero-burger{ width:min(78%,330px) }
-  .build-layout{ grid-template-columns:1fr; }
-  .receipt{ position:static; }
   .story-grid,.visit-grid{ grid-template-columns:1fr; gap:30px; }
   .foot-grid{ grid-template-columns:1fr 1fr; gap:28px; }
 }
@@ -725,8 +664,6 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   #hero{ min-height:auto; padding-block:calc(var(--nav-h) + 44px) 72px; }
   .scroll-cue{ display:none }
   .hero-stats{ gap:22px; margin-top:32px }
-  .steps{ overflow-x:auto; flex-wrap:nowrap; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
-  .step-tab{ min-width:124px; flex:none }
   .foot-grid{ grid-template-columns:1fr; }
   .foot-bottom{ justify-content:center; text-align:center }
 }
@@ -744,6 +681,7 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   .rv{ opacity:1 !important; transform:none !important; }
   .flip-line > span{ transform:none !important; opacity:1 !important; }
   .hero-tag,.hero-actions,.hero-stats,.hero-burger,.scroll-cue{ opacity:1 !important; transform:none !important; }
+  .hero-burger .bl{ animation:none !important; transform:none !important; }
   .pin{ opacity:1 !important }
 }
 
@@ -752,6 +690,290 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
 .no-js .rv,.no-js .flip-line > span,.no-js .hero-tag,.no-js .hero-actions,
 .no-js .hero-stats,.no-js .hero-burger,.no-js .scroll-cue{ opacity:1; transform:none }
 .no-js .pin{ opacity:1 }
+
+
+/* ============================================================
+   CATEGORY CHOOSER  (sits between the hero and the menu)
+   ============================================================ */
+.sec--tight{ padding-block:clamp(56px,7vw,88px) }
+.cat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+.cat{
+  position:relative; display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:24px 18px 20px; border-radius:18px; text-align:center;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600));
+  border:1px solid var(--line); color:var(--cream);
+  transition:transform .38s var(--ease-spring), border-color .3s, box-shadow .38s var(--ease-out);
+}
+.cat::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; opacity:0; pointer-events:none;
+  background:radial-gradient(70% 60% at 50% 0%, rgba(255,106,26,.18), transparent 70%);
+  transition:opacity .38s var(--ease-out);
+}
+.cat:hover{ transform:translateY(-8px); border-color:rgba(255,106,26,.45);
+  box-shadow:0 22px 40px -22px rgba(0,0,0,.85) }
+.cat:hover::before{ opacity:1 }
+.cat.on{ border-color:var(--flame); background:linear-gradient(165deg,rgba(255,106,26,.14),var(--char-600)) }
+.cat.on::before{ opacity:1 }
+
+.cat-ico{
+  width:62px; height:62px; display:grid; place-items:center; border-radius:16px; overflow:hidden;
+  background:linear-gradient(150deg,rgba(242,179,61,.16),rgba(255,106,26,.08));
+  transition:transform .42s var(--ease-spring); flex:none;
+}
+.cat:hover .cat-ico{ transform:rotate(-7deg) scale(1.08) }
+.cat-ico svg{ width:30px; height:30px }
+.cat-ico img{ width:100%; height:100%; object-fit:cover }
+.cat-name{ font-family:var(--f-display); font-size:19px; text-transform:uppercase; line-height:1.1 }
+html[lang="ar"] .cat-name{ text-transform:none; font-size:18px; line-height:1.4 }
+.cat-note{ font-size:11.5px; color:var(--muted) }
+.cat-count{
+  position:absolute; top:12px; inset-inline-end:14px;
+  font-size:11px; font-weight:700; color:var(--gold);
+  background:rgba(242,179,61,.14); border:1px solid rgba(242,179,61,.3);
+  border-radius:100px; padding:2px 8px; font-variant-numeric:tabular-nums;
+}
+.menu-empty{ grid-column:1/-1; padding:40px 0; text-align:center; color:var(--muted); font-size:15px }
+
+/* ---- photographs on menu cards ---- */
+.card-art.has-photo{ background:var(--char-800) }
+.card-photo{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block;
+  transition:transform .5s var(--ease-spring);
+}
+.card:hover .card-photo{ transform:scale(1.06) }
+
+/* ---- hero photograph, swapped in for the illustration ---- */
+.hero-photo{
+  width:min(100%,470px); border-radius:22px; position:relative; z-index:2;
+  aspect-ratio:1/.86; object-fit:cover;
+  box-shadow:0 40px 60px -28px rgba(0,0,0,.8);
+  animation:hover-float 6.5s ease-in-out 1.6s infinite;
+}
+.ready .hero-photo{ opacity:1 }
+
+/* ---- uploaded logo replaces the burger mark ---- */
+.brand-logo{
+  width:34px; height:34px; border-radius:9px; object-fit:cover; flex:none;
+  transition:transform .4s var(--ease-spring);
+}
+.brand:hover .brand-logo{ transform:rotate(-10deg) scale(1.07) }
+
+@media (max-width:520px){
+  .cat-grid{ grid-template-columns:1fr 1fr; gap:12px }
+  .cat{ padding:18px 12px 16px }
+  .cat-ico{ width:52px; height:52px }
+}
+
+/* @admin-css:begin */
+/* ============================================================
+   ADMIN PANEL  (route: #admin)
+   Authorisation is server-side: the artifact database only accepts
+   writes from viewers with edit access. Nothing here is a credential,
+   and no secret is shipped to the browser.
+   ============================================================ */
+#admin-root{
+  position:fixed; inset:0; z-index:1000; display:none;
+  background:var(--char-900); overflow-y:auto;
+  animation:adminIn .32s var(--ease-out);
+}
+#admin-root.open{ display:block }
+@keyframes adminIn{ from{ opacity:0; transform:translateY(12px) } to{ opacity:1; transform:none } }
+
+.ad-bar{
+  position:sticky; top:0; z-index:5;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:14px 20px; background:rgba(10,10,11,.94);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+}
+.ad-bar h1{
+  font-family:var(--f-display); font-size:19px; text-transform:uppercase;
+  letter-spacing:.02em; margin:0; color:var(--cream);
+}
+html[lang="ar"] .ad-bar h1{ text-transform:none }
+.ad-pill{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:5px 12px; border-radius:100px; font-size:11.5px; font-weight:700;
+  border:1px solid;
+}
+.ad-pill.ok{ background:rgba(61,220,138,.12); color:#3DDC8A; border-color:rgba(61,220,138,.35) }
+.ad-pill.ro{ background:rgba(242,179,61,.12); color:var(--gold); border-color:rgba(242,179,61,.35) }
+.ad-pill.off{ background:rgba(255,107,126,.12); color:#FF6B7E; border-color:rgba(255,107,126,.35) }
+.ad-pill i{ width:7px; height:7px; border-radius:50%; background:currentColor; flex:none }
+
+.ad-wrap{ max-width:960px; margin-inline:auto; padding:22px 20px 80px }
+.ad-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px }
+.ad-tab{
+  padding:9px 16px; border-radius:100px; border:1px solid var(--line);
+  background:var(--char-700); color:var(--cream-dim);
+  font-size:13px; font-weight:600; transition:all .24s var(--ease-out);
+}
+.ad-tab[aria-selected="true"]{ background:var(--flame); border-color:var(--flame); color:#160A02 }
+.ad-tab:hover:not([aria-selected="true"]){ border-color:var(--flame); color:var(--flame) }
+
+.ad-card{
+  border:1px solid var(--line); border-radius:16px; padding:18px;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600)); margin-bottom:14px;
+}
+.ad-card + .ad-card{ margin-top:0 }
+.ad-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+.ad-head h2{ font-family:var(--f-display); font-size:16px; text-transform:uppercase; margin:0; color:var(--cream) }
+html[lang="ar"] .ad-head h2{ text-transform:none }
+
+.ad-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.ad-field{ display:flex; flex-direction:column; gap:5px }
+.ad-field.full{ grid-column:1/-1 }
+.ad-field label{ font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.04em; text-transform:uppercase }
+html[lang="ar"] .ad-field label{ letter-spacing:0; text-transform:none }
+.ad-field input,.ad-field textarea,.ad-field select{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+  font-family:inherit; font-size:14px;
+}
+.ad-field input:focus,.ad-field textarea:focus{ outline:2px solid var(--gold); outline-offset:1px }
+.ad-field input[type="number"]{ font-variant-numeric:tabular-nums }
+.ad-field textarea{ resize:vertical; min-height:64px }
+.ad-field input:disabled,.ad-field textarea:disabled,.ad-field select:disabled{ opacity:.55; cursor:not-allowed }
+
+.ad-row{
+  border:1px solid var(--line); border-radius:14px; padding:14px;
+  background:var(--char-800); margin-bottom:10px;
+}
+.ad-row-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px }
+.ad-row-top strong{ font-size:14px; color:var(--cream); flex:1; min-width:0 }
+.ad-mini{
+  border:1px solid var(--line); background:var(--char-700); color:var(--cream-dim);
+  border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600;
+  transition:all .22s;
+}
+.ad-mini:hover:not(:disabled){ border-color:var(--flame); color:var(--flame) }
+.ad-mini.danger:hover:not(:disabled){ border-color:var(--jo-red); color:#FF6B7E }
+.ad-mini:disabled{ opacity:.4; cursor:not-allowed }
+
+.ad-chips{ display:flex; flex-wrap:wrap; gap:6px }
+.ad-chip{
+  padding:5px 11px; border-radius:100px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); font-size:11.5px; font-weight:600;
+}
+.ad-chip[aria-pressed="true"]{ border-color:var(--flame); background:rgba(255,106,26,.14); color:var(--flame) }
+
+.ad-save{
+  position:fixed; inset-inline:0; bottom:0; z-index:10;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:12px 20px; background:rgba(10,10,11,.96);
+  border-top:1px solid var(--line); backdrop-filter:blur(12px);
+  transform:translateY(110%); transition:transform .3s var(--ease-out);
+}
+.ad-save.show{ transform:none }
+.ad-save p{ margin:0; flex:1; font-size:13px; color:var(--cream-dim) }
+
+
+.ad-bad{ color:#FF6B7E !important }
+.ad-quiet{ color:var(--muted) !important }
+.ad-savebtn{
+  position:relative; font-weight:700; white-space:nowrap;
+  box-shadow:0 6px 18px -8px rgba(255,106,26,.75);
+}
+.ad-savebtn:disabled{ opacity:.7; cursor:progress }
+.ad-bar .ad-savebtn{ height:34px; padding:0 18px; font-size:13px }
+/* A dot marks work that is not in the database yet. */
+.ad-dot{
+  position:absolute; top:-3px; inset-inline-end:-3px;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--jo-red); border:2px solid var(--char-900);
+}
+.ad-warn{ color:var(--gold) !important }
+.ad-ok{
+  position:fixed; inset-inline-end:20px; bottom:74px; z-index:12;
+  padding:10px 16px; border-radius:100px; font-size:12.5px; font-weight:700;
+  background:rgba(61,220,138,.14); color:#3DDC8A; border:1px solid rgba(61,220,138,.4);
+  animation:adminIn .3s var(--ease-out);
+}
+.ad-note{
+  border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  background:var(--char-800); color:var(--cream-dim); font-size:13.5px; line-height:1.6;
+}
+.ad-note b{ color:var(--cream) }
+.ad-note code{
+  background:var(--char-600); padding:1px 6px; border-radius:5px;
+  font-size:12px; color:var(--gold);
+}
+
+/* ---- image picker inside the dashboard ---- */
+.ad-img{ display:flex; gap:12px; align-items:flex-start }
+.ad-img-prev{ position:relative;
+  width:96px; height:96px; flex:none; border-radius:12px; overflow:hidden;
+  border:1px solid var(--line); background:var(--char-900);
+  display:grid; place-items:center;
+}
+.ad-img-prev img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain }
+.ad-img-prev span{ font-size:11px; color:var(--muted); text-align:center; padding:6px }
+.ad-img-ctl{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:0 }
+.ad-img-ctl .ad-mini{ align-self:flex-start }
+.ad-upload{ position:relative; cursor:pointer; display:inline-flex; align-items:center; }
+/* It is a <label>, so undo the small grey field-label style it would inherit. */
+.ad-field label.ad-upload{ font-size:12px; font-weight:600; color:var(--cream-dim); letter-spacing:0; text-transform:none }
+.ad-field label.ad-upload:hover{ border-color:var(--flame); color:var(--flame) }
+.ad-upload.off{ opacity:.5; pointer-events:none; }
+.ad-upload.busy{ opacity:.6; pointer-events:none; }
+/* Visually hidden, never display:none: some phone browsers will not open a
+   picker for an input that is not rendered. */
+.ad-file{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:0; }
+.ad-url{
+  width:100%; padding:9px 11px; border-radius:9px; font-size:12.5px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+}
+.ad-filter{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+.ad-filter label{ font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em }
+html[lang="ar"] .ad-filter label{ text-transform:none; letter-spacing:0 }
+.ad-filter select{
+  padding:9px 12px; border-radius:10px; font-size:13.5px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream);
+}
+.ad-hours{ display:grid; grid-template-columns:auto 1fr 1fr auto; gap:10px; align-items:center }
+.ad-hours > span{ font-size:13px; color:var(--cream-dim) }
+.ad-hours input[type="time"]{ color-scheme:dark }
+.ad-link{
+  background:none; border:0; color:var(--muted); font-size:12.5px;
+  text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0;
+}
+.ad-link:hover{ color:var(--flame) }
+
+.ad-pub{ font-size:12px; color:var(--muted); max-width:240px; line-height:1.3 }
+.ad-pub.bad{ color:#FF6B7E }
+.ad-pub.due{ color:var(--gold); font-weight:700 }
+.ad-pubbtn{ background:var(--gold); color:#1A1203; box-shadow:0 6px 18px -8px rgba(242,179,61,.7) }
+.ad-bar a.ad-mini{ text-decoration:none; display:inline-flex; align-items:center }
+
+/* The admin page is the dashboard and nothing else: the customer site the
+   file also contains is not shown there at all. */
+body.admin-only > *:not(#admin-root){ display:none !important; }
+
+@media (max-width:640px){
+  .ad-grid{ grid-template-columns:1fr }
+  .ad-hours{ grid-template-columns:1fr 1fr; gap:8px }
+  .ad-hours > span:first-child{ grid-column:1/-1 }
+}
+/* login screen */
+.ad-lock{ min-height:calc(100vh - 140px); display:grid; place-items:center; padding:24px 16px; }
+.ad-lock-card{ width:min(100%,380px); display:flex; flex-direction:column; gap:14px;
+  background:linear-gradient(165deg,var(--char-700),var(--char-600)); border:1px solid var(--line);
+  border-radius:20px; padding:28px 24px; }
+.ad-lock-card h2{ margin:0; font-size:22px; }
+.ad-lock-card p{ margin:0; font-size:13.5px; color:var(--muted); line-height:1.5; }
+.ad-lock-ico{ width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+  background:rgba(255,106,26,.12); color:var(--flame); }
+.ad-lock-card label, .ad-pw label{ display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted); }
+.ad-lock-card input, .ad-pw input{ font:inherit; font-size:15px; padding:12px 14px; border-radius:12px;
+  border:1px solid var(--line); background:var(--char-800); color:var(--cream); }
+.ad-lock-card input:focus, .ad-pw input:focus{ outline:2px solid var(--flame); outline-offset:1px; }
+.ad-lock-msg{ min-height:1.2em; }
+.ad-lock-msg.bad{ color:#FF6B7E !important; }
+.ad-lock-msg.ok{ color:#5FD38D !important; }
+.ad-pw{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:14px; }
+.ad-lockbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  margin-bottom:16px; padding:12px 16px; border-radius:14px; border:1px solid rgba(242,179,61,.4);
+  background:rgba(242,179,61,.08); font-size:13.5px; }
+/* @admin-css:end */
 </style>
 </head>
 <body class="is-loading no-js">
@@ -844,8 +1066,7 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
     </a>
     <nav class="nav-links" id="navLinks" aria-label="Main">
       <a href="#menu"  data-i18n="nav_menu">Menu</a>
-      <a href="#sides" data-i18n="nav_sides">Sides</a>
-      <a href="#build" data-i18n="nav_build">Build Yours</a>
+      <a href="#categories" data-i18n="nav_sides">Categories</a>
       <a href="#story" data-i18n="nav_story">Our Story</a>
       <a href="#visit" data-i18n="nav_visit">Visit</a>
     </nav>
@@ -875,7 +1096,6 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
       <p class="hero-tag" data-i18n="hero_tag">Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.</p>
       <div class="hero-actions">
         <a class="btn" href="#menu" data-i18n="hero_cta1">See the Menu</a>
-        <a class="btn btn--ghost" href="#build" data-i18n="hero_cta2">Build Your Own</a>
       </div>
       <div class="hero-stats">
         <div class="hstat"><b data-i18n="stat1v">100%</b><span data-i18n="stat1">Jordanian beef</span></div>
@@ -883,13 +1103,52 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
         <div class="hstat"><b data-i18n="stat3v">4.9★</b><span data-i18n="stat3">1,200+ reviews</span></div>
       </div>
     </div>
-    <div class="hero-art">
+    <div class="hero-art" id="heroArt">
       <div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
-      <svg class="hero-burger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger"><use href="#burger"/></svg>
+      <svg class="hero-burger" id="heroBurger" viewBox="0 0 200 168" role="img" aria-label="A stacked Baytna smash burger">
+        <!-- The same burger as the #burger symbol, split into its layers so
+             each can move on its own as the visitor scrolls. -->
+        <ellipse class="bl" data-l="shadow" cx="100" cy="158" rx="74" ry="8" fill="#000" opacity=".38"/>
+        <g class="bl" data-l="bun-bot"><path d="M182 148c0 9-8 14-20 14H38c-12 0-20-5-20-14z" fill="url(#gBunBot)"/></g>
+        <g class="bl" data-l="patty"><rect x="22" y="126" width="156" height="22" rx="11" fill="url(#gPatty)"/></g>
+        <g class="bl" data-l="cheese">
+          <path d="M26 118h148l-16 15H42z" fill="url(#gCheese)"/>
+          <path d="M40 132l-7 13h18zM96 132l-7 14h18zM152 132l-7 13h18z" fill="url(#gCheese)"/>
+        </g>
+        <g class="bl" data-l="tomato-l"><circle cx="58" cy="112" r="13" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="tomato-m"><circle cx="100" cy="114" r="14" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="tomato-r"><circle cx="142" cy="112" r="13" fill="url(#gTomato)"/></g>
+        <g class="bl" data-l="lettuce">
+          <path d="M14 96h172c0 8-5 12-12 12H26c-7 0-12-4-12-12z" fill="url(#gLettuce)"/>
+          <path d="M20 105c8 7 20 9 30 4 9 6 22 6 31 0 9 7 22 7 31 1 9 6 22 5 30-2 6 5 14 6 21 2v6H20z" fill="#5FA834"/>
+        </g>
+        <g class="bl" data-l="bun-top"><path d="M18 96c0-38 37-66 82-66s82 28 82 66z" fill="url(#gBunTop)"/></g>
+        <g class="bl" data-l="seeds" fill="#FBE9C4" opacity=".92">
+          <ellipse cx="66" cy="62" rx="5.5" ry="3.4" transform="rotate(-22 66 62)"/>
+          <ellipse cx="100" cy="52" rx="5.5" ry="3.4" transform="rotate(6 100 52)"/>
+          <ellipse cx="134" cy="63" rx="5.5" ry="3.4" transform="rotate(24 134 63)"/>
+          <ellipse cx="83" cy="78" rx="5" ry="3.1" transform="rotate(-10 83 78)"/>
+          <ellipse cx="117" cy="78" rx="5" ry="3.1" transform="rotate(14 117 78)"/>
+          <ellipse cx="48" cy="84" rx="4.6" ry="2.9" transform="rotate(-34 48 84)"/>
+          <ellipse cx="152" cy="85" rx="4.6" ry="2.9" transform="rotate(34 152 85)"/>
+        </g>
+      </svg>
       <div class="flame-wrap" aria-hidden="true"><span class="flame"></span><span class="flame"></span><span class="flame"></span><span class="flame"></span></div>
     </div>
   </div>
   <div class="scroll-cue" aria-hidden="true"><span data-i18n="scroll">SCROLL</span><i></i></div>
+</section>
+
+<!-- ========== CATEGORIES — pick a section before the menu ========== -->
+<section id="categories" class="sec sec--tight">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow" data-i18n="eyebrow_cats">Choose a section</p>
+      <h2 class="title" data-i18n="cats_title">WHAT ARE YOU<br>IN THE MOOD FOR?</h2>
+      <p class="lede" data-i18n="cats_lede">Pick a category and the menu below follows.</p>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
 </section>
 
 <!-- ========== SIGNATURE MENU ========== -->
@@ -904,45 +1163,6 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   </div>
 </section>
 
-<!-- ========== SIDES & DRINKS ========== -->
-<section id="sides" class="sec">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <p class="eyebrow" data-i18n="eyebrow_sides">Sides &amp; Drinks</p>
-      <h2 class="title" data-i18n="sides_title">THE SUPPORTING CAST</h2>
-    </div>
-    <div class="side-grid" id="sideGrid"></div>
-  </div>
-</section>
-
-<!-- ========== BUILD YOUR OWN ========== -->
-<section id="build" class="sec">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <p class="eyebrow" data-i18n="eyebrow_build">Build Your Own</p>
-      <h2 class="title" data-i18n="build_title">FOUR STEPS<br>TO YOUR BURGER</h2>
-      <p class="lede" data-i18n="build_lede">Pick a bun, a patty, your toppings and a sauce. The price updates as you go.</p>
-    </div>
-
-    <div class="build-layout">
-      <div class="rv">
-        <div class="steps" role="tablist" aria-label="Burger builder steps" id="stepTabs"></div>
-        <div id="stepPanel"></div>
-      </div>
-
-      <aside class="receipt rv rv-d2" aria-live="polite">
-        <h3 data-i18n="receipt_title">Your Burger</h3>
-        <p class="receipt-sub" data-i18n="receipt_sub">Baytna Burger · Rainbow Street</p>
-        <div class="receipt-lines" id="receiptLines"></div>
-        <div class="receipt-total">
-          <span data-i18n="total">Total</span>
-          <strong id="totalPrice">0.00 JD</strong>
-        </div>
-        <a class="btn btn--red" id="orderBtn" href="#" data-i18n="send_wa">Send Order on WhatsApp</a>
-      </aside>
-    </div>
-  </div>
-</section>
 
 <!-- ========== STORY ========== -->
 <section id="story" class="sec">
@@ -1008,6 +1228,7 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
             </g>
           </g>
         </svg>
+        <a class="map-open" id="mapOpen" href="https://www.google.com/maps/search/?api=1&amp;query=Rainbow+Street+Jabal+Amman+Jordan" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"></a>
         <div class="map-label">
           <b data-i18n="map_name">Baytna Burger</b>
           <span data-i18n="map_addr">Rainbow St, Jabal Amman · Amman, Jordan</span>
@@ -1052,8 +1273,7 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
         <h4 data-i18n="foot_menu">Menu</h4>
         <ul>
           <li><a href="#menu" data-i18n="nav_menu">Menu</a></li>
-          <li><a href="#sides" data-i18n="nav_sides">Sides</a></li>
-          <li><a href="#build" data-i18n="nav_build">Build Yours</a></li>
+          <li><a href="#categories" data-i18n="nav_sides">Categories</a></li>
         </ul>
       </div>
       <div class="foot">
@@ -1081,6 +1301,11 @@ html[lang="ar"] .foot h4{ letter-spacing:0; text-transform:none }
   </div>
 </footer>
 
+<!-- Admin dashboard — rendered by JS at the #admin route -->
+<!-- @admin-html:begin -->
+<section id="admin-root" role="region" aria-label="Admin dashboard" hidden></section>
+<!-- @admin-html:end -->
+
 <script>
 (function(){
 'use strict';
@@ -1091,36 +1316,85 @@ var reduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
    ============================================================ */
 var WA_NUMBER = '962790000000'; /* placeholder — swap for the real number */
 
-var BURGERS = [
-  { id:'petra',   price:6.50, spice:1, badge:'best',
-    en:{n:"Petra Smash",            d:"Two smashed local beef patties, aged cheddar, house pickles and smash sauce on a sesame brioche."},
-    ar:{n:"سماش البتراء",           d:"قطعتا لحم بلدي مضغوطتان، شيدر معتّق، مخلل البيت وصوص السماش على خبز بريوش بالسمسم."} },
-  { id:'rainbow', price:5.75, spice:0, badge:null,
-    en:{n:"Rainbow Street Classic", d:"Single patty, crisp lettuce, tomato, raw onion and the sauce we have not changed since 2016."},
-    ar:{n:"كلاسيك الرينبو",         d:"قطعة لحم واحدة، خس مقرمش، بندورة، بصل طازج، والصوص الذي لم نغيّره منذ ٢٠١٦."} },
-  { id:'zaatar',  price:6.25, spice:2, badge:'chef',
-    en:{n:"Za'atar Crunch",         d:"Za'atar-crusted patty, grilled halloumi, sumac onions and a lemon-tahini drizzle."},
-    ar:{n:"زعتر كرانش",             d:"لحم بقشرة زعتر، حلوم مشوي، بصل بالسماق، ورشّة طحينة بالليمون."} },
-  { id:'jabal',   price:7.50, spice:1, badge:null,
-    en:{n:"Jabal Amman Double",     d:"Double beef, double cheddar, caramelised onion and garlic toum. Built for a long night."},
-    ar:{n:"دوبل جبل عمّان",         d:"لحم مزدوج، شيدر مضاعف، بصل مكرمل وثوم. مصنوع لليالي الطويلة."} },
-  { id:'shatta',  price:7.00, spice:4, badge:'spicy',
-    en:{n:"Shatta Fire",            d:"House shatta, pickled jalapeño, pepper jack and charred green chilli. It bites back."},
-    ar:{n:"نار الشطة",              d:"شطة البيت، هالابينو مخلل، جبنة حارة وفلفل أخضر مشوي. لاذع فعلاً."} },
-  { id:'halloumi',price:5.50, spice:0, badge:'veg',
-    en:{n:"Halloumi Garden",        d:"Thick-cut grilled halloumi, olive tapenade, rocket and roasted red pepper. No beef, no apology."},
-    ar:{n:"حديقة الحلوم",           d:"حلوم مشوي سميك، تابيناد زيتون، جرجير وفلفل أحمر مشوي. بلا لحم وبلا اعتذار."} }
+/* Categories shown before the menu, so a customer picks a section
+   instead of scrolling one long list. */
+var CATEGORIES = [
+  { id:'burgers',    icon:'burger',  en:{ n:'Burgers',        t:'Smashed to order' },   ar:{ n:'برجر',              t:'مضغوط عند الطلب' } },
+  { id:'sandwiches', icon:'i-cheese',en:{ n:'Sandwiches',     t:'Saj-wrapped'      },   ar:{ n:'سندويشات',          t:'ملفوف على الصاج' } },
+  { id:'sides',      icon:'i-fries', en:{ n:'Sides',          t:'Fries and more'   },   ar:{ n:'الإضافات',          t:'بطاطا وغيرها' } },
+  { id:'drinks',     icon:'i-juice', en:{ n:'Juices & Drinks',t:'Pressed fresh'    },   ar:{ n:'العصائر والمشروبات', t:'تُعصر طازجة' } }
 ];
 
-var SIDES = [
-  { icon:'i-fries',  price:2.00, en:{n:"Sumac Fries",       t:"Skin-on, sumac salt"},   ar:{n:"بطاطا بالسماق",     t:"بالقشرة، ملح السماق"} },
-  { icon:'i-cheese', price:3.50, en:{n:"Halloumi Bites",    t:"Honey + za'atar"},       ar:{n:"قطع الحلوم",        t:"عسل وزعتر"} },
-  { icon:'i-rings',  price:2.75, en:{n:"Za'atar Onion Rings",t:"Six per basket"},       ar:{n:"حلقات بصل بالزعتر", t:"ستة في السلة"} },
-  { icon:'i-ayran',  price:1.25, en:{n:"Laban Ayran",       t:"Salted, ice cold"},      ar:{n:"لبن عيران",         t:"مملّح ومثلّج"} },
-  { icon:'i-juice',  price:2.00, en:{n:"Lemon & Mint",      t:"Pressed to order"},      ar:{n:"ليمون ونعناع",      t:"يُعصر عند الطلب"} },
-  { icon:'i-tamr',   price:1.75, en:{n:"Tamarind",          t:"Ramadan all year"},      ar:{n:"تمر هندي",          t:"رمضان طوال السنة"} }
+/* One flat list; `cat` decides which category tab an item appears under.
+   `img` is optional — a URL or a stored image id; without one the card
+   falls back to the inline burger illustration. */
+var ITEMS = [
+  { id:'petra',   cat:'burgers', price:6.50, spice:1, badge:'best', img:'',
+    en:{n:"Petra Smash",             d:"Two smashed local beef patties, aged cheddar, house pickles and smash sauce on a sesame brioche."},
+    ar:{n:"سماش البتراء",            d:"قطعتا لحم بلدي مضغوطتان، شيدر معتّق، مخلل البيت وصوص السماش على خبز بريوش بالسمسم."} },
+  { id:'rainbow', cat:'burgers', price:5.75, spice:0, badge:null, img:'',
+    en:{n:"Rainbow Street Classic",  d:"Single patty, crisp lettuce, tomato, raw onion and the sauce we have not changed since 2016."},
+    ar:{n:"كلاسيك الرينبو",          d:"قطعة لحم واحدة، خس مقرمش، بندورة، بصل طازج، والصوص الذي لم نغيّره منذ ٢٠١٦."} },
+  { id:'zaatar',  cat:'burgers', price:6.25, spice:2, badge:'chef', img:'',
+    en:{n:"Za'atar Crunch",          d:"Za'atar-crusted patty, grilled halloumi, sumac onions and a lemon-tahini drizzle."},
+    ar:{n:"زعتر كرانش",              d:"لحم بقشرة زعتر، حلوم مشوي، بصل بالسماق، ورشّة طحينة بالليمون."} },
+  { id:'jabal',   cat:'burgers', price:7.50, spice:1, badge:null, img:'',
+    en:{n:"Jabal Amman Double",      d:"Double beef, double cheddar, caramelised onion and garlic toum. Built for a long night."},
+    ar:{n:"دوبل جبل عمّان",          d:"لحم مزدوج، شيدر مضاعف، بصل مكرمل وثوم. مصنوع لليالي الطويلة."} },
+  { id:'shatta',  cat:'burgers', price:7.00, spice:4, badge:'spicy', img:'',
+    en:{n:"Shatta Fire",             d:"House shatta, pickled jalapeño, pepper jack and charred green chilli. It bites back."},
+    ar:{n:"نار الشطة",               d:"شطة البيت، هالابينو مخلل، جبنة حارة وفلفل أخضر مشوي. لاذع فعلاً."} },
+  { id:'halloumi',cat:'burgers', price:5.50, spice:0, badge:'veg', img:'',
+    en:{n:"Halloumi Garden",         d:"Thick-cut grilled halloumi, olive tapenade, rocket and roasted red pepper. No beef, no apology."},
+    ar:{n:"حديقة الحلوم",            d:"حلوم مشوي سميك، تابيناد زيتون، جرجير وفلفل أحمر مشوي. بلا لحم وبلا اعتذار."} },
+
+  { id:'sajchicken', cat:'sandwiches', price:4.75, spice:1, badge:null, img:'',
+    en:{n:"Saj Chicken Wrap",        d:"Marinated thigh, garlic toum, pickles and sumac onions in warm saj bread."},
+    ar:{n:"شاورما دجاج بالصاج",      d:"فخذ متبّل، ثوم، مخلل وبصل بالسماق في خبز صاج دافئ."} },
+  { id:'sajhalloumi',cat:'sandwiches', price:4.25, spice:0, badge:'veg', img:'',
+    en:{n:"Halloumi Saj",            d:"Grilled halloumi, tomato, mint and olive oil, rolled and pressed."},
+    ar:{n:"صاج الحلوم",              d:"حلوم مشوي، بندورة، نعناع وزيت زيتون، ملفوف ومضغوط."} },
+
+  { id:'fries',   cat:'sides',  price:2.00, spice:0, badge:null, img:'', icon:'i-fries',
+    en:{n:"Sumac Fries",             d:"Skin-on, sumac salt."},
+    ar:{n:"بطاطا بالسماق",           d:"بالقشرة، ملح السماق."} },
+  { id:'bites',   cat:'sides',  price:3.50, spice:0, badge:null, img:'', icon:'i-cheese',
+    en:{n:"Halloumi Bites",          d:"Honey and za'atar."},
+    ar:{n:"قطع الحلوم",              d:"عسل وزعتر."} },
+  { id:'rings',   cat:'sides',  price:2.75, spice:0, badge:null, img:'', icon:'i-rings',
+    en:{n:"Za'atar Onion Rings",     d:"Six per basket."},
+    ar:{n:"حلقات بصل بالزعتر",       d:"ستة في السلة."} },
+
+  { id:'ayran',   cat:'drinks', price:1.25, spice:0, badge:null, img:'', icon:'i-ayran',
+    en:{n:"Laban Ayran",             d:"Salted, ice cold."},
+    ar:{n:"لبن عيران",               d:"مملّح ومثلّج."} },
+  { id:'lemon',   cat:'drinks', price:2.00, spice:0, badge:null, img:'', icon:'i-juice',
+    en:{n:"Lemon & Mint",            d:"Pressed to order."},
+    ar:{n:"ليمون ونعناع",            d:"يُعصر عند الطلب."} },
+  { id:'tamr',    cat:'drinks', price:1.75, spice:0, badge:null, img:'', icon:'i-tamr',
+    en:{n:"Tamarind",                d:"Ramadan all year."},
+    ar:{n:"تمر هندي",                d:"رمضان طوال السنة."} }
 ];
 
+/* Brand name and hero/logo art, all editable from the dashboard. */
+var BRAND = { en:{ a:'BAYTNA', b:'BURGER' }, ar:{ a:'بيتنا', b:'برجر' }, logo:'' };
+/* Social and map destinations, all editable. Empty means "hide the link"
+   rather than "link to nowhere", which is what href="#" used to do. */
+var LINKS = { instagram:'', facebook:'', tiktok:'', maps:'' };
+/* The four colours the whole page is built from. Stored as content, so the
+   restaurant's palette is theirs to change too. */
+var THEME_KEYS = ['flame', 'gold', 'red', 'bg'];
+var THEME_BASE = { flame:'#FF6A1A', gold:'#F2B33D', red:'#CE1126', bg:'#0A0A0B' };
+var THEME = { flame:'', gold:'', red:'', bg:'' };
+var CONTACT_PHONE = '+962 7 9000 0000';
+var isText = function(x){ return typeof x === 'string'; };
+var HERO_IMAGE = '';
+var MAP_IMAGE = '';   /* the Visit map picture; empty keeps the drawn map */
+var MEDIA = {};   /* id -> data URL, loaded from the database */
+
+/* The old build-your-own options. The site no longer shows a builder, but
+   these stay in the data model so the options already saved in the database
+   are carried through every save instead of being deleted. */
 var STEPS = [
   { key:'bun',      multi:false, en:"Bun",      ar:"الخبز",
     opts:[ {id:'brioche', p:0,    en:{n:"Sesame Brioche", d:"House standard"}, ar:{n:"بريوش بالسمسم", d:"الأساسي"}},
@@ -1160,20 +1434,17 @@ var HOURS = [
 var T = {
   en:{
     brand:'BAYTNA <b>BURGER</b>', loading:'FIRING UP THE GRILL',
-    nav_menu:'Menu', nav_sides:'Sides', nav_build:'Build Yours', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
+    nav_menu:'Menu', nav_sides:'Categories', nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order Now',
     hero_badge:'Rainbow Street · Jabal Amman',
     hero_l1:'SMASHED', hero_l2:'OVER FIRE', hero_l3:'SINCE 2016',
     hero_tag:"Grilled in Amman, loved everywhere. Local beef, saj-pressed buns, and a za'atar crust you will think about on the drive home.",
-    hero_cta1:'See the Menu', hero_cta2:'Build Your Own',
+    hero_cta1:'See the Menu',
     stat1:'Jordanian beef', stat2:'Average grill time', stat3:'1,200+ reviews', scroll:'SCROLL',
     stat1v:'100%', stat2v:'7 min', stat3v:'4.9★',
     eyebrow_menu:'The Signatures', menu_title:'SIX BURGERS.<br>NO FILLER.',
     menu_lede:'Every patty is smashed to order on a 260°C flat-top. Prices in Jordanian Dinar, taxes included.',
-    eyebrow_sides:'Sides &amp; Drinks', sides_title:'THE SUPPORTING CAST',
-    eyebrow_build:'Build Your Own', build_title:'FOUR STEPS<br>TO YOUR BURGER',
-    build_lede:'Pick a bun, a patty, your toppings and a sauce. The price updates as you go.',
-    receipt_title:'Your Burger', receipt_sub:'Baytna Burger · Rainbow Street', total:'Total',
-    send_wa:'Send Order on WhatsApp', receipt_empty:'Nothing picked yet — start with a bun.',
+    eyebrow_cats:'Choose a section', cats_title:'WHAT ARE YOU<br>IN THE MOOD FOR?',
+    cats_lede:'Pick a category and the menu below follows.', no_items:'Nothing in this section yet.',
     eyebrow_story:'Our Story', story_title:'A GRILL,<br>A GARAGE,<br>AND A CITY',
     story_p1:'Baytna started in 2016 in a converted garage off Rainbow Street, with one flat-top grill and a queue that spilled onto the pavement. Baytna means "our home" — the plan was never a chain, just a place that felt like one.',
     story_p2:'The beef comes from farms outside Madaba and is ground every morning. The olive oil is pressed in Ajloun. The za\'atar is a family blend from a neighbour who has been making it longer than we have been open.',
@@ -1190,27 +1461,24 @@ var T = {
     rights:'© 2026 Baytna Burger · Amman, Jordan', made:'Made with fire and olive oil', cur:'JD',
     days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
     badges:{best:'Best Seller', chef:"Chef's Pick", spicy:'Bring Water', veg:'Vegetarian'},
-    spice:'Heat', add:'Add', open_now:'Open now', closed_now:'Closed',
+    spice:'Heat', open_now:'Open now', closed_now:'Closed',
     closes_in:'closes in', opens_at:'opens', mins:'m', hrs:'h', gap:'',
     ings:['Madaba beef','Ajloun olive oil','Jerash za\'atar','Irbid halloumi','Saj bread','House shatta'],
-    order_head:'New order from the website', order_total:'Total'
+    order_head:'New order from the website'
   },
   ar:{
     brand:'بيتنا <b>برجر</b>', loading:'نُشعل الشوّاية',
-    nav_menu:'المنيو', nav_sides:'الإضافات', nav_build:'اصنع برجرك', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
+    nav_menu:'المنيو', nav_sides:'الأقسام', nav_story:'قصتنا', nav_visit:'زورونا', nav_order:'اطلب الآن',
     hero_badge:'شارع الرينبو · جبل عمّان',
     hero_l1:'سماش', hero_l2:'على النار', hero_l3:'منذ ٢٠١٦',
     hero_tag:'مشوي في عمّان، محبوب في كل مكان. لحم بلدي، خبز مضغوط على الصاج، وقشرة زعتر ستفكر فيها طوال الطريق إلى البيت.',
-    hero_cta1:'شوف المنيو', hero_cta2:'اصنع برجرك',
+    hero_cta1:'شوف المنيو',
     stat1:'لحم أردني', stat2:'متوسط وقت الشوي', stat3:'أكثر من ١٢٠٠ تقييم', scroll:'انزل',
     stat1v:'٪١٠٠', stat2v:'٧ دقائق', stat3v:'★٤٫٩',
     eyebrow_menu:'الأطباق المميّزة', menu_title:'ستة برجرات.<br>بلا حشو.',
     menu_lede:'كل قطعة لحم تُضغط عند الطلب على صاج بحرارة ٢٦٠ درجة. الأسعار بالدينار الأردني شاملة الضريبة.',
-    eyebrow_sides:'الإضافات والمشروبات', sides_title:'الطاقم المساند',
-    eyebrow_build:'اصنع برجرك', build_title:'أربع خطوات<br>إلى برجرك',
-    build_lede:'اختر الخبز واللحم والإضافات والصوص. السعر يتحدّث مع كل اختيار.',
-    receipt_title:'برجرك', receipt_sub:'بيتنا برجر · شارع الرينبو', total:'المجموع',
-    send_wa:'أرسل الطلب على واتساب', receipt_empty:'لم تختر شيئاً بعد — ابدأ بالخبز.',
+    eyebrow_cats:'اختر القسم', cats_title:'شو نفسك<br>تاكل اليوم؟',
+    cats_lede:'اختر قسماً وسيتبعه المنيو في الأسفل.', no_items:'لا يوجد شيء في هذا القسم بعد.',
     eyebrow_story:'قصتنا', story_title:'شوّاية،<br>وكراج،<br>ومدينة',
     story_p1:'بدأت بيتنا عام ٢٠١٦ في كراج مُحوَّل قرب شارع الرينبو، بشوّاية واحدة وطابور يمتد إلى الرصيف. «بيتنا» تعني بيتنا فعلاً — لم تكن الخطة سلسلة مطاعم، بل مكان يشبه البيت.',
     story_p2:'اللحم يأتي من مزارع خارج مادبا ويُفرم كل صباح. زيت الزيتون معصور في عجلون. والزعتر خلطة عائلية من جار يصنعها منذ زمن أطول من عمر مطعمنا.',
@@ -1227,201 +1495,240 @@ var T = {
     rights:'© ٢٠٢٦ بيتنا برجر · عمّان، الأردن', made:'صُنع بالنار وزيت الزيتون', cur:'د.أ',
     days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     badges:{best:'الأكثر مبيعاً', chef:'اختيار الشيف', spicy:'جهّز الماء', veg:'نباتي'},
-    spice:'الحرارة', add:'أضف', open_now:'مفتوح الآن', closed_now:'مغلق',
+    spice:'الحرارة', open_now:'مفتوح الآن', closed_now:'مغلق',
     closes_in:'يغلق بعد', opens_at:'يفتح', mins:'دقيقة', hrs:'ساعة', gap:' ',
     ings:['لحم مادبا','زيت زيتون عجلون','زعتر جرش','حلوم إربد','خبز الصاج','شطة البيت'],
-    order_head:'طلب جديد من الموقع', order_total:'المجموع'
+    order_head:'طلب جديد من الموقع'
   }
 };
 
 var lang = 'en';
 var $  = function(s,c){ return (c||document).querySelector(s); };
 var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
-var money = function(n){ return n.toFixed(2) + ' ' + T[lang].cur; };
+var money = function(n){ return n.toFixed(2) + ' ' + tx('cur'); };
+
+/* Content edited in the admin panel lives in a shared database, and the runtime
+   contract is explicit that shared data is untrusted — so everything read back
+   from it is escaped before it reaches innerHTML. */
+/* An own-property read, for any lookup whose key is stored content. */
+function own_(obj, key){
+  return (obj && typeof key === 'string' &&
+    Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+}
+
+function esc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* Text the admin has overridden, keyed exactly like T. */
+var OVERRIDES = { en: {}, ar: {} };
 var pad = function(n){ return (n<10?'0':'') + n; };
 var fmtTime = function(m){ return pad(Math.floor(m/60)%24) + ':' + pad(m%60); };
 
 /* ============================================================
    RENDER: menu + sides
    ============================================================ */
+var activeCat = 'burgers';
+
+/* An image is either a pasted https URL, an inline data URL, or an id
+   pointing at a stored image document. Anything else means "no image",
+   and the card falls back to the built-in illustration. */
+/* The only two shapes that may reach an src attribute: an https URL, or an
+   inline image. Everything else — javascript:, data:text/html, a protocol
+   relative //host, a stray object from the prototype chain — resolves to
+   nothing. The stored value is checked by the same rule as a pasted one,
+   because a media document is editable content too. */
+function safeImageUrl(v){
+  if(typeof v !== 'string') return '';
+  var t = v.trim();
+  if(/^https:\/\/[^\s"'<>]+$/i.test(t)) return t;
+  if(/^data:image\/(png|jpe?g|webp|gif|avif|bmp);base64,[A-Za-z0-9+/=\s]+$/i.test(t)) return t;
+  return '';
+}
+
+function imgSrc(v){
+  if(typeof v !== 'string' || !v) return '';
+  var direct = safeImageUrl(v);
+  if(direct) return direct;
+  /* An id into the stored images. Own properties only: a value like
+     "constructor" would otherwise walk the prototype chain. */
+  if(!Object.prototype.hasOwnProperty.call(MEDIA, v)) return '';
+  return safeImageUrl(MEDIA[v]);
+}
+
+function renderCategories(){
+  var grid = $('#catGrid');
+  if(!grid) return;
+  grid.innerHTML = CATEGORIES.map(function(c, i){
+    var L = c[lang] || c.en || {};
+    var count = ITEMS.filter(function(it){ return it.cat === c.id; }).length;
+    var pic = imgSrc(c.img);
+    return '<button class="cat rv rv-d' + ((i % 4) + 1) + (activeCat === c.id ? ' on' : '') + '"'
+      + ' data-cat="' + esc(c.id) + '" aria-pressed="' + (activeCat === c.id) + '">'
+      +   '<span class="cat-ico">'
+      +     (pic
+            ? '<img src="' + esc(pic) + '" alt="" loading="lazy">'
+            : '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#' + esc(c.icon || 'i-fries') + '"/></svg>')
+      +   '</span>'
+      +   '<span class="cat-name">' + esc(L.n || c.id) + '</span>'
+      +   '<span class="cat-note">' + esc(L.t || '') + '</span>'
+      +   '<span class="cat-count">' + count + '</span>'
+      + '</button>';
+  }).join('');
+  observeReveals(grid);
+}
+
+/* A price out of the database is content: it can be absent, negative, a
+   string, or a billion. Rendered through the same clamp the editor applies, so
+   the card always shows a plausible number. */
+function money2(v){
+  var n = Number(v);
+  if(!isFinite(n) || n < 0) n = 0;
+  if(n > 9999) n = 9999;
+  return n.toFixed(2);
+}
+
+/* A badge's wording, overridable like any other string on the page. */
+function badgeLabel(key){
+  if(typeof key !== 'string' || !key) return '';
+  var over = textOf('badge_' + key);
+  if(over) return over;
+  return own_(T[lang].badges, key) || key;
+}
+
 function renderMenu(){
   var t = T[lang];
-  $('#menuGrid').innerHTML = BURGERS.map(function(b,i){
-    var L = b[lang];
+  var list = ITEMS.filter(function(it){ return it.cat === activeCat; });
+  var grid = $('#menuGrid');
+  if(!grid) return;
+
+  if(list.length === 0){
+    grid.innerHTML = '<p class="menu-empty">' + esc(tx('no_items')) + '</p>';
+    return;
+  }
+
+  var tints = ['#3A2418','#2E2A18','#38221C','#2B2620','#3E1E14','#22301F'];
+
+  grid.innerHTML = list.map(function(b, i){
+    var L = b[lang] || b.en || {};
     var badge = b.badge
-      ? '<span class="card-badge' + (b.badge==='best'||b.badge==='chef' ? ' gold':'') + '">' + t.badges[b.badge] + '</span>'
+      ? '<span class="card-badge' + (b.badge === 'best' || b.badge === 'chef' ? ' gold' : '') + '">'
+        + esc(badgeLabel(b.badge)) + '</span>'
       : '';
     var dots = '';
-    for(var s=0; s<5; s++) dots += '<i class="' + (s < b.spice ? 'on':'') + '"></i>';
-    var tints=['#3A2418','#2E2A18','#38221C','#2B2620','#3E1E14','#22301F'];
-    return '<article class="card rv rv-d' + ((i%3)+1) + '" tabindex="0">'
-      +   '<div class="card-art" style="--art:' + tints[i%tints.length] + '">' + badge
-      +     '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#burger"/></svg>'
+    for(var sp = 0; sp < 5; sp++) dots += '<i class="' + (sp < (b.spice || 0) ? 'on' : '') + '"></i>';
+
+    var pic = imgSrc(b.img);
+    var art = pic
+      ? '<img class="card-photo" src="' + esc(pic) + '" alt="' + esc(L.n || '') + '" loading="lazy">'
+      : '<svg viewBox="0 0 200 168" aria-hidden="true"><use href="#' + esc(b.icon || 'burger') + '"/></svg>';
+
+    return '<article class="card rv rv-d' + ((i % 3) + 1) + '" tabindex="0">'
+      +   '<div class="card-art' + (pic ? ' has-photo' : '') + '" style="--art:' + tints[i % tints.length] + '">'
+      +     badge + art
       +   '</div>'
-      +   '<div class="card-top"><h3 class="card-name">' + L.n + '</h3>'
-      +     '<span class="price">' + b.price.toFixed(2) + '<small>' + t.cur + '</small></span></div>'
-      +   '<p class="card-desc">' + L.d + '</p>'
+      +   '<div class="card-top"><h3 class="card-name">' + esc(L.n) + '</h3>'
+      +     '<span class="price">' + money2(b.price) + '<small>' + esc(tx('cur')) + '</small></span></div>'
+      +   '<p class="card-desc">' + esc(L.d) + '</p>'
       +   '<div class="card-foot">'
-      +     '<span class="spice">' + t.spice + ' <span class="spice-dots">' + dots + '</span></span>'
-      +     '<button class="add-btn" type="button" data-add="' + b.id + '">' + t.add + '</button>'
+      +     '<span class="spice">' + esc(tx('spice')) + ' <span class="spice-dots">' + dots + '</span></span>'
       +   '</div>'
       + '</article>';
   }).join('');
-  observeReveals($('#menuGrid'));
+  observeReveals(grid);
 }
 
-function renderSides(){
-  $('#sideGrid').innerHTML = SIDES.map(function(s,i){
-    var L = s[lang];
-    return '<div class="side rv rv-d' + ((i%6)+1) + '">'
-      +   '<span class="side-ico"><svg width="28" height="28" aria-hidden="true"><use href="#' + s.icon + '"/></svg></span>'
-      +   '<p class="side-name">' + L.n + '</p>'
-      +   '<span class="side-price">' + s.price.toFixed(2) + ' ' + T[lang].cur + '</span>'
-      +   '<p class="side-note">' + L.t + '</p>'
-      + '</div>';
-  }).join('');
-  observeReveals($('#sideGrid'));
+/* Brand wordmark and logo, both editable from the dashboard. */
+function renderBrand(){
+  var L = BRAND[lang] || BRAND.en;
+  $$('.brand-name').forEach(function(el){
+    el.innerHTML = esc(L.a) + ' <b>' + esc(L.b) + '</b>';
+  });
+  var logo = imgSrc(BRAND.logo);
+  $$('.brand-mark').forEach(function(el){
+    var holder = el.parentElement;
+    if(!holder) return;
+    var existing = holder.querySelector('.brand-logo');
+    if(logo){
+      if(!existing){
+        existing = document.createElement('img');
+        existing.className = 'brand-logo';
+        existing.alt = '';
+        holder.insertBefore(existing, el);
+      }
+      existing.src = logo;
+      existing.hidden = false;
+      el.style.display = 'none';
+    } else {
+      if(existing) existing.hidden = true;
+      el.style.display = '';
+    }
+  });
+}
+
+function renderHeroImage(){
+  var wrap = $('#heroArt');
+  if(!wrap) return;
+  var pic = imgSrc(HERO_IMAGE);
+  var svg = wrap.querySelector('.hero-burger');
+  var img = wrap.querySelector('.hero-photo');
+  if(pic){
+    if(!img){
+      img = document.createElement('img');
+      img.className = 'hero-photo';
+      img.alt = '';
+      wrap.insertBefore(img, wrap.querySelector('.flame-wrap'));
+    }
+    img.src = pic;
+    img.hidden = false;
+    if(svg) svg.style.display = 'none';
+  } else {
+    if(img) img.hidden = true;
+    if(svg) svg.style.display = '';
+  }
+}
+
+/* The Visit map: the owner's picture of the location when there is one,
+   otherwise the drawn map. */
+function renderMapImage(){
+  var card = $('#mapCard');
+  if(!card) return;
+  var pic = imgSrc(MAP_IMAGE);
+  var svg = card.querySelector('.map-svg');
+  var img = card.querySelector('.map-photo');
+  if(pic){
+    if(!img){
+      img = document.createElement('img');
+      img.className = 'map-photo';
+      img.alt = '';
+      card.insertBefore(img, card.firstChild);
+    }
+    img.src = pic;
+    img.hidden = false;
+    if(svg) svg.style.display = 'none';
+  } else {
+    if(img) img.hidden = true;
+    if(svg) svg.style.display = '';
+  }
 }
 
 function renderIngredients(){
   $('#ingList').innerHTML = T[lang].ings.map(function(x){
-    return '<span class="ing">' + x + '</span>';
+    return '<span class="ing">' + esc(x) + '</span>';
   }).join('');
 }
 
-/* ============================================================
-   BUILD-YOUR-OWN
-   ============================================================ */
-var pick = { bun:null, patty:null, toppings:[], sauce:null };
-var activeStep = 0;
-
-function renderSteps(){
-  $('#stepTabs').innerHTML = STEPS.map(function(s,i){
-    var chosen = s.multi ? pick[s.key].length > 0 : !!pick[s.key];
-    return '<button class="step-tab' + (chosen ? ' done':'') + '" role="tab" type="button"'
-      +   ' aria-selected="' + (i===activeStep) + '" data-step="' + i + '">'
-      +   '<span class="n">0' + (i+1) + '</span><span class="l">' + s[lang] + '</span>'
-      + '</button>';
-  }).join('');
-}
-
-function renderOptions(){
-  var s = STEPS[activeStep];
-  $('#stepPanel').innerHTML = '<div class="opts" role="tabpanel">' + s.opts.map(function(o){
-    var on = s.multi ? pick[s.key].indexOf(o.id) > -1 : pick[s.key] === o.id;
-    var L = o[lang];
-    return '<button class="opt" type="button" aria-pressed="' + on + '" data-opt="' + o.id + '">'
-      +   '<span class="on">' + L.n + '</span>'
-      +   (L.d ? '<span class="od">' + L.d + '</span>' : '')
-      +   '<span class="op">' + (o.p > 0 ? '+' + o.p.toFixed(2) + ' ' + T[lang].cur : '—') + '</span>'
-      + '</button>';
-  }).join('') + '</div>';
-}
-
-function findOpt(key, id){
-  var s = STEPS.filter(function(x){ return x.key === key; })[0];
-  return s.opts.filter(function(o){ return o.id === id; })[0];
-}
-
-function calcTotal(){
-  var sum = 0;
-  ['bun','patty','sauce'].forEach(function(k){
-    if(pick[k]){ var o = findOpt(k, pick[k]); if(o) sum += o.p; }
-  });
-  pick.toppings.forEach(function(id){
-    var o = findOpt('toppings', id); if(o) sum += o.p;
-  });
-  return sum;
-}
-
-function renderReceipt(){
-  var t = T[lang], lines = [], total = calcTotal();
-  STEPS.forEach(function(s){
-    if(s.multi){
-      pick[s.key].forEach(function(id){
-        var o = findOpt(s.key, id);
-        if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
-      });
-    } else if(pick[s.key]){
-      var o = findOpt(s.key, pick[s.key]);
-      if(o) lines.push({ label:o[lang].n, sub:s[lang], price:o.p });
-    }
-  });
-
-  $('#receiptLines').innerHTML = lines.length
-    ? lines.map(function(l){
-        return '<div class="rline"><span class="rl">' + l.label + '<b>' + l.sub + '</b></span>'
-          + '<span class="rp">' + (l.price > 0 ? l.price.toFixed(2) : '—') + '</span></div>';
-      }).join('')
-    : '<p class="rempty">' + t.receipt_empty + '</p>';
-
-  animateTotal(total);
-
-  var btn = $('#orderBtn');
-  var ready = pick.bun && pick.patty;
-  btn.toggleAttribute('disabled', !ready);
-  if(ready){
-    var msg = t.order_head + '\n\n'
-      + lines.map(function(l){ return '• ' + l.sub + ': ' + l.label; }).join('\n')
-      + '\n\n' + t.order_total + ': ' + money(total);
-    btn.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
-    btn.target = '_blank'; btn.rel = 'noopener noreferrer';
-  } else {
-    btn.removeAttribute('href');
-  }
-}
-
-/* count the price up rather than snapping it */
-var totalRAF = null, shownTotal = 0;
-function animateTotal(to){
-  var el = $('#totalPrice');
-  if(reduced){ shownTotal = to; el.textContent = money(to); return; }
-  var from = shownTotal, start = performance.now(), dur = 420;
-  if(totalRAF) cancelAnimationFrame(totalRAF);
-  (function tick(now){
-    var p = Math.min((now - start) / dur, 1);
-    var eased = 1 - Math.pow(1 - p, 3);
-    var v = from + (to - from) * eased;
-    el.textContent = money(v);
-    if(p < 1){ totalRAF = requestAnimationFrame(tick); }
-    else { shownTotal = to; el.textContent = money(to); }
-  })(start);
-}
-
-$('#stepTabs').addEventListener('click', function(e){
-  var b = e.target.closest('[data-step]'); if(!b) return;
-  activeStep = +b.dataset.step;
-  renderSteps(); renderOptions();
-});
-
-$('#stepPanel').addEventListener('click', function(e){
-  var b = e.target.closest('[data-opt]'); if(!b) return;
-  var s = STEPS[activeStep], id = b.dataset.opt;
-  if(s.multi){
-    var i = pick[s.key].indexOf(id);
-    if(i > -1) pick[s.key].splice(i,1); else pick[s.key].push(id);
-  } else {
-    pick[s.key] = (pick[s.key] === id) ? null : id;
-    /* single-choice steps advance on their own */
-    if(pick[s.key] && activeStep < STEPS.length - 1){
-      setTimeout(function(){ activeStep++; renderSteps(); renderOptions(); }, 240);
-    }
-  }
-  renderSteps(); renderOptions(); renderReceipt();
-});
-
-/* "Add" on a signature card seeds the builder */
+/* Category chooser drives the menu below it. */
 document.addEventListener('click', function(e){
-  var b = e.target.closest('[data-add]'); if(!b) return;
-  var burger = BURGERS.filter(function(x){ return x.id === b.dataset.add; })[0];
-  if(!burger) return;
-  pick.bun = 'brioche';
-  pick.patty = (burger.id === 'halloumi') ? 'halloumi' : (burger.id === 'jabal' || burger.id === 'petra' ? 'double' : 'single');
-  pick.toppings = burger.id === 'shatta' ? ['jalapeno'] : ['cheddar'];
-  pick.sauce = burger.id === 'shatta' ? 'shatta' : 'smash';
-  activeStep = 3;
-  renderSteps(); renderOptions(); renderReceipt();
-  $('#build').scrollIntoView({ behavior: reduced ? 'auto':'smooth', block:'start' });
+  var b = e.target.closest('[data-cat]');
+  if(!b) return;
+  activeCat = b.dataset.cat;
+  renderCategories();
+  renderMenu();
+  var menu = document.getElementById('menu');
+  if(menu) menu.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
 });
 
 /* ============================================================
@@ -1462,9 +1769,9 @@ function openState(){
 
 function humanGap(m, t){
   var h = Math.floor(m/60), mm = m%60, g = t.gap;
-  if(h && mm) return h + g + t.hrs + ' ' + mm + g + t.mins;
-  if(h) return h + g + t.hrs;
-  return mm + g + t.mins;
+  if(h && mm) return h + g + tx('hrs') + ' ' + mm + g + tx('mins');
+  if(h) return h + g + tx('hrs');
+  return mm + g + tx('mins');
 }
 
 function renderHours(){
@@ -1480,8 +1787,8 @@ function renderHours(){
   var box = $('#status');
   box.className = 'status ' + (st.open ? 'open':'closed');
   $('#statusText').textContent = st.open
-    ? t.open_now + ' · ' + t.closes_in + ' ' + humanGap(st.left, t)
-    : t.closed_now + ' · ' + t.opens_at + ' ' + t.days[st.day] + ' ' + fmtTime(st.at);
+    ? tx('open_now') + ' · ' + tx('closes_in') + ' ' + humanGap(st.left, t)
+    : tx('closed_now') + ' · ' + tx('opens_at') + ' ' + t.days[st.day] + ' ' + fmtTime(st.at);
 }
 
 /* ============================================================
@@ -1494,7 +1801,21 @@ function setLang(next){
   html.dir = (next === 'ar') ? 'rtl' : 'ltr';
 
   $$('[data-i18n]').forEach(function(el){
-    var v = T[lang][el.dataset.i18n];
+    var key = el.dataset.i18n;
+    var over = OVERRIDES[lang] ? OVERRIDES[lang][key] : null;
+    /* Admin-supplied text goes in as text, never markup. The built-in strings
+       are authored in this file and may legitimately carry <br>. */
+    if(over != null && over !== ''){
+      /* Built as text nodes plus <br>, never innerHTML, so a stored line
+         break renders as a line break and stored markup never executes. */
+      el.textContent = '';
+      String(over).split(/\r?\n/).forEach(function(line, i){
+        if(i) el.appendChild(document.createElement('br'));
+        el.appendChild(document.createTextNode(line));
+      });
+      return;
+    }
+    var v = T[lang][key];
     if(v != null) el.innerHTML = v;
   });
 
@@ -1502,14 +1823,105 @@ function setLang(next){
     b.setAttribute('aria-pressed', String(b.dataset.lang === next));
   });
 
-  renderMenu(); renderSides(); renderIngredients();
-  renderSteps(); renderOptions(); renderReceipt(); renderHours();
+  renderBrand(); renderCategories(); renderMenu(); renderIngredients();
+  renderHeroImage(); renderMapImage(); renderLinks();
+  renderHours();
   buildWaLink();
   try{ localStorage.setItem('baytna-lang', next); }catch(e){}
 }
 
+/* Social and map links. An empty one hides its button rather than leaving a
+   dead href="#" on the page, and only an https destination is accepted — the
+   same rule the images use, for the same reason. */
+function safeLink(v){
+  if(typeof v !== 'string') return '';
+  var t = v.trim();
+  return /^https:\/\/[^\s"'<>]+$/i.test(t) ? t : '';
+}
+
+/* A colour is only ever a six-digit hex. Anything else is ignored rather than
+   passed to the style engine, so a stored value cannot become CSS. */
+function safeColor(v){
+  return (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v.trim())) ? v.trim().toLowerCase() : '';
+}
+
+/* The darker partner each accent is paired with in the gradients. */
+function darken(hex, amount){
+  var n = parseInt(hex.slice(1), 16);
+  var mix = function(c){
+    var v = Math.round(c * (1 - amount));
+    return Math.min(255, Math.max(0, v));
+  };
+  var r = mix((n >> 16) & 255), g = mix((n >> 8) & 255), b = mix(n & 255);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function applyTheme(){
+  var root = document.documentElement;
+  var set = function(name, value){
+    if(value) root.style.setProperty(name, value);
+    else root.style.removeProperty(name);
+  };
+  var flame = safeColor(THEME.flame), gold = safeColor(THEME.gold);
+  var red = safeColor(THEME.red), bg = safeColor(THEME.bg);
+
+  set('--flame', flame);
+  set('--flame-deep', flame ? darken(flame, 0.22) : '');
+  set('--gold', gold);
+  set('--gold-deep', gold ? darken(gold, 0.28) : '');
+  set('--jo-red', red);
+  set('--jo-red-hi', red ? darken(red, -0.18) : '');
+  set('--char-900', bg);
+  set('--char-800', bg ? darken(bg, -0.35) : '');
+  set('--char-700', bg ? darken(bg, -0.75) : '');
+}
+
+function renderLinks(){
+  [['instagram','Instagram'], ['facebook','Facebook'], ['tiktok','TikTok']].forEach(function(pair){
+    var a = document.querySelector('.soc[aria-label="' + pair[1] + '"]');
+    if(!a) return;
+    var url = safeLink(LINKS[pair[0]]);
+    if(url){
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.hidden = false;
+    } else {
+      a.removeAttribute('href'); a.hidden = true;
+    }
+  });
+
+  var dir = document.getElementById('directions');
+  if(dir){
+    var maps = safeLink(LINKS.maps);
+    dir.href = maps || ('https://www.google.com/maps/search/?api=1&query='
+      + encodeURIComponent(textOf('map_addr') || 'Rainbow Street Jabal Amman Jordan'));
+    /* Tapping the map opens the same place. */
+    var open = document.getElementById('mapOpen');
+    if(open) open.href = dir.href;
+  }
+
+  /* The phone number in the visit panel is the one from the dashboard. */
+  var tel = document.querySelector('.vmeta a[href^="tel:"]');
+  if(tel){
+    var raw = String(CONTACT_PHONE || '');
+    var digits = raw.replace(/[^\d+]/g, '');
+    if(digits){ tel.href = 'tel:' + digits; tel.textContent = raw; }
+  }
+}
+
+/* Short name for the same thing, used wherever a string is read while
+   rendering rather than swapped into a data-i18n element. */
+function tx(key){ return textOf(key); }
+
+/* The live value of a text key: the admin's override if there is one, else
+   the built-in string. */
+function textOf(key){
+  var over = OVERRIDES[lang] ? OVERRIDES[lang][key] : null;
+  if(over != null && over !== '') return String(over);
+  var v = T[lang][key];
+  return typeof v === 'string' ? v : '';
+}
+
 function buildWaLink(){
-  var msg = T[lang].order_head;
+  var msg = tx('order_head');
   $('#waMain').href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
 }
 
@@ -1590,7 +2002,7 @@ if(revealIO){
       });
     });
   }, { rootMargin:'-45% 0px -50% 0px' });
-  ['menu','sides','build','story','visit'].forEach(function(id){
+  ['categories','menu','story','visit'].forEach(function(id){
     var s = document.getElementById(id); if(s) linkIO.observe(s);
   });
 }
@@ -1616,6 +2028,72 @@ function onScroll(){
 window.addEventListener('scroll', function(){
   if(!ticking){ ticking = true; requestAnimationFrame(onScroll); }
 }, { passive:true });
+
+/* ============================================================
+   HERO BURGER — comes apart as the visitor scrolls
+   Each layer has where it ends up when the hero has scrolled away (dy, dx
+   in the burger's own units, r in degrees) and how far it leans with the
+   pointer (z). Scrolling back down the page puts it back together.
+   ============================================================ */
+var BURGER_LAYERS = {
+  'seeds':    { dy:-84,  dx:0,   r:-7,  z:1.6 },
+  'bun-top':  { dy:-66,  dx:0,   r:-6,  z:1.4 },
+  'lettuce':  { dy:-36,  dx:0,   r:4,   z:1.1 },
+  'tomato-l': { dy:-16,  dx:-34, r:-40, z:0.9 },
+  'tomato-m': { dy:-18,  dx:0,   r:30,  z:0.9 },
+  'tomato-r': { dy:-16,  dx:34,  r:45,  z:0.9 },
+  'cheese':   { dy:6,    dx:0,   r:-3,  z:0.7 },
+  'patty':    { dy:28,   dx:0,   r:3,   z:0.5 },
+  'bun-bot':  { dy:52,   dx:0,   r:-2,  z:0.3 },
+  'shadow':   { dy:60,   dx:0,   r:0,   z:0, fade:true }
+};
+var burgerEls = $$('#heroBurger .bl');
+var pointer = { x:0, y:0 }, burgerTick = false;
+
+function heroBurgerFrame(){
+  burgerTick = false;
+  if(reduced || !burgerEls.length) return;
+  var svg = document.getElementById('heroBurger');
+  if(!svg || svg.style.display === 'none') return;      /* an uploaded photo replaces it */
+  var hero = document.getElementById('hero');
+  /* Side by side with the text, the whole burger trails the scroll a little
+     so it stays on screen while it comes apart. On a phone it sits above the
+     headline: trailing would slide it over the words, so instead it opens
+     over a shorter scroll, while it is still in view, and spreads less. */
+  var wide = window.matchMedia('(min-width:1001px)').matches;
+  var span = wide ? Math.max(hero ? hero.offsetHeight * 0.75 : 600, 300) : 200;
+  var p = Math.min(Math.max(window.pageYOffset / span, 0), 1);
+  p = 1 - Math.pow(1 - p, 2);                             /* eases out as it opens */
+  var art = document.getElementById('heroArt');
+  if(art) art.style.transform = wide
+    ? 'translate3d(0,' + (Math.min(window.pageYOffset, span) * 0.3).toFixed(1) + 'px,0)' : '';
+  if(!wide) p *= 0.75;
+  burgerEls.forEach(function(el){
+    var L = BURGER_LAYERS[el.getAttribute('data-l')];
+    if(!L) return;
+    var x = L.dx * p + pointer.x * L.z * 7;
+    var y = L.dy * p + pointer.y * L.z * 4;
+    el.style.transform = 'translate(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px) rotate(' + (L.r * p).toFixed(2) + 'deg)';
+    if(L.fade) el.style.opacity = (0.38 * (1 - p * 0.7)).toFixed(3);
+  });
+}
+function queueBurger(){
+  if(!burgerTick){ burgerTick = true; requestAnimationFrame(heroBurgerFrame); }
+}
+if(!reduced && burgerEls.length){
+  window.addEventListener('scroll', queueBurger, { passive:true });
+  window.addEventListener('resize', queueBurger);
+  /* Leaning with the pointer is for mice only: on a phone the finger is
+     scrolling, and the scroll already moves every layer. */
+  if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+    window.addEventListener('pointermove', function(e){
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+      if(window.pageYOffset < window.innerHeight * 1.2) queueBurger();
+    }, { passive:true });
+  }
+  queueBurger();
+}
 
 /* ============================================================
    DECOR — drifting sesame seeds behind the hero
@@ -1668,9 +2146,6 @@ try{
 }catch(e){}
 
 setLang(lang);
-renderSteps();
-renderOptions();
-renderReceipt();
 
 /* never let a stalled font/asset trap the page behind the loader */
 var booted = false;
@@ -1678,8 +2153,2554 @@ function once(){ if(!booted){ booted = true; bootLoader(); } }
 window.addEventListener('load', once);
 setTimeout(once, 2600);
 
+
+/* ============================================================
+   CONTENT — shared by the public site and the admin page
+   ============================================================ */
+
+/* A deep copy of anything the store hands over, so nothing this page edits is
+   still owned — and refreshable — by the store. */
+function own(v){
+  try { return v == null ? v : JSON.parse(JSON.stringify(v)); }
+  catch(e){ return v; }
+}
+
+/* ---------------------------------------------------------- apply */
+
+/* Anything in the arrays that is not an object would throw somewhere in a
+   render and take the whole page down with it. Stored content is data from a
+   shared database, so its shape is checked rather than assumed. */
+function objectsOnly(list){
+  return list.filter(function(x){ return x && typeof x === 'object' && !Array.isArray(x); });
+}
+
+function applyContent(d){
+  if(!d) return;
+  d = own(d);          /* the page keeps its own copy; see loadDraft() */
+  /* Presence checks, never truthiness: an empty menu, a cleared phone number
+     and a blank heading are all legitimate saved states. Treating them as
+     "missing" was silently reverting deletions to the built-in defaults. */
+  if(Array.isArray(d.categories)) CATEGORIES = objectsOnly(d.categories);
+  if(Array.isArray(d.items))      ITEMS = objectsOnly(d.items);
+  if(Array.isArray(d.hours) && d.hours.length === 7){
+    HOURS = d.hours.map(function(h){ h = h || {}; return { o:Number(h.o)||0, c:Number(h.c)||0 }; });
+  }
+  if(d.text && typeof d.text === 'object'){
+    OVERRIDES.en = d.text.en || {};
+    OVERRIDES.ar = d.text.ar || {};
+  }
+  if(d.brand && typeof d.brand === 'object') BRAND = d.brand;
+  if(Array.isArray(d.steps) && d.steps.length) STEPS = objectsOnly(d.steps);
+  if(d.ings && typeof d.ings === 'object'){
+    if(Array.isArray(d.ings.en)) T.en.ings = d.ings.en.filter(isText);
+    if(Array.isArray(d.ings.ar)) T.ar.ings = d.ings.ar.filter(isText);
+  }
+  if(d.links && typeof d.links === 'object') LINKS = d.links;
+  if(d.theme && typeof d.theme === 'object'){
+    THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(d.theme[k]); });
+    applyTheme();
+  }
+  if(typeof d.heroImage === 'string') HERO_IMAGE = d.heroImage;
+  if(typeof d.mapImage === 'string') MAP_IMAGE = d.mapImage;
+  if(d.contact && typeof d.contact === 'object'){
+    if(typeof d.contact.whatsapp === 'string') WA_NUMBER = d.contact.whatsapp.replace(/[^\d]/g, '');
+    if(typeof d.contact.phone === 'string') CONTACT_PHONE = d.contact.phone;
+  }
+  if(!CATEGORIES.some(function(c){ return c.id === activeCat; })){
+    activeCat = (CATEGORIES[0] || {}).id || '';
+  }
+  setLang(lang);
+  observeReveals();
+  sweepPassed();
+}
+
+/* @admin-js:begin */
+/* ============================================================
+   ADMIN DASHBOARD  —  route: #admin
+   ------------------------------------------------------------
+   Authorisation is NOT done in this file. The page declares the `db`
+   capability with { read: "interact", write: "admin" }, so the platform
+   accepts writes only from viewers with EDIT access to this artifact.
+   A visitor with the link can open this panel and read it; every save is
+   refused server-side. There is deliberately no password here — one
+   checked in client JavaScript is visible in view-source and protects
+   nothing.
+   ============================================================ */
+var DB = null;
+var dbReady = null;       /* single in-flight connection promise */
+var canEdit = false;
+var saving = false;       /* guards concurrent saves; the button is re-rendered */
+var lastError = '';       /* shown to the user; never swallowed */
+var lastSaved = 0;
+var nothingAt = 0;   /* when the last save found nothing to write */
+var storeMoved = false;   /* another editor wrote while this draft was open */
+var touched = Object.create(null);  /* dot-paths seen by the input handler */
+var baseline = null;   /* deep copy of what loadDraft read, so the save set can
+                          be derived by comparison instead of bookkeeping */
+var adminTab = 'menu';
+var draft = null;
+var dirty = false;
+var pendingMedia = {};   /* id -> data URL, written on save */
+
+var DOC_MENU = 'content/menu';
+var DOC_SITE = 'content/site';
+
+/* Text keys the dashboard exposes, grouped as they appear on the page. */
+/* Every string on the page, grouped as the visitor meets them.
+ *
+ * This list used to be a hand-picked two dozen, which meant most of the site —
+ * the navigation, the buttons, the story, the whole footer — could only be
+ * changed by editing the file. Anything with a data-i18n key belongs here, and
+ * the dashboard refuses to start if one is missing, so adding a string to the
+ * page without exposing it is caught immediately rather than noticed months
+ * later. */
+var TEXT_GROUPS = [
+  { title:{en:'Navigation',       ar:'القائمة العلوية'},
+    keys:['brand','nav_menu','nav_sides','nav_story','nav_visit','nav_order'] },
+  { title:{en:'Hero',             ar:'الواجهة'},
+    keys:['hero_badge','hero_l1','hero_l2','hero_l3','hero_tag','hero_cta1','scroll','loading'] },
+  { title:{en:'Hero statistics',  ar:'أرقام الواجهة'},
+    keys:['stat1v','stat1','stat2v','stat2','stat3v','stat3'] },
+  { title:{en:'Categories',       ar:'قسم الأقسام'},
+    keys:['eyebrow_cats','cats_title','cats_lede','no_items'] },
+  { title:{en:'Menu',             ar:'قسم المنيو'},
+    keys:['eyebrow_menu','menu_title','menu_lede','spice','cur'] },
+  { title:{en:'Badges',           ar:'الشارات'},
+    keys:['badge_best','badge_chef','badge_spicy','badge_veg'] },
+  { title:{en:'Story',            ar:'قسم القصة'},
+    keys:['eyebrow_story','story_title','story_p1','story_p2','story_pull'] },
+  { title:{en:'Story — suppliers',ar:'القصة — الموردون'},
+    keys:['s1n','s1l','s2n','s2l','s3n','s3l','s4n','s4l'] },
+  { title:{en:'Visit',            ar:'قسم الزيارة'},
+    keys:['eyebrow_visit','visit_title','map_name','map_addr','tz_note','directions'] },
+  { title:{en:'Opening status',   ar:'حالة الفتح'},
+    keys:['open_now','closed_now','closes_in','opens_at','mins','hrs'] },
+  { title:{en:'Footer',           ar:'التذييل'},
+    keys:['foot_blurb','foot_menu','foot_visit','foot_hours','foot_order',
+          'foot_order_note','wa_order','order_head','rights','made'] }
+];
+
+var TEXT_LABEL = {
+  brand:'Brand wordmark (first word, then <b>second</b>)',
+  nav_menu:'Menu', nav_sides:'Categories',
+  nav_story:'Our Story', nav_visit:'Visit', nav_order:'Order button',
+  hero_badge:'Badge line', hero_l1:'Headline 1', hero_l2:'Headline 2 (flame)',
+  hero_l3:'Headline 3', hero_tag:'Tagline',
+  hero_cta1:'Menu button',
+  scroll:'Scroll hint', loading:'Loading screen',
+  stat1v:'Stat 1 value', stat1:'Stat 1 label',
+  stat2v:'Stat 2 value', stat2:'Stat 2 label',
+  stat3v:'Stat 3 value', stat3:'Stat 3 label',
+  eyebrow_cats:'Categories eyebrow', cats_title:'Categories title',
+  cats_lede:'Categories intro', no_items:'Empty category message',
+  eyebrow_menu:'Menu eyebrow', menu_title:'Menu title', menu_lede:'Menu intro',
+  spice:'Heat label', cur:'Currency',
+  badge_best:'Best seller', badge_chef:"Chef's pick",
+  badge_spicy:'Spicy', badge_veg:'Vegetarian',
+  order_head:'WhatsApp message heading',
+  eyebrow_story:'Story eyebrow', story_title:'Story title',
+  story_p1:'Story paragraph 1', story_p2:'Story paragraph 2', story_pull:'Pull quote',
+  s1n:'Supplier 1 place', s1l:'Supplier 1 note',
+  s2n:'Supplier 2 place', s2l:'Supplier 2 note',
+  s3n:'Supplier 3 place', s3l:'Supplier 3 note',
+  s4n:'Supplier 4 place', s4l:'Supplier 4 note',
+  eyebrow_visit:'Visit eyebrow', visit_title:'Visit title',
+  map_name:'Map label name', map_addr:'Address', tz_note:'Timezone note',
+  directions:'Directions button',
+  open_now:'Open now', closed_now:'Closed', closes_in:'Closes in',
+  opens_at:'Opens', mins:'Minutes suffix', hrs:'Hours suffix',
+  foot_blurb:'Footer blurb', foot_menu:'Footer: menu heading',
+  foot_visit:'Footer: visit heading', foot_hours:'Footer: hours link',
+  foot_order:'Footer: order heading', foot_order_note:'Footer: delivery note',
+  wa_order:'WhatsApp button', rights:'Copyright line', made:'Sign-off',
+  admin_link:'Admin link'
+};
+
+/* Long-form strings get a textarea; the rest a single line. */
+var TEXT_BIG = /title|tag|lede|blurb|_p[0-9]|pull|note|head|_addr|empty/;
+
+/* Which document a top-level field belongs to. */
+function docOf(path){
+  var head = path.split('.')[0];
+  return (head === 'items' || head === 'categories') ? 'menu' : 'site';
+}
+
+/* Items and categories are edited by position, so a partial merge by index
+   would corrupt the list if someone else reordered it. Any edit inside one
+   of those arrays therefore claims the whole array; every other field merges
+   on its own path and leaves a colleague's untouched fields alone. */
+function normalisePath(path){
+  var head = path.split('.')[0];
+  if(head === 'items' || head === 'categories' || head === 'hours') return head;
+  return path;
+}
+
+function markTouched(path){
+  touched[normalisePath(path)] = true;
+  dirty = true;
+  nothingAt = 0;
+}
+
+/* Paths are built by this file, but a path that walked into the prototype
+   would turn one edited field into a change to every object on the page, so
+   the three keys that can do that are refused outright. */
+var UNSAFE_KEY = /^(?:__proto__|constructor|prototype)$/;
+function safeParts(path){
+  var parts = String(path == null ? '' : path).split('.');
+  for(var i = 0; i < parts.length; i++){
+    if(!parts[i] || UNSAFE_KEY.test(parts[i])) return null;
+  }
+  return parts;
+}
+
+function getPath(obj, path){
+  var parts = safeParts(path);
+  if(!parts) return undefined;
+  var node = obj;
+  for(var i = 0; i < parts.length; i++){
+    if(node == null) return undefined;
+    if(!Object.prototype.hasOwnProperty.call(Object(node), parts[i])) return undefined;
+    node = node[parts[i]];
+  }
+  return node;
+}
+
+function setPathOn(obj, path, value){
+  var parts = safeParts(path);
+  if(!parts || obj == null) return false;
+  var node = obj;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(node[parts[i]] == null || typeof node[parts[i]] !== 'object') node[parts[i]] = {};
+    node = node[parts[i]];
+  }
+  node[parts[parts.length - 1]] = value;
+  return true;
+}
+
+/**
+ * Structural comparison for the post-save check.
+ *
+ * JSON.stringify was wrong here: the store returns object keys ALPHABETISED
+ * rather than in the order they were written, so stringifying both sides
+ * reported a difference for any freshly built object — adding a menu item or
+ * a category always failed verification even though the write had succeeded,
+ * which left the dashboard permanently claiming nothing was saved.
+ *
+ * Array order still matters (it is the menu's running order); object key
+ * order does not. A key holding undefined is treated as absent, since that
+ * is what a write drops.
+ */
+function sameValue(a, b){
+  if(a === b) return true;
+  if(a === null || b === null) return a === b;
+
+  var ta = typeof a, tb = typeof b;
+  if(ta !== 'object' || tb !== 'object') return a === b;
+
+  var aArr = Array.isArray(a), bArr = Array.isArray(b);
+  if(aArr !== bArr) return false;
+
+  if(aArr){
+    if(a.length !== b.length) return false;
+    for(var i = 0; i < a.length; i++){
+      if(!sameValue(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  var ka = Object.keys(a).filter(function(k){ return a[k] !== undefined; });
+  var kb = Object.keys(b).filter(function(k){ return b[k] !== undefined; });
+  if(ka.length !== kb.length) return false;
+  for(var j = 0; j < ka.length; j++){
+    var key = ka[j];
+    if(!Object.prototype.hasOwnProperty.call(b, key)) return false;
+    if(!sameValue(a[key], b[key])) return false;
+  }
+  return true;
+}
+
+function snapshotDefaults(){
+  var clone = function(x){ return JSON.parse(JSON.stringify(x)); };
+  return {
+    categories: CATEGORIES.map(clone),
+    items:      ITEMS.map(clone),
+    hours:      HOURS.map(function(h){ return { o:h.o, c:h.c }; }),
+    text:       { en:{}, ar:{} },
+    steps:      STEPS.map(clone),
+    ings:       { en: T.en.ings.slice(), ar: T.ar.ings.slice() },
+    links:      { instagram:'', facebook:'', tiktok:'', maps:'' },
+    theme:      { flame:'', gold:'', red:'', bg:'' },
+    brand:      clone(BRAND),
+    heroImage:  HERO_IMAGE,
+    mapImage:   MAP_IMAGE,
+    contact:    { whatsapp: WA_NUMBER, phone: '+962 7 9000 0000' }
+  };
+}
+
+/* ---------------------------------------------------------- images */
+
+/* Images are downscaled and re-encoded in the browser, then stored one
+   per document — a single document caps at 256 KiB, so keeping them out
+   of the menu document is what makes several photos possible at all.
+
+   Written for phones as much as computers:
+   - The file is decoded from an object URL, not read into a data URL first:
+     a phone photo is several megabytes, and the data URL copy of it was
+     the largest thing in memory.
+   - The type is not trusted to be set: some galleries hand over a photo
+     with an empty type. Whether it decodes is the test.
+   - Safari (every iPhone browser) cannot encode WebP, and silently returns
+     a PNG instead — far too large, so nearly every iPhone photo used to be
+     refused as "too large". The encoder actually used is checked, and JPEG
+     takes over where WebP is not available.
+   - If a photo is still too large, it is made smaller and tried again,
+     rather than refused. */
+var IMG_MAX_CHARS = 190000;
+
+function readImage(file, cb){
+  if(!file){ cb(null, lang === 'ar' ? 'لم يُختر ملف' : 'No file was chosen'); return; }
+  if(file.type && !/^image\//i.test(file.type)){
+    cb(null, lang === 'ar' ? 'هذا الملف ليس صورة' : 'That file is not an image'); return;
+  }
+  var url;
+  try { url = URL.createObjectURL(file); }
+  catch(e){ cb(null, lang === 'ar' ? 'تعذّرت قراءة الملف' : 'Could not read that file'); return; }
+  var img = new Image();
+  img.onerror = function(){
+    URL.revokeObjectURL(url);
+    /* Most often an iPhone HEIC photo on a browser that cannot show HEIC. */
+    cb(null, lang === 'ar'
+      ? 'صيغة الصورة غير مدعومة في هذا المتصفح. اختر صورة JPG أو PNG، أو في الآيفون: الإعدادات ← الكاميرا ← التنسيقات ← «الأكثر توافقاً».'
+      : 'This browser cannot open that photo format. Choose a JPG or PNG — on iPhone: Settings → Camera → Formats → "Most Compatible".');
+  };
+  img.onload = function(){
+    URL.revokeObjectURL(url);
+    var out = shrinkImage(img);
+    if(!out){
+      cb(null, lang === 'ar' ? 'الصورة كبيرة جداً حتى بعد ضغطها' : 'That image is too large even after compression');
+      return;
+    }
+    cb(out, null);
+  };
+  img.src = url;
+}
+
+/* Smallest acceptable encoding: WebP where the browser can write it, JPEG
+   otherwise, at falling quality, then at falling size. */
+function shrinkImage(img){
+  var w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+  if(!w0 || !h0) return '';
+  var sizes = [900, 760, 620, 480];
+  var qualities = [0.72, 0.58, 0.45, 0.34];
+  var webp = null;            /* can this browser encode WebP? learnt on first try */
+  for(var s = 0; s < sizes.length; s++){
+    var r = Math.min(1, sizes[s] / w0, sizes[s] / h0);
+    var w = Math.max(1, Math.round(w0 * r)), h = Math.max(1, Math.round(h0 * r));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var g = c.getContext('2d');
+    g.fillStyle = '#ffffff';                 /* JPEG has no transparency */
+    g.fillRect(0, 0, w, h);
+    g.drawImage(img, 0, 0, w, h);
+    for(var q = 0; q < qualities.length; q++){
+      var out = '';
+      if(webp !== false){
+        out = c.toDataURL('image/webp', qualities[q]);
+        webp = out.indexOf('data:image/webp') === 0;
+      }
+      if(!webp) out = c.toDataURL('image/jpeg', qualities[q]);
+      if(out.length < IMG_MAX_CHARS) return out;
+    }
+  }
+  return '';
+}
+
+/* A photo chosen in an upload control: shrink it, keep it, point the field
+   at it, save. */
+function handleImageFile(input){
+  var target = input.getAttribute('data-upload-input');
+  var file = input.files && input.files[0];
+  if(!target || !file || !canEdit) return;
+  var holder = input.closest('.ad-upload');
+  if(holder) holder.classList.add('busy');
+  readImage(file, function(dataUrl, err){
+    if(holder) holder.classList.remove('busy');
+    try { input.value = ''; } catch(e){}     /* the same photo can be chosen again */
+    if(err || !dataUrl){
+      /* alert() never shows on a claude.ai page, so the reason goes where
+         every other dashboard error goes. */
+      try { console.error('[image] could not use the file:', err); } catch(_){}
+      lastError = (lang === 'ar' ? 'تعذّر استخدام الصورة: ' : 'Could not use that image: ')
+        + (err || (lang === 'ar' ? 'ملف غير صالح' : 'unreadable file'));
+      renderAdmin();
+      return;
+    }
+    lastError = '';
+    var id = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    pendingMedia[id] = dataUrl;
+    MEDIA[id] = dataUrl;
+    setPath(target, id);
+    renderAdmin(); markDirty(); autoSave();
+  });
+}
+
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if(t && t.matches && t.matches('#admin-root input[data-upload-input]')) handleImageFile(t);
+});
+
+/* ---------------------------------------------------------- database */
+
+/* One connection promise for the whole page. Everything that needs the store
+   awaits this instead of reading `DB`, which is null until the capability
+   resolves — the contract guarantees that never happens synchronously. */
+function ensureDb(){
+  if(dbReady) return dbReady;
+  if(!window.claude || typeof window.claude.use !== 'function'){
+    dbReady = Promise.resolve(null);
+  } else {
+    dbReady = window.claude.use('db')
+      .then(function(db){ DB = db || null; return DB; })
+      .catch(function(){ DB = null; return null; });
+  }
+  return dbReady;
+}
+
+function connectDb(){
+  ensureDb().then(function(db){
+    if(!db){ renderAdmin(); return; }
+
+    db.collection('media').get().then(function(snap){
+      snap.forEach(function(doc){
+        var d = own(doc.data());
+        if(d && typeof d.url === 'string') MEDIA[doc.id] = d.url;
+      });
+      setLang(lang);
+      onStoreChange();
+    }).catch(function(){});
+
+    [DOC_MENU, DOC_SITE].forEach(function(path){
+      db.doc(path).onSnapshot(function(snap){
+        if(snap.exists){
+          var at = Number((snap.data() || {}).updatedAt);
+          if(isFinite(at) && at > contentChangedAt) contentChangedAt = at;
+          applyContent(snap.data());
+        }
+        onStoreChange();
+        renderPublishStatus();
+      }, function(e){
+        lastError = (e && e.code === 'revoked')
+          ? 'Access to the database was withdrawn. Reload the page.'
+          : 'Lost the live connection to the database.';
+        renderAdmin();
+      });
+    });
+
+    probeAccess();
+
+    db.doc(LOCK_DOC).onSnapshot(function(snap){
+      var d = snap.exists ? own(snap.data()) : null;
+      var was = lockActive();
+      lockDoc = d;
+      lockReadFailed = false;
+      /* A password set or removed elsewhere takes effect here too. */
+      if(lockActive() && !was && !justSetLock) unlocked = false;
+      justSetLock = false;
+      renderAdmin();
+    }, function(){
+      lockReadFailed = true;
+      if(lockDoc === undefined) renderAdmin();
+    });
+
+    if(PUBLISH.trigger){
+      db.doc('meta/publish').onSnapshot(function(snap){
+        publishState = snap.exists ? own(snap.data()) : null;
+        renderPublishStatus();
+      }, function(){});
+    }
+  });
+}
+
+/**
+ * What a snapshot is allowed to do to the dashboard.
+ *
+ * renderAdmin() replaces the panel's innerHTML, so calling it from a snapshot
+ * destroyed the very field being typed into: focus was lost and every
+ * keystroke after the rebuild went nowhere, leaving the field showing its last
+ * committed value. Delivery also falls back to a periodic refresh, so this
+ * happened even when nothing had actually changed.
+ *
+ * While there are unsaved edits — or the caret is simply inside the form — the
+ * store update is applied to the public page and the status bar only. The form
+ * is left exactly as the user left it.
+ */
+function onStoreChange(){
+  var root = document.getElementById('admin-root');
+  var open = root && root.classList.contains('open');
+
+  if(open){
+    /* An open editor is never rebuilt from the store. The old rule — rebuild
+       unless the caret is in a field or the dirty flag is set — trusted two
+       signals that can both be wrong, and a refresh arriving between a
+       keystroke and a save wiped the form back to the stored copy. The public
+       page and the status bar take the update; the form is left alone. */
+    if(hasChanges()) storeMoved = true;
+    markDirty();
+    return;
+  }
+  draft = null;
+  renderedFrom = null;
+}
+
+/**
+ * The only honest way to learn whether this viewer may write is to try.
+ *
+ * A refusal and a blip look identical from here, and treating a blip as a
+ * refusal marked the dashboard read-only for the rest of the page's life: the
+ * fields were disabled, the Save button vanished from the top bar, and there
+ * was no second attempt. Anything that is not a permission answer is retried.
+ */
+function probeAccess(tries){
+  if(!DB) return;
+  tries = tries || 0;
+  DB.doc('meta/access-probe').set({ at: Date.now() })
+    .then(function(){ canEdit = true; probeDone = true; renderAdmin(); })
+    .catch(function(e){
+      canEdit = false;
+      var code = e && (e.code || e.kind);
+      var again = code !== 'invalid_argument' && code !== 'revoked' && tries < 4;
+      if(again) setTimeout(function(){ probeAccess(tries + 1); }, 1500 * (tries + 1));
+      /* Only call it settled once there is no retry coming: a viewer should
+         not be told they lack access while the page is still asking. */
+      if(!again) probeDone = true;
+      renderAdmin();
+    });
+}
+
+/* Never builds a draft before the store has answered. Doing so was the root
+   cause: the editor filled with the page's built-in defaults, and saving wrote
+   those defaults over everything the owner had stored. */
+function loadDraft(){
+  return ensureDb().then(function(db){
+    var base = snapshotDefaults();
+    if(!db){ draft = base; return; }
+    return Promise.all([db.doc(DOC_MENU).get(), db.doc(DOC_SITE).get()])
+      .then(function(res){
+        /* Copied, never referenced.
+         *
+         * data() hands back a document object the store owns, and the store
+         * refreshes its documents periodically. Building the draft out of those
+         * objects meant every local edit lived inside the store's own copy — so
+         * a refresh arriving thirty seconds later overwrote the typing in place,
+         * with no code here involved. The field reverted to the stored value,
+         * the draft then matched the baseline, and the save truthfully found
+         * nothing to write. That is the revert, and this copy is the fix. */
+        var m  = own(res[0].exists ? res[0].data() : {});
+        var st = own(res[1].exists ? res[1].data() : {});
+        draft = {
+          categories: Array.isArray(m.categories) ? objectsOnly(m.categories) : base.categories,
+          items:      Array.isArray(m.items)      ? objectsOnly(m.items)      : base.items,
+          hours:      (Array.isArray(st.hours) && st.hours.length === 7) ? st.hours : base.hours,
+          text:       (st.text && typeof st.text === 'object')   ? st.text   : base.text,
+          brand:      (st.brand && typeof st.brand === 'object') ? st.brand  : base.brand,
+          heroImage:  typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+          mapImage:   typeof st.mapImage === 'string' ? st.mapImage : base.mapImage,
+          contact:    (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
+          steps:      Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
+          ings:       (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
+          links:      (st.links && typeof st.links === 'object') ? st.links : base.links,
+          theme:      (st.theme && typeof st.theme === 'object') ? st.theme : base.theme
+        };
+        if(!draft.text.en) draft.text.en = {};
+        if(!draft.text.ar) draft.text.ar = {};
+        baseline = JSON.parse(JSON.stringify(draft));
+        touched = Object.create(null);
+        storeMoved = false;
+      })
+      .catch(function(){
+        draft = base;
+        lastError = 'Could not read the saved content. Reload before editing.';
+      });
+  });
+}
+
+var MENU_FIELDS = ['categories', 'items'];
+var SITE_FIELDS = ['hours', 'text', 'brand', 'heroImage', 'mapImage', 'contact', 'steps', 'ings', 'links', 'theme'];
+
+/**
+ * The top-level fields whose current value differs from the copy that was
+ * loaded — in other words, exactly what this person changed. Comparing beats
+ * a change log because there is nothing to miss or reset: whatever is in the
+ * draft and differs gets written.
+ */
+function changedFields(){
+  if(!draft) return [];
+  if(!baseline) return MENU_FIELDS.concat(SITE_FIELDS);   /* unknown: write it all */
+  return MENU_FIELDS.concat(SITE_FIELDS).filter(function(f){
+    return !sameValue(draft[f], baseline[f]);
+  });
+}
+
+/**
+ * Saves only what the user actually changed, onto whatever the store holds
+ * right now, and confirms the write by reading it back.
+ *
+ * Writing the whole draft was destructive: a draft is a snapshot from some
+ * earlier moment, so a full replace threw away both other people's edits and
+ * anything the draft never knew about. Merging touched paths onto freshly
+ * read documents removes that whole class of failure.
+ */
+/* A document's size as the store counts it, near enough to act on. */
+var DOC_LIMIT = 240000;        /* the store's own cap is 256 KiB */
+function docSize(doc){
+  try { return JSON.stringify(doc).length; } catch(e){ return 0; }
+}
+
+function save(){
+  if(!DB) return Promise.reject({ kind:'nodb', message:'No database on this view.' });
+  if(!canEdit) return Promise.reject({ kind:'denied', message:'Your account cannot edit this page.' });
+
+  /* The visible form first: what is on screen is what this person means to
+     save, whether or not an input event ever reached us. Then what to write is
+     decided by comparing the draft against the copy that was loaded — never by
+     a change log, which is a record of events that may not have arrived. The
+     form is the intent; the difference against the baseline is the work. */
+  harvestForm();
+
+  var mediaIds = Object.keys(pendingMedia);
+
+  /* Images first: a menu document naming an image id that was never written
+     would render as a broken picture. */
+  return Promise.all(mediaIds.map(function(id){
+      return DB.doc('media/' + id).set({ url: pendingMedia[id], at: Date.now() });
+    }))
+    .then(function(){
+      return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
+    })
+    .then(function(res){
+      var base = snapshotDefaults();
+      var m  = own(res[0].exists ? res[0].data() : {});
+      var st = own(res[1].exists ? res[1].data() : {});
+
+      var menuDoc = {
+        categories: Array.isArray(m.categories) ? m.categories : base.categories,
+        items:      Array.isArray(m.items)      ? m.items      : base.items
+      };
+      var siteDoc = {
+        hours:     (Array.isArray(st.hours) && st.hours.length === 7) ? st.hours : base.hours,
+        text:      (st.text && typeof st.text === 'object')   ? st.text  : base.text,
+        brand:     (st.brand && typeof st.brand === 'object') ? st.brand : base.brand,
+        heroImage: typeof st.heroImage === 'string' ? st.heroImage : base.heroImage,
+        mapImage:  typeof st.mapImage === 'string' ? st.mapImage : base.mapImage,
+        contact:   (st.contact && typeof st.contact === 'object') ? st.contact : base.contact,
+        steps:     Array.isArray(st.steps) ? objectsOnly(st.steps) : base.steps,
+        ings:      (st.ings && typeof st.ings === 'object') ? st.ings : base.ings,
+        links:     (st.links && typeof st.links === 'object') ? st.links : base.links,
+        theme:     (st.theme && typeof st.theme === 'object') ? st.theme : base.theme
+      };
+
+      /* A field is written when BOTH are true: this person changed it, and the
+         database does not already hold that value.
+         
+         Either test alone is wrong. Against the baseline alone, a save writes a
+         value the store already has, and — worse — a baseline that has gone
+         stale makes a real edit compare equal and vanish. Against the store
+         alone, an untouched field whose copy here predates a colleague's edit
+         looks changed, and their work is overwritten by a value this person
+         never touched. Together: my changes go in, theirs stay, and nothing is
+         written twice. */
+      var fields = MENU_FIELDS.concat(SITE_FIELDS).filter(function(f){
+        var stored = (MENU_FIELDS.indexOf(f) > -1 ? menuDoc : siteDoc)[f];
+        if(sameValue(draft[f], stored)) return false;          /* already there */
+        if(baseline && sameValue(draft[f], baseline[f])){
+          /* Unchanged here but different in the store: someone else's edit.
+             Leave it alone, and take their value so this copy stops claiming a
+             difference it does not have. */
+          draft[f] = own(stored);
+          storeMoved = true;
+          return false;
+        }
+        return true;
+      });
+      if(fields.length === 0 && mediaIds.length === 0){
+        return { nothing:true };
+      }
+
+      var wantMenu = false, wantSite = false;
+      fields.forEach(function(f){
+        if(MENU_FIELDS.indexOf(f) > -1){ menuDoc[f] = draft[f]; wantMenu = true; }
+        else                           { siteDoc[f] = draft[f]; wantSite = true; }
+      });
+
+      /* The store refuses a document over 256 KiB with a generic error that
+         looks exactly like a permission problem. Measuring first turns an
+         unexplained, permanent failure into one sentence the user can act
+         on. */
+      var tooBig = [];
+      if(wantMenu && docSize({ categories: menuDoc.categories, items: menuDoc.items }) > DOC_LIMIT) tooBig.push('menu');
+      if(wantSite && docSize(siteDoc) > DOC_LIMIT) tooBig.push('site');
+      if(tooBig.length){
+        throw { kind:'toobig', message: lang === 'ar'
+          ? 'المحتوى تجاوز الحجم الذي تقبله قاعدة البيانات. أزل صورة أو اختصر نصاً طويلاً ثم احفظ.'
+          : 'The content is larger than the database accepts. Remove an image or shorten a long text, then save.' };
+      }
+
+      var writes = [];
+      if(wantMenu) writes.push(DB.doc(DOC_MENU).set({
+        categories: menuDoc.categories, items: menuDoc.items, updatedAt: Date.now()
+      }));
+      if(wantSite) writes.push(DB.doc(DOC_SITE).set({
+        hours: siteDoc.hours, text: siteDoc.text, brand: siteDoc.brand,
+        heroImage: siteDoc.heroImage, mapImage: siteDoc.mapImage, contact: siteDoc.contact,
+        steps: siteDoc.steps, ings: siteDoc.ings, links: siteDoc.links,
+        theme: siteDoc.theme,
+        updatedAt: Date.now()
+      }));
+
+      return Promise.all(writes).then(function(){
+        /* Read back and compare. A resolved write is the store's word for it;
+           this confirms the values really landed, which is what lets the page
+           claim success honestly. */
+        return Promise.all([DB.doc(DOC_MENU).get(), DB.doc(DOC_SITE).get()]);
+      }).then(function(after){
+        var savedMenu = own(after[0].exists ? after[0].data() : {});
+        var savedSite = own(after[1].exists ? after[1].data() : {});
+        var bad = fields.filter(function(f){
+          var got = (MENU_FIELDS.indexOf(f) > -1 ? savedMenu : savedSite)[f];
+          return !sameValue(draft[f], got);
+        });
+        if(bad.length){
+          throw { kind:'verify', message:'The database did not keep: ' + bad.join(', ') };
+        }
+        pendingMedia = {};
+        touched = Object.create(null);
+        baseline = JSON.parse(JSON.stringify(draft));
+        storeMoved = false;
+        return { verified:true, fields:fields.length, names:fields };
+      });
+    });
+}
+
+/**
+ * Remembers the last button pressed, in memory, and lets the save record carry
+ * it. This used to be a database write per click, which was a poor trade: the
+ * store's write budget is shared with the saves themselves, and a burst of
+ * clicking could spend enough of it to have real saves refused with
+ * resource_exhausted — diagnostics breaking the thing they were measuring.
+ */
+var clickSeq = 0;
+var lastClick = '(none)';
+var lastClickError = '';
+function noteClick(id, extra){
+  clickSeq++;
+  try {
+    lastClick = String(id).slice(0, 60);
+    if(extra && extra.error) lastClickError = String(extra.error).slice(0, 200);
+  } catch(e){ /* diagnostics must never break a click */ }
+}
+
+/**
+ * Records every save attempt in the database so a failure can be understood
+ * after the fact instead of guessed at. Small, one document, overwritten each
+ * time — and deliberately never allowed to fail the save it describes.
+ */
+function noteAttempt(outcome, detail){
+  try {
+    var rec = {
+      at: Date.now(),
+      outcome: outcome,
+      detail: String(detail || '').slice(0, 300),
+      changed: changedFields().join(',') || '(none)',
+      touched: Object.keys(touched).join(',') || '(none)',
+      pendingImages: Object.keys(pendingMedia).length,
+      hasDraft: !!draft,
+      hasBaseline: !!baseline,
+      canEdit: canEdit,
+      dirty: dirty,
+      bound: lastBound,
+      formFields: lastHarvest.fields,
+      formMoved: lastHarvest.moved,
+      formBad: lastHarvest.bad || 0,
+      hasDb: !!DB,
+      clicks: clickSeq,
+      lastClick: lastClick,
+      lastClickError: lastClickError || '(none)',
+      tab: adminTab
+    };
+    ensureDb().then(function(db){
+      if(db) db.doc('meta/last-save').set(rec).catch(function(){});
+    });
+  } catch(e){ /* diagnostics must never break a save */ }
+}
+
+/* A refused write is not the same as a broken one. Only a permission refusal
+   should demote the editor to read-only; anything else stays retryable with
+   the user's work still on screen. */
+function classifyError(e){
+  var code = e && e.code;
+  if(e && e.kind === 'denied') return { readOnly:true,  message:e.message };
+  if(e && e.kind === 'nodb')   return { readOnly:false, message:e.message };
+  if(e && e.kind === 'verify') return { readOnly:false, message:e.message };
+  if(e && e.kind === 'toobig') return { readOnly:false, message:e.message };
+  /* invalid_argument covers both a permission refusal AND a document that
+     breaks a limit (over 256 KiB, bad path). Assuming the first was wrong: a
+     too-large document would silently demote a legitimate editor to
+     read-only. The caller re-checks access before deciding. */
+  if(code === 'invalid_argument') return { readOnly:'recheck',
+    message:'The database refused the write. Re-checking your access…' };
+  if(code === 'revoked')          return { readOnly:true, message:'Access was withdrawn while you were editing. Reload the page.' };
+  if(code === 'quota_exceeded')   return { readOnly:false, message:'The database is full. Remove some images and try again.' };
+  if(code === 'resource_exhausted') return { readOnly:false, message:'Too many writes at once. Wait a moment and try again.' };
+  return { readOnly:false, message:'Could not reach the database. Your changes are still here — try again.' };
+}
+
+/* ---------------------------------------------------------- widgets */
+
+function adminStatus(){
+  if(!DB)      return { cls:'off', text: lang === 'ar' ? 'غير متصل بقاعدة البيانات' : 'No database on this view' };
+  if(!canEdit) return { cls:'ro',  text: lang === 'ar' ? 'قراءة فقط' : 'Read-only' };
+  return { cls:'ok', text: lang === 'ar' ? 'صلاحية التعديل' : 'Editor access' };
+}
+
+/* Both documents cap at 256 KiB in the store, and a single pasted essay can
+   put one over on its own — after which every save fails and the dashboard is
+   stuck. Each control carries its own ceiling, and applyControl enforces it
+   whatever route the text arrived by. */
+var MAX_LINE = 300;
+var MAX_TEXT = 2000;
+var MAX_URL  = 2000;
+
+function field(label, value, path, type, attrs){
+  attrs = attrs || {};
+  var id = fieldId(path);
+  var cap = attrs.max || (type === 'textarea' ? MAX_TEXT : MAX_LINE);
+  return '<div class="ad-field' + (attrs.full ? ' full' : '') + '">'
+    + '<label for="' + id + '">' + esc(label) + '</label>'
+    + (type === 'textarea'
+        ? '<textarea id="' + id + '" data-path="' + esc(path) + '" maxlength="' + cap + '"'
+          + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
+          + (attrs.rows ? ' rows="' + attrs.rows + '"' : '') + '>' + esc(value) + '</textarea>'
+        : '<input id="' + id + '" data-path="' + esc(path) + '" type="' + (type || 'text') + '"'
+          + (type === 'number'
+              ? ' step="' + (attrs.step || '0.25') + '" min="0" max="' + (attrs.hi || 9999) + '"'
+              : ' maxlength="' + cap + '"')
+          + (attrs.rtl ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled')
+          + (attrs.placeholder ? ' placeholder="' + esc(attrs.placeholder) + '"' : '')
+          + ' value="' + esc(value) + '">')
+    + '</div>';
+}
+
+/* A list of short strings, one per line. Used for the ingredient chips, where
+   a row of inputs would be fussier to edit than a block of text. */
+var MAX_LIST = 40;
+function listField(label, arr, path, note){
+  var text = (Array.isArray(arr) ? arr.filter(isText) : []).join('\n');
+  return '<div class="ad-field full"><label>' + esc(label) + '</label>'
+    + '<textarea data-list="' + esc(path) + '" rows="6" maxlength="' + MAX_TEXT + '"'
+    + (lang === 'ar' ? ' dir="rtl"' : '') + (canEdit ? '' : ' disabled') + '>'
+    + esc(text) + '</textarea>'
+    + (note ? '<span style="font-size:11px;color:var(--muted)">' + esc(note) + '</span>' : '')
+    + '</div>';
+}
+
+/* Upload / paste-a-URL / clear, for any image field in the draft. */
+function imageField(label, value, path){
+  var pic = imgSrc(value);
+  return '<div class="ad-field full"><label>' + esc(label) + '</label>'
+    + '<div class="ad-img">'
+    +   '<div class="ad-img-prev">'
+    +     (pic ? '<img src="' + esc(pic) + '" alt="">'
+                : '<span>' + (lang === 'ar' ? 'لا صورة' : 'No image') + '</span>')
+    +   '</div>'
+    +   '<div class="ad-img-ctl">'
+    /* A real file input inside a label, part of the page. Phones open the
+       picker reliably only for a tap on an input that is in the document;
+       one created on the fly and clicked from script often opens nothing,
+       or loses the chosen photo. */
+    +     '<label class="ad-mini ad-upload' + (canEdit ? '' : ' off') + '" data-upload="' + esc(path) + '">'
+    +       '<input type="file" class="ad-file" accept="image/*" data-upload-input="' + esc(path) + '"'
+    +       (canEdit ? '' : ' disabled') + '>'
+    +       (lang === 'ar' ? 'رفع صورة' : 'Upload') + '</label>'
+    +     '<button class="ad-mini danger" data-clearimg="' + esc(path) + '"' + (canEdit ? '' : ' disabled') + '>'
+    +       (lang === 'ar' ? 'إزالة' : 'Clear') + '</button>'
+    +     '<input class="ad-url" id="' + fieldId(path) + '" data-path="' + esc(path) + '"'
+    +       ' maxlength="' + MAX_URL + '" value="' + esc(value || '') + '"'
+    +       (canEdit ? '' : ' disabled')
+    +       ' placeholder="' + (lang === 'ar' ? 'أو الصق رابط صورة' : 'or paste an image URL') + '">'
+    +   '</div>'
+    + '</div></div>';
+}
+
+/* ---------------------------------------------------------- tabs */
+
+function tabBrand(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var b = draft.brand[L] || { a:'', b:'' };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'اسم المطعم وشعاره' : 'Restaurant name & logo') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'الاسم مكوّن من جزأين: الأول أبيض والثاني بلون اللهب. بدّل اللغة من الأعلى لتحرير النسخة العربية.'
+        : 'The name is two parts: the first renders white, the second in flame orange. Switch language in the top bar to edit the other version.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field(lang === 'ar' ? 'الجزء الأول' : 'First part', b.a || '', 'brand.' + L + '.a', 'text', { rtl: L === 'ar' })
+    + field(lang === 'ar' ? 'الجزء الثاني (ملوّن)' : 'Second part (accent)', b.b || '', 'brand.' + L + '.b', 'text', { rtl: L === 'ar' })
+    + imageField(lang === 'ar' ? 'شعار المطعم' : 'Logo', draft.brand.logo, 'brand.logo')
+    + '</div></div>';
+}
+
+function tabHero(){
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'صورة الواجهة' : 'Hero image') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'تحلّ محل رسمة البرجر الكبيرة. اتركها فارغة للعودة إلى الرسمة.'
+        : 'Replaces the large burger illustration. Leave it empty to go back to the illustration.')
+    + '</p>'
+    + '<div class="ad-grid">' + imageField(lang === 'ar' ? 'الصورة' : 'Image', draft.heroImage, 'heroImage') + '</div>'
+    + '</div>'
+    + '<div class="ad-note">'
+    + (lang === 'ar'
+        ? 'نصوص الواجهة والعناوين تُحرَّر في تبويب <b>النصوص</b>.'
+        : 'Hero wording and headlines are edited in the <b>Text</b> tab.')
+    + '</div>';
+}
+
+function tabCats(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var out = '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'هذه الأقسام تظهر قبل المنيو ليختار الزبون قسماً بدل تصفّح القائمة كاملة.'
+        : 'These appear before the menu so a customer picks a section instead of scrolling the whole list.')
+    + '</p>';
+  draft.categories.forEach(function(c, i){
+    var CL = c[L] || {};
+    out += '<div class="ad-card">'
+      + '<div class="ad-row-top"><strong>' + esc(CL.n || c.id) + '</strong>'
+      + '<button class="ad-mini" data-cmove="' + i + '" data-dir="-1"' + (canEdit ? '' : ' disabled') + '>&uarr;</button>'
+      + '<button class="ad-mini" data-cmove="' + i + '" data-dir="1"' + (canEdit ? '' : ' disabled') + '>&darr;</button>'
+      + '<button class="ad-mini danger" data-cdel="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
+      + '<div class="ad-grid">'
+      + field(lang === 'ar' ? 'الاسم' : 'Name', CL.n || '', 'categories.' + i + '.' + L + '.n', 'text', { rtl: L === 'ar' })
+      + field(lang === 'ar' ? 'سطر وصف' : 'Small note', CL.t || '', 'categories.' + i + '.' + L + '.t', 'text', { rtl: L === 'ar' })
+      + imageField(lang === 'ar' ? 'صورة القسم' : 'Category image', c.img, 'categories.' + i + '.img')
+      + '</div></div>';
+  });
+  out += '<button class="ad-mini" id="addCat"' + (canEdit ? '' : ' disabled') + '>+ '
+    + (lang === 'ar' ? 'قسم جديد' : 'Add category') + '</button>';
+  return out;
+}
+
+var BADGE_KEYS = ['best', 'chef', 'spicy', 'veg'];
+
+var UNSORTED = '\u0000unsorted';
+
+/* Items whose category no longer exists. They vanish from the public site and,
+   until this, from the dashboard too: the menu tab lists one category at a
+   time, so an item belonging to none could not be reached, edited or deleted
+   by any route. */
+function orphanItems(){
+  var known = Object.create(null);
+  draft.categories.forEach(function(c){ if(c && c.id) known[c.id] = true; });
+  return draft.items.filter(function(b){
+    return !(b && typeof b.cat === 'string' && known[b.cat]);
+  });
+}
+
+function tabMenu(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var lost = orphanItems().length;
+  var out = '<div class="ad-filter">'
+    + '<label>' + (lang === 'ar' ? 'القسم' : 'Category') + '</label>'
+    + '<select id="adCatFilter"' + (canEdit ? '' : ' disabled') + '>'
+    + draft.categories.map(function(c){
+        var CL = c[L] || {};
+        return '<option value="' + esc(c.id) + '"' + (adminCat === c.id ? ' selected' : '') + '>'
+          + esc(CL.n || c.id) + '</option>';
+      }).join('')
+    + (lost
+        ? '<option value="' + esc(UNSORTED) + '"' + (adminCat === UNSORTED ? ' selected' : '') + '>'
+          + (lang === 'ar' ? 'بلا قسم' : 'No category') + ' (' + lost + ')</option>'
+        : '')
+    + '</select></div>';
+
+  if(adminCat === UNSORTED){
+    out += '<p class="ad-note" style="margin-bottom:14px">'
+      + (lang === 'ar'
+          ? 'هذه الأصناف قسمها غير موجود، فلا تظهر في الموقع. غيّر قسم كل صنف أو احذفه.'
+          : 'These items point at a category that no longer exists, so the site does not show them. Give each one a category, or delete it.')
+      + '</p>';
+  }
+
+  var orphan = Object.create(null);
+  orphanItems().forEach(function(b){ orphan[b.id] = true; });
+
+  var any = false;
+  draft.items.forEach(function(b, i){
+    var mine = (adminCat === UNSORTED) ? !!orphan[b.id] : (b.cat === adminCat);
+    if(!mine) return;
+    any = true;
+    var IL = b[L] || {};
+    out += '<div class="ad-card">'
+      + '<div class="ad-row-top"><strong>' + esc(IL.n || b.id) + '</strong>'
+      + '<button class="ad-mini" data-move="' + i + '" data-dir="-1"' + (canEdit ? '' : ' disabled') + '>&uarr;</button>'
+      + '<button class="ad-mini" data-move="' + i + '" data-dir="1"' + (canEdit ? '' : ' disabled') + '>&darr;</button>'
+      + '<button class="ad-mini danger" data-del="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      + (lang === 'ar' ? 'حذف' : 'Delete') + '</button></div>'
+      + '<div class="ad-grid">'
+      + field(lang === 'ar' ? 'الاسم' : 'Name', IL.n || '', 'items.' + i + '.' + L + '.n', 'text', { rtl: L === 'ar' })
+      + field(lang === 'ar' ? 'السعر' : 'Price (JD)', b.price, 'items.' + i + '.price', 'number')
+      + field(lang === 'ar' ? 'الوصف' : 'Description', IL.d || '', 'items.' + i + '.' + L + '.d', 'textarea', { full:1, rtl: L === 'ar' })
+      + '<div class="ad-field"><label>' + (lang === 'ar' ? 'القسم' : 'Category') + '</label>'
+      +   '<select data-catof="' + i + '"' + (canEdit ? '' : ' disabled') + '>'
+      +   draft.categories.map(function(c){
+            var CL2 = c[L] || {};
+            return '<option value="' + esc(c.id) + '"' + (b.cat === c.id ? ' selected' : '') + '>'
+              + esc(CL2.n || c.id) + '</option>';
+          }).join('')
+      +   '</select></div>'
+      + field(lang === 'ar' ? 'الحرارة ٠-٥' : 'Spice 0-5', b.spice || 0, 'items.' + i + '.spice', 'number', { step:'1', hi:5 })
+      + '<div class="ad-field full"><label>' + (lang === 'ar' ? 'الشارة' : 'Badge') + '</label>'
+      +   '<div class="ad-chips">'
+      +   BADGE_KEYS.map(function(k){
+            return '<button class="ad-chip" data-badge="' + i + ':' + k + '" aria-pressed="'
+              + (b.badge === k) + '"' + (canEdit ? '' : ' disabled') + '>'
+              + esc(badgeLabel(k)) + '</button>';
+          }).join('')
+      +   '<button class="ad-chip" data-badge="' + i + ':none" aria-pressed="' + (!b.badge) + '"'
+      +   (canEdit ? '' : ' disabled') + '>' + (lang === 'ar' ? 'بلا' : 'None') + '</button>'
+      +   '</div></div>'
+      + imageField(lang === 'ar' ? 'صورة الصنف' : 'Item photo', b.img, 'items.' + i + '.img')
+      + '</div></div>';
+  });
+
+  if(!any) out += '<p class="ad-note">' + (lang === 'ar' ? 'لا أصناف في هذا القسم.' : 'No items in this category yet.') + '</p>';
+  out += '<button class="ad-mini" id="addItem"' + (canEdit ? '' : ' disabled') + '>+ '
+    + (lang === 'ar' ? 'صنف جديد' : 'Add item') + '</button>';
+  return out;
+}
+
+/* The palette. A colour input always hands back #rrggbb, and the value is
+   validated again before it reaches the style engine. Empty means "use the
+   built-in colour", which is what Reset restores. */
+function tabTheme(){
+  var th = draft.theme || {};
+  var row = function(label, key){
+    return field(label, safeColor(th[key]) || THEME_BASE[key], 'theme.' + key, 'color');
+  };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'ألوان الموقع' : 'Site colours') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'تتغيّر ألوان الموقع كله فوراً. الدرجات الأغمق والأفتح تُشتق تلقائياً من هذه الأربعة.'
+        : 'These recolour the whole site at once. The darker and lighter shades are derived from them.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + row(lang === 'ar' ? 'اللهب (الأساسي)'   : 'Flame (primary)',  'flame')
+    + row(lang === 'ar' ? 'الذهبي'            : 'Gold',             'gold')
+    + row(lang === 'ar' ? 'الأحمر (الأزرار)'  : 'Red (call to action)', 'red')
+    + row(lang === 'ar' ? 'الخلفية'           : 'Background',       'bg')
+    + '</div>'
+    + '<button class="ad-mini" id="themeReset"' + (canEdit ? '' : ' disabled') + '>'
+    + (lang === 'ar' ? 'إرجاع الألوان الأصلية' : 'Reset to the original colours') + '</button>'
+    + '</div>';
+}
+
+function tabText(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var out = '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'اتركه فارغاً لاستخدام النص الأصلي. كل لغة تُحرَّر على حدة — بدّل اللغة من الأعلى. الأسطر الجديدة تُحترم في العناوين.'
+        : 'Leave a field empty to keep the built-in text. Each language is edited separately — switch language in the top bar. Line breaks are kept in headings.')
+    + '</p>';
+  TEXT_GROUPS.forEach(function(g){
+    out += '<div class="ad-card"><div class="ad-head"><h2>' + esc(g.title[lang] || g.title.en) + '</h2></div>'
+      + '<div class="ad-grid">'
+      + g.keys.map(function(k){
+          var big = TEXT_BIG.test(k);
+          return field(own_(TEXT_LABEL, k) || k, (draft.text[L] || {})[k] || '',
+            'text.' + L + '.' + k, big ? 'textarea' : 'text',
+            { full: big, rtl: L === 'ar', rows: 2 });
+        }).join('')
+      + '</div></div>';
+  });
+
+  out += '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'مكوّنات القصة' : 'Story ingredients') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + listField(lang === 'ar' ? 'المكوّنات' : 'Ingredient chips',
+        (draft.ings || {})[L],
+        'ings.' + L,
+        lang === 'ar' ? 'سطر لكل مكوّن.' : 'One per line.')
+    + '</div></div>';
+  return out;
+}
+
+function tabHours(){
+  var days = T[lang].days;
+  var out = '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'أوقات العمل' : 'Opening hours') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'بتوقيت عمّان. وقت إغلاق أبكر من وقت الفتح يعني بعد منتصف الليل.'
+        : 'Amman time. A closing time earlier than the opening time means after midnight.')
+    + '</p>';
+  draft.hours.forEach(function(h, i){
+    out += '<div class="ad-hours" style="margin-bottom:10px">'
+      + '<span>' + esc(days[i]) + '</span>'
+      + '<input type="time" data-hour="' + i + ':o" value="' + fmtTime(h.o) + '"' + (canEdit ? '' : ' disabled') + '>'
+      + '<input type="time" data-hour="' + i + ':c" value="' + fmtTime(h.c) + '"' + (canEdit ? '' : ' disabled') + '>'
+      + '<span style="font-size:11px;color:var(--muted)">'
+      + (h.c > 1440 ? (lang === 'ar' ? 'اليوم التالي' : 'next day') : '') + '</span>'
+      + '</div>';
+  });
+  return out + '</div>';
+}
+
+function tabContact(){
+  var l = draft.links || {};
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'التواصل' : 'Contact') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + field(lang === 'ar' ? 'واتساب (أرقام فقط)' : 'WhatsApp (digits only)', draft.contact.whatsapp || '', 'contact.whatsapp')
+    + field(lang === 'ar' ? 'الهاتف' : 'Phone', draft.contact.phone || '', 'contact.phone')
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'الروابط' : 'Links') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'روابط https فقط. اترك الحقل فارغاً ليختفي الزر من الموقع بدل أن يكون رابطاً معطّلاً.'
+        : 'https links only. Leave one empty and its button disappears from the site, rather than sitting there dead.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field('Instagram', l.instagram || '', 'links.instagram', 'text', { max: MAX_URL, placeholder:'https://…' })
+    + field('Facebook',  l.facebook  || '', 'links.facebook',  'text', { max: MAX_URL, placeholder:'https://…' })
+    + field('TikTok',    l.tiktok    || '', 'links.tiktok',    'text', { max: MAX_URL, placeholder:'https://…' })
+    + '</div></div>';
+}
+
+/* Where the restaurant is: the Google Maps link that the map and the
+   directions button open, the name and address on the map, and a picture
+   of the location to show instead of the drawn map. A live Google map
+   cannot be embedded in a claude.ai page, so the picture is uploaded. */
+function tabLocation(){
+  var L = lang === 'ar' ? 'ar' : 'en';
+  var l = draft.links || {};
+  var t = draft.text[L] || {};
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'رابط الموقع على Google Maps' : 'Google Maps link') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'افتح المطعم في Google Maps ← مشاركة ← نسخ الرابط، ثم الصقه هنا. الخريطة وزر الاتجاهات يفتحان هذا الرابط. اتركه فارغاً ليُبنى من العنوان.'
+        : 'Open the restaurant in Google Maps → Share → Copy link, and paste it here. The map and the directions button open it. Leave it empty to build one from the address.')
+    + '</p>'
+    + '<div class="ad-grid">'
+    + field(lang === 'ar' ? 'رابط الخريطة' : 'Map link', l.maps || '', 'links.maps', 'text',
+        { full:1, max: MAX_URL, placeholder:'https://maps.app.goo.gl/…' })
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'الاسم والعنوان على الخريطة' : 'Name and address on the map') + '</h2></div>'
+    + '<div class="ad-grid">'
+    + field(own_(TEXT_LABEL, 'map_name'), t.map_name || '', 'text.' + L + '.map_name', 'text', { rtl: L === 'ar' })
+    + field(own_(TEXT_LABEL, 'map_addr'), t.map_addr || '', 'text.' + L + '.map_addr', 'text', { rtl: L === 'ar' })
+    + '</div></div>'
+    + '<div class="ad-card"><div class="ad-head"><h2>'
+    + (lang === 'ar' ? 'صورة الخريطة' : 'Map picture') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (lang === 'ar'
+        ? 'خذ لقطة شاشة لموقع المطعم على Google Maps وارفعها. اتركها فارغة لتبقى الخريطة المرسومة. روابط الصور من مواقع أخرى لا تظهر على صفحات claude.ai — ارفع الصورة نفسها.'
+        : 'Take a screenshot of the restaurant on Google Maps and upload it. Leave it empty to keep the drawn map. Links to images on other sites do not show on claude.ai pages — upload the picture itself.')
+    + '</p>'
+    + '<div class="ad-grid">' + imageField(lang === 'ar' ? 'الصورة' : 'Picture', draft.mapImage, 'mapImage') + '</div>'
+    + '</div>';
+}
+
+/* ---------------------------------------------------------- shell */
+
+var adminCat = 'burgers';
+
+/* Has the store been asked yet whether this viewer may write? Until it
+   answers, the dashboard shows neither itself nor a refusal. */
+var probeDone = false;
+
+function renderAdmin(){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+
+  /* The gate. A viewer the database will not accept writes from gets nothing
+     here — not a read-only copy of the panel, not the content, nothing. The
+     address is unlisted so a customer never arrives; this is what happens if
+     one does anyway.
+
+     With no database at all there is nothing to protect and nothing to check,
+     so the panel opens and says so — that is the file:// case, where the page
+     is just a page. */
+  if(DB && !canEdit){
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (probeDone
+          ? (lang === 'ar'
+              ? '<b>هذه الصفحة غير متاحة لحسابك.</b><br>لوحة التحكم مخصّصة لمن يملك صلاحية التعديل على هذا الموقع.'
+              : '<b>This page is not available to your account.</b><br>The dashboard is for accounts with edit access to this site.')
+          : (lang === 'ar' ? 'جارٍ التحقق من صلاحيتك…' : 'Checking your access…'))
+      + '</p>'
+      + (ADMIN_PAGE ? '' : '<p style="margin-top:18px"><a class="btn btn--ghost" href="#">'
+      + (lang === 'ar' ? 'العودة إلى الموقع' : 'Back to the site') + '</a></p>')
+      + '</div>';
+    renderedFrom = null;
+    return;
+  }
+
+  /* The password. Read before anything of the content is shown, and failing
+     closed: until the store has answered, or if it cannot, the panel stays
+     shut. */
+  if(DB && lockDoc === undefined){
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (lockReadFailed
+          ? (lang === 'ar' ? 'تعذّرت قراءة إعدادات الدخول. أعد تحميل الصفحة.' : 'Could not read the login settings. Reload the page.')
+          : (lang === 'ar' ? 'جارٍ التحقق…' : 'Checking…'))
+      + '</p></div>';
+    renderedFrom = null;
+    return;
+  }
+  if(isLocked()){
+    renderLogin(root);
+    renderedFrom = null;
+    return;
+  }
+
+  if(!draft){
+    /* Show that we are reading, rather than an editor pre-filled with
+       defaults that a save would then write over the stored content. */
+    root.innerHTML = '<div class="ad-bar"><h1>'
+      + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1></div>'
+      + '<div class="ad-wrap"><p class="ad-note">'
+      + (lang === 'ar' ? 'جارٍ قراءة المحتوى المحفوظ…' : 'Reading saved content…')
+      + '</p></div>';
+    renderedFrom = null;
+    loadDraft().then(renderAdmin);
+    return;
+  }
+
+  /* Anything typed since the last render is read out of the controls before
+     they are replaced, so a rebuild — a tab change, a snapshot, adding an
+     item — can no longer swallow an edit. */
+  harvestForm();
+  FIELD_PATHS = [];
+
+  if(adminCat !== UNSORTED &&
+     !draft.categories.some(function(c){ return c.id === adminCat; })){
+    adminCat = (draft.categories[0] || {}).id || 'burgers';
+  }
+
+  var st = adminStatus();
+  var tabs = [
+    ['menu',    lang === 'ar' ? 'المنيو'   : 'Menu'],
+    ['cats',    lang === 'ar' ? 'الأقسام'  : 'Categories'],
+    ['brand',   lang === 'ar' ? 'الاسم'    : 'Brand'],
+    ['hero',    lang === 'ar' ? 'الواجهة'  : 'Hero'],
+    ['text',    lang === 'ar' ? 'النصوص'   : 'Text'],
+    ['location', lang === 'ar' ? 'الموقع'  : 'Location'],
+    ['theme',   lang === 'ar' ? 'الألوان'   : 'Colours'],
+    ['hours',   lang === 'ar' ? 'الأوقات'  : 'Hours'],
+    ['contact', lang === 'ar' ? 'التواصل'  : 'Contact'],
+    ['security', lang === 'ar' ? 'الأمان'  : 'Security']
+  ];
+
+  var body = adminTab === 'menu'  ? tabMenu()
+           : adminTab === 'cats'  ? tabCats()
+           : adminTab === 'brand' ? tabBrand()
+           : adminTab === 'hero'  ? tabHero()
+           : adminTab === 'text'  ? tabText()
+           : adminTab === 'location' ? tabLocation()
+           : adminTab === 'theme' ? tabTheme()
+           : adminTab === 'hours' ? tabHours()
+           : adminTab === 'security' ? tabSecurity()
+           : tabContact();
+
+  var notice = '';
+  if(DB && canEdit && lockDoc === null && adminTab !== 'security'){
+    notice = '<div class="ad-lockbar"><span>'
+      + (lang === 'ar' ? '🔒 لوحة التحكم بلا كلمة سر بعد. اختر كلمة سر ليُطلب تسجيل الدخول كل مرة.'
+                       : '🔒 The dashboard has no password yet. Choose one and it will ask you to sign in each time.')
+      + '</span><button class="ad-mini" data-tab="security">'
+      + (lang === 'ar' ? 'اختيار كلمة سر' : 'Set a password') + '</button></div>';
+  }
+  if(!DB){
+    notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
+      + (lang === 'ar' ? 'لا توجد قاعدة بيانات في هذا العرض.' : 'No database on this view.') + '</b><br>'
+      + (lang === 'ar'
+          ? 'التعديلات لن تُحفظ. افتح النسخة المنشورة على claude.ai لاستخدام اللوحة.'
+          : 'Edits cannot be saved here. Open the published page on claude.ai to use the dashboard.')
+      + '</div>';
+  } else if(!canEdit){
+    notice = '<div class="ad-note" style="margin-bottom:16px"><b>'
+      + (lang === 'ar' ? 'قراءة فقط.' : 'Read-only.') + '</b><br>'
+      + (lang === 'ar'
+          ? 'حسابك يستطيع عرض هذه الصفحة لكن ليس تعديلها. الخادم يرفض أي حفظ — الحماية ليست في المتصفح.'
+          : 'Your account can view this page but not edit it. Saves are refused by the server, not by this browser.')
+      + '</div>';
+  }
+
+  /* Any rebuild that does happen (a tab change, adding an item) should not
+     cost the user their place in the form. */
+  var focused = document.activeElement;
+  var keep = null;
+  if(focused && root.contains(focused) && focused.dataset && focused.dataset.path){
+    keep = { path: focused.dataset.path, start: null, end: null };
+    try { keep.start = focused.selectionStart; keep.end = focused.selectionEnd; } catch(e){}
+  }
+
+  root.innerHTML =
+      '<div class="ad-bar">'
+    +   '<h1>' + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
+    +   '<span class="ad-pill ' + st.cls + '"><i></i>' + esc(st.text) + '</span>'
+    +   '<div style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">'
+    /* In the top bar as well, so the control is in view the instant the
+       dashboard opens rather than only at the foot of a long form — and
+       unconditionally, because a button that is missing while the page decides
+       whether you may edit is indistinguishable from one that is broken. */
+    +     '<button class="btn ad-savebtn" id="adSaveTop"' + (saving ? ' disabled' : '') + '>'
+    +       (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
+                    : (lang === 'ar' ? 'حفظ' : 'Save'))
+    +       (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+    +     (PUBLISH.trigger
+          ? '<span class="ad-pub" id="adPubStatus">' + esc(publishLabel()) + '</span>'
+            + (safeLink(PUBLISH.publicUrl)
+                ? '<a class="ad-mini" href="' + esc(safeLink(PUBLISH.publicUrl)) + '" target="_blank" rel="noopener noreferrer">'
+                  + (lang === 'ar' ? 'عرض الموقع' : 'View website') + '</a>'
+                : '')
+            + '<button class="ad-mini" id="adPerms" hidden>' + (lang === 'ar' ? 'الأذونات' : 'Permissions') + '</button>'
+            + '<button class="btn ad-savebtn ad-pubbtn" id="adPublish"'
+            + (publishBusy || publishAfterSave || publishRunning() ? ' disabled' : '') + '>'
+            + (lang === 'ar' ? 'نشر على الموقع' : 'Publish to website') + '</button>'
+          : '')
+    +     '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
+    +     (lockActive() ? '<button class="ad-mini" id="adLock">' + (lang === 'ar' ? 'قفل' : 'Lock') + '</button>' : '')
+    +     (ADMIN_PAGE ? '' : '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>')
+    +   '</div>'
+    + '</div>'
+    + '<div class="ad-wrap">'
+    +   notice
+    +   '<div class="ad-tabs" role="tablist">'
+    +     tabs.map(function(t){
+            return '<button class="ad-tab" role="tab" data-tab="' + t[0] + '" aria-selected="'
+              + (adminTab === t[0]) + '">' + esc(t[1]) + '</button>';
+          }).join('')
+    +   '</div>'
+    +   body
+    + '</div>'
+    /* The bar is always on screen for an editor, so the Save button is never
+       something you have to discover by typing first. It simply has nothing
+       to do until there are changes. */
+    /* Always on screen while the dashboard is open. It used to appear only
+       once the store had granted edit access, so during the seconds before
+       that — and for good if the check failed — the save controls were simply
+       not there, or slid off the bottom of the window. */
+    + '<div class="ad-save show">'
+    +   (lastError
+          ? '<p class="ad-bad">' + esc(lastError) + '</p>'
+          : saving
+            ? '<p>' + (lang === 'ar' ? 'جارٍ الحفظ والتحقّق…' : 'Saving and verifying…') + '</p>'
+            : !DB
+              ? '<p class="ad-bad">' + (lang === 'ar'
+                  ? 'لا اتصال بقاعدة البيانات — الحفظ لن ينجح من هذا العرض.'
+                  : 'No database on this view — saving cannot work here.') + '</p>'
+            : !canEdit
+              ? '<p class="ad-warn">' + (lang === 'ar'
+                  ? 'يجري التحقق من صلاحيتك… اضغط حفظ وسنتحقق مرة أخرى.'
+                  : 'Checking your access… press Save and it will be re-checked.') + '</p>'
+            : storeMoved
+              ? '<p class="ad-warn">' + (lang === 'ar'
+                  ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
+                  : 'Another session saved changes. Your save will merge on top of them.') + '</p>'
+              : hasChanges()
+                ? '<p>' + (lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes') + '</p>'
+                : (Date.now() - nothingAt < 5000)
+                  ? '<p class="ad-quiet">' + esc(savedAlreadyText()) + '</p>'
+                  : '<p class="ad-quiet">' + (lang === 'ar'
+                      ? 'كل التعديلات محفوظة — الحفظ تلقائي'
+                      : 'All changes saved — saving is automatic') + '</p>')
+    +   '<button class="ad-mini" id="adRevert"' + (saving || !hasChanges() ? ' disabled' : '') + '>'
+    +     (lang === 'ar' ? 'تراجع' : 'Revert') + '</button>'
+    /* Never dimmed to the point of looking absent: it stays a solid, clickable
+       control, and simply reports that there is nothing to save. */
+    +   '<button class="btn ad-savebtn" id="adSave" style="padding:10px 24px;font-size:13.5px"'
+    +     (saving ? ' disabled' : '') + '>'
+    +     (saving ? (lang === 'ar' ? 'جارٍ الحفظ…' : 'Saving…')
+                  : PUBLISH.trigger
+                    ? (lang === 'ar' ? 'حفظ ونشر على الموقع' : 'Save & publish to website')
+                    : (lang === 'ar' ? 'حفظ ونشر' : 'Save & publish'))
+    +     (hasChanges() ? '<span class="ad-dot" aria-hidden="true"></span>' : '') + '</button>'
+    + '</div>'
+    + (lastSaved && !hasChanges() && !lastError
+        ? '<div class="ad-ok" role="status">' + (lang === 'ar'
+            ? 'تم الحفظ والتأكد من وجوده في قاعدة البيانات'
+            : 'Saved and confirmed in the database') + '</div>'
+        : '');
+
+  renderedFrom = draft;
+  lastBound = bindFields(root);
+  renderPermsButton();
+
+  if(keep){
+    var again = root.querySelector('[data-path="' + keep.path + '"]');
+    if(again){
+      again.focus();
+      if(keep.start != null){
+        try { again.setSelectionRange(keep.start, keep.end); } catch(e){}
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------- editing */
+
+/**
+ * Every control the dashboard draws is registered as it is written, and its
+ * index is stamped into the element's id.
+ *
+ * The path back into the draft used to live only in a data- attribute read by
+ * a single listener on `document`. That made one delegated handler the sole
+ * route from a keystroke to the saved model: if it did not run — a guard that
+ * was momentarily false, an attribute that did not survive, an event that was
+ * never delivered — the typing stayed on screen and nothing else ever heard
+ * about it. The save then found the draft identical to the loaded copy and
+ * truthfully reported that there was nothing to save, which is exactly what
+ * the database recorded, six attempts running.
+ *
+ * An id is not optional markup: labels point at it. So the id is the route,
+ * every control is also bound directly, and the form itself is read at save
+ * time. Losing an edit now takes all three to fail at once.
+ */
+var FIELD_PATHS = [];
+function fieldId(path){ FIELD_PATHS.push(path); return 'f' + (FIELD_PATHS.length - 1); }
+
+/* The draft the visible form was drawn from. Reading controls back is only
+   valid while the two still match — after a revert or a reload the DOM is a
+   leftover, and harvesting it would resurrect what was just discarded. */
+var renderedFrom = null;
+
+function controlPath(el){
+  if(el.__adPath) return el.__adPath;
+  var id = el.id || '';
+  if(/^f\d+$/.test(id)){
+    var p = FIELD_PATHS[Number(id.slice(1))];
+    if(p) return (el.__adPath = p);
+  }
+  var attr = el.getAttribute && el.getAttribute('data-path');
+  if(attr) return (el.__adPath = attr);
+  return null;
+}
+
+/* Copies one control's value into the draft. Returns whether anything moved,
+   so a harvest can report how much it caught. */
+function applyControl(el){
+  if(!draft || !el || el.disabled) return false;
+  var path = controlPath(el);
+  if(path){
+    var v = el.value;
+    var cur = getPath(draft, path);
+    if(el.type === 'number'){
+      /* A price that is negative, infinite or not a number is not a price.
+         Clamped here rather than trusted from the control, because min/max on
+         an input are a hint to the user, not a guarantee to the program. */
+      v = Number(v);
+      if(!isFinite(v)) v = 0;
+      var hi = Number(el.getAttribute('max'));
+      if(!isFinite(hi) || hi <= 0) hi = 9999;
+      v = Math.min(Math.max(v, 0), hi);
+      if(el.getAttribute('step') === '1') v = Math.round(v);
+      if(Number(cur) === v) return false;
+    } else {
+      if(el.maxLength > 0 && v.length > el.maxLength) v = v.slice(0, el.maxLength);
+      /* A field the draft has never held renders empty, so an empty box is
+         not an edit. Without this every harvest would write '' over every
+         absent key and the panel would never stop claiming unsaved work. */
+      if((cur == null ? '' : String(cur)) === v) return false;
+    }
+    setPathOn(draft, path, v);
+    markTouched(path);
+    return true;
+  }
+  var listPath = el.getAttribute && el.getAttribute('data-list');
+  if(listPath){
+    var next = String(el.value || '').split(/\r?\n/)
+      .map(function(x){ return x.trim().slice(0, MAX_LINE); })
+      .filter(function(x){ return x.length > 0; })
+      .slice(0, MAX_LIST);
+    if(sameValue(getPath(draft, listPath), next)) return false;
+    setPathOn(draft, listPath, next);
+    markTouched(listPath);
+    return true;
+  }
+
+  var hour = el.getAttribute && el.getAttribute('data-hour');
+  if(hour && Array.isArray(draft.hours)){
+    var bits = hour.split(':');
+    var idx = Number(bits[0]), which = bits[1];
+    var row = draft.hours[idx];
+    if(!row) return false;
+    var mins = timeToMins(el.value);
+    if(which === 'c' && mins <= row.o) mins += 1440;
+    if(row[which] === mins) return false;
+    row[which] = mins;
+    markTouched('hours');
+    return true;
+  }
+  var catof = el.getAttribute && el.getAttribute('data-catof');
+  if(catof != null && draft.items){
+    var it = draft.items[Number(catof)];
+    if(!it || it.cat === el.value) return false;
+    it.cat = el.value;
+    markTouched('items');
+    return true;
+  }
+  return false;
+}
+
+/* What is on the screen is what gets saved. Reading the controls back before
+   measuring or writing means an edit the user can see cannot be missing from
+   the save, whatever happened to the event that carried it. */
+function harvestForm(){
+  var root = document.getElementById('admin-root');
+  if(!root || !draft || renderedFrom !== draft) return 0;
+  var list = root.querySelectorAll('input,textarea,select');
+  var n = 0, bad = 0;
+  for(var i = 0; i < list.length; i++){
+    /* Per control, because this runs at the top of every render: one field
+       that cannot be read must not stop the other thirty-six from being
+       saved, and must certainly not take the render with it. */
+    try { if(applyControl(list[i])) n++; } catch(e){ bad++; }
+  }
+  lastHarvest = { fields: list.length, moved: n, bad: bad };
+  return n;
+}
+var lastHarvest = { fields: 0, moved: 0, bad: 0 };
+var lastBound = 0;
+
+function onFieldInput(e){
+  try {
+    if(applyControl(e.target)){
+      markDirty();
+      /* A colour should be visible as it is chosen, not only once the save
+         round-trips. The draft is the source; the page follows it. */
+      if(e.target.type === 'color' && draft && draft.theme){
+        THEME_KEYS.forEach(function(k){ THEME[k] = safeColor(draft.theme[k]); });
+        applyTheme();
+      }
+      autoSave();
+    }
+  } catch(err){ /* one unreadable control never blocks the rest of the form */ }
+}
+
+/**
+ * Every change reaches the database on its own, about a second after the
+ * typing stops.
+ *
+ * Four rounds of this bug had one shape: the edit was made, something took it
+ * off the screen before the button was pressed, and the save then correctly
+ * reported nothing to write. Making the button cleverer cannot fix that — by
+ * the time it is pressed the work is already gone. Writing as the work happens
+ * can: there is no window left for anything to revert, because the new value is
+ * in the store seconds after it is typed. The button remains, as "save now".
+ */
+var autoTimer = null;
+var autoRun = false;      /* the save in flight was automatic */
+var savePending = false;  /* a change arrived while a save was in flight */
+var autoHeldUntil = 0;    /* automatic saves paused after a failure */
+var AUTO_DELAY = 1100;
+var AUTO_HOLD = 15000;
+
+function autoSave(){
+  if(!DB) return;
+  /* A change made DURING a save must not be dropped. Returning here and
+     scheduling nothing meant the last keystroke before a save completed was
+     never written — the exact shape of bug this whole mechanism exists to
+     prevent. It is remembered and scheduled the moment the save settles. */
+  if(saving){ savePending = true; return; }
+  if(Date.now() < autoHeldUntil) return;
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = setTimeout(flushSave, AUTO_DELAY);
+}
+
+/* Write now rather than on the timer. Leaving a field, hiding the tab or
+   navigating away are all moments after which this page may not get another
+   chance, so each one shortens the window to nothing. */
+function flushSave(){
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+  if(!DB) return;
+  if(saving){ savePending = true; return; }
+  /* The backoff applies here too, and that is not a detail: showing a failed
+     save redraws the panel, which destroys the focused field, which fires
+     focusout, which lands back in this function. Without the hold that is a
+     closed loop — a failing write every few milliseconds for as long as the
+     panel is open. Measured at fifty-five attempts in six seconds before this
+     line existed. */
+  if(Date.now() < autoHeldUntil) return;
+  if(!hasChanges()) return;
+  pressSave(true);
+}
+
+/* Called when a save settles, whatever the outcome. */
+function afterSave(ok){
+  if(ok){
+    autoHeldUntil = 0;
+  } else {
+    /* A failure that repeats — a document over the size limit, a withdrawn
+       permission — would otherwise mean a doomed write every second for as
+       long as the panel is open. Automatic saves pause; the button does not,
+       so the user can always force a retry. */
+    autoHeldUntil = Date.now() + AUTO_HOLD;
+  }
+  if(savePending){
+    savePending = false;
+    if(ok) autoSave();
+  }
+  if(publishAfterSave){
+    publishAfterSave = false;
+    if(ok && !hasChanges()) requestPublish();
+    else renderPublishStatus();
+  }
+}
+
+/* Leaving a control commits it: click out of the field and it is written. */
+document.addEventListener('focusout', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  if(!root.contains(e.target)) return;
+  try { if(applyControl(e.target)) markDirty(); } catch(err){}
+  /* Deferred by a turn: focusout lands between mousedown and mouseup, and
+     doing work here that touches the DOM would cancel the click that caused
+     it. */
+  setTimeout(flushSave, 0);
+});
+
+/* The last moment this page is reliably allowed to run. A reload between an
+   edit and a save is what lost four rounds of work: the typing was in a page
+   that no longer existed, and the next one read the stored value back. */
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden') flushSave();
+});
+window.addEventListener('pagehide', flushSave);
+
+/* Bound on the elements themselves, so no guard on an ancestor can swallow a
+   keystroke on its way up. */
+function bindFields(root){
+  var list = root.querySelectorAll('input,textarea,select');
+  for(var i = 0; i < list.length; i++){
+    var el = list[i];
+    controlPath(el);
+    if(el.__adBound) continue;
+    el.__adBound = true;
+    el.addEventListener('input', onFieldInput);
+    el.addEventListener('change', onFieldInput);
+  }
+  return list.length;
+}
+
+function setPath(path, value){
+  setPathOn(draft, path, value);
+  markTouched(path);
+  /* A control already showing this path would otherwise hand its old value
+     straight back at the next harvest — which is what undid every image
+     upload and every Clear: the URL box beside the picture still held the
+     previous value, and the render that followed read it over the new one. */
+  var root = document.getElementById('admin-root');
+  if(!root) return;
+  var list = root.querySelectorAll('input,textarea,select');
+  for(var i = 0; i < list.length; i++){
+    try { if(controlPath(list[i]) === path) list[i].value = value == null ? '' : String(value); } catch(e){}
+  }
+}
+
+/* Updates the save bar in place. Re-rendering the whole panel on every
+   keystroke would tear the field the user is typing in out from under them,
+   so the bar's own state is refreshed on its own. */
+/* The honest answer to "is there anything to save?" — measured, not tracked,
+   so a missed input event cannot make the dashboard claim it is up to date. */
+function hasChanges(){
+  harvestForm();
+  return dirty || Object.keys(pendingMedia).length > 0 || changedFields().length > 0;
+}
+
+/* Said when Save is pressed and the form already matches the database. This
+   used to read "Nothing to save", which, after the automatic save had just
+   written everything, read like a failure to the owner pressing the button. */
+function savedAlreadyText(){
+  var unpublished = PUBLISH.trigger && hasUnpublished();
+  if(lang === 'ar') return '✓ محفوظ — كل تعديلاتك محفوظة في قاعدة البيانات'
+    + (unpublished ? '. اضغط «نشر على الموقع» ليراها الزبائن.' : '');
+  return '✓ Saved — all your edits are in the database'
+    + (unpublished ? '. Press “Publish to website” for customers to see them.' : '');
+}
+
+function markDirty(){
+  var bar = document.querySelector('#admin-root .ad-save');
+  if(!bar) return;
+  bar.classList.add('show');
+
+  var pending = hasChanges();
+  var saveBtn = bar.querySelector('#adSave');
+  var revertBtn = bar.querySelector('#adRevert');
+  if(saveBtn) saveBtn.disabled = saving;
+  if(revertBtn) revertBtn.disabled = saving || !pending;
+
+  var msg = bar.querySelector('p');
+  if(msg && !lastError && saving){
+    /* An automatic save updates the bar rather than redrawing the panel, so
+       this is the only place it can report itself. */
+    msg.className = 'ad-quiet';
+    msg.textContent = lang === 'ar' ? 'يُحفظ تلقائياً…' : 'Saving automatically…';
+  } else if(msg && !lastError && !saving){
+    if(storeMoved){
+      msg.className = 'ad-warn';
+      msg.textContent = lang === 'ar'
+        ? 'حُفظت تعديلات من جلسة أخرى. الحفظ سيدمج تغييراتك معها.'
+        : 'Another session saved changes. Your save will merge on top of them.';
+    } else if(pending){
+      msg.className = '';
+      msg.textContent = lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes';
+    } else if(Date.now() - nothingAt < 5000){
+      msg.className = 'ad-quiet';
+      msg.textContent = savedAlreadyText();
+    } else {
+      msg.className = 'ad-quiet';
+      msg.textContent = lang === 'ar'
+        ? 'كل التعديلات محفوظة — الحفظ تلقائي'
+        : 'All changes saved — saving is automatic';
+    }
+  }
+  /* Both save buttons carry the same unsaved marker, updated in place. */
+  ['#adSaveTop', '#adSave'].forEach(function(sel){
+    var btn = document.querySelector('#admin-root ' + sel);
+    if(!btn) return;
+    var dot = btn.querySelector('.ad-dot');
+    if(pending && !dot){
+      dot = document.createElement('span');
+      dot.className = 'ad-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      btn.appendChild(dot);
+    } else if(!pending && dot){
+      dot.remove();
+    }
+  });
+
+  /* A stale "saved" badge next to unsaved work would be misleading. */
+  var ok = document.querySelector('#admin-root .ad-ok');
+  if(ok && pending) ok.remove();
+}
+
+/* A second route to the same work, kept because the two fail differently:
+   this one survives a control that was added without being bound, the direct
+   binding survives an ancestor that swallows the event. Applying an edit
+   twice is a no-op, so both running costs nothing.
+
+   Neither route checks canEdit any more. Recording what someone typed into
+   their own copy is harmless — the database, not this browser, decides whether
+   a write is allowed, and refusing to remember the typing only ever lost it. */
+document.addEventListener('input', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  onFieldInput(e);
+});
+
+document.addEventListener('change', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  var el = e.target;
+  if(el.id === 'adCatFilter'){ adminCat = el.value; renderAdmin(); return; }
+  onFieldInput(e);
+  if(el.getAttribute && el.getAttribute('data-catof') != null) renderAdmin();
+});
+
+function timeToMins(t){
+  var p = String(t || '').split(':');
+  return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+}
+
+/* Deleting or reordering a list renumbers the paths the visible controls
+   carry: the field that said items.2 now describes a different item. The form
+   is declared stale so it is not read back until it has been redrawn —
+   without this, a delete let the old controls write their values onto
+   whatever had shifted into their place. */
+function renumbered(){
+  renderedFrom = null;
+  renderAdmin();
+}
+
+/**
+ * Every press is recorded before anything else runs, and one failing branch
+ * can no longer take the rest of the panel's buttons with it.
+ *
+ * A single listener handled every button, so an exception anywhere in it left
+ * the whole dashboard looking dead — nothing responds, nothing is written, and
+ * there is no trace of what happened. Now the failure is caught, shown, and
+ * put on the record.
+ */
+document.addEventListener('click', function(e){
+  var root = document.getElementById('admin-root');
+  if(!root || !root.classList.contains('open')) return;
+  var t = e.target.closest('button');
+  if(!t) return;
+
+  noteClick(t.id || t.className || '(button)');
+  try {
+    adminClick(t);
+  } catch(err){
+    saving = false;                 /* never leave the buttons stuck */
+    lastError = (lang === 'ar' ? 'عطل في اللوحة: ' : 'Dashboard error: ')
+      + ((err && err.message) || String(err));
+    noteClick('error', { error: ((err && err.message) || String(err)).slice(0, 200) });
+    renderAdmin();
+  }
+});
+
+function adminClick(t){
+  /* Behind the login screen only leaving and switching language work. */
+  if(isLocked() && t.id !== 'adClose' && t.id !== 'adLang') return;
+
+  /* Read the form while its paths still line up with the draft: the button
+     about to be pressed may renumber them. */
+  harvestForm();
+
+  if(t.id === 'adClose'){
+    if(!ADMIN_PAGE) location.hash = '';
+    return;
+  }
+  if(t.id === 'adPublish'){ requestPublish(); return; }
+  if(t.id === 'adPerms'){ openPermissions(); return; }
+  if(t.id === 'adLock'){ lockNow(); return; }
+  if(t.id === 'adPwSet' || t.id === 'adPwChange' || t.id === 'adPwRemove'){ passwordAction(t.id); return; }
+  if(t.id === 'adLang'){ setLang(lang === 'en' ? 'ar' : 'en'); renderAdmin(); return; }
+  if(t.dataset.tab){ adminTab = t.dataset.tab; lockMsg = ''; renderAdmin(); return; }
+  /* On the admin page the bottom button does what it says: it saves, then
+     puts the saved content on the customer website. Before the two pages were
+     separated, saving was publishing; this keeps that one press meaning both. */
+  if(t.id === 'adSave' && PUBLISH.trigger){
+    /* A publish already under way, or no way to publish here: the press
+       still saves — it never does nothing. */
+    if(publishBusy || publishRunning() || !DB || !canEdit) pressSave(); else requestPublish();
+    return;
+  }
+  if(t.id === 'adSave' || t.id === 'adSaveTop'){ pressSave(); return; }
+
+  /* Below here the controls only make sense for an editor. Save is handled
+     above this line on purpose: it used to fall through to this return, so a
+     viewer marked read-only — including one marked so by a probe that had
+     merely failed — pressed Save and absolutely nothing happened. No message,
+     no record, no clue. A save now always answers, even if the answer is
+     "your account cannot edit this page". */
+  if(!canEdit) return;
+
+  if(t.dataset.clearimg){ setPath(t.dataset.clearimg, ''); renderAdmin(); markDirty(); autoSave(); return; }
+
+  if(t.dataset.badge){
+    var b = t.dataset.badge.split(':');
+    draft.items[Number(b[0])].badge = b[1] === 'none' ? null : b[1];
+    markTouched('items'); renderAdmin(); autoSave(); return;
+  }
+  if(t.dataset.del){ draft.items.splice(Number(t.dataset.del), 1); markTouched('items'); renumbered(); autoSave(); return; }
+  if(t.dataset.cdel){
+    var gone = draft.categories.splice(Number(t.dataset.cdel), 1)[0];
+    /* Items of a deleted category would vanish from the site, so move
+       them to the first remaining category instead of dropping them. */
+    var fallback = (draft.categories[0] || {}).id;
+    if(gone && fallback){
+      draft.items.forEach(function(it){ if(it.cat === gone.id) it.cat = fallback; });
+    }
+    markTouched('categories'); markTouched('items'); renumbered(); autoSave(); return;
+  }
+  if(t.dataset.move){
+    var from = Number(t.dataset.move), to = from + Number(t.dataset.dir);
+    if(to >= 0 && to < draft.items.length){
+      draft.items.splice(to, 0, draft.items.splice(from, 1)[0]);
+      markTouched('items'); renumbered(); autoSave();
+    }
+    return;
+  }
+  if(t.dataset.cmove){
+    var cf = Number(t.dataset.cmove), ct = cf + Number(t.dataset.dir);
+    if(ct >= 0 && ct < draft.categories.length){
+      draft.categories.splice(ct, 0, draft.categories.splice(cf, 1)[0]);
+      markTouched('categories'); renumbered(); autoSave();
+    }
+    return;
+  }
+  if(t.id === 'addItem'){
+    draft.items.push({
+      id: 'item-' + Date.now().toString(36),
+      cat: adminCat === UNSORTED ? ((draft.categories[0] || {}).id || 'burgers') : adminCat,
+      price: 5.00,
+      spice: 0, badge: null, img: '',
+      en: { n:'New item', d:'' }, ar: { n:'صنف جديد', d:'' }
+    });
+    markTouched('items'); renderAdmin(); autoSave(); return;
+  }
+  if(t.id === 'addCat'){
+    draft.categories.push({
+      id: 'cat-' + Date.now().toString(36), icon: 'i-fries', img: '',
+      en: { n:'New category', t:'' }, ar: { n:'قسم جديد', t:'' }
+    });
+    markTouched('categories'); renderAdmin(); autoSave(); return;
+  }
+  if(t.id === 'themeReset'){
+    draft.theme = { flame:'', gold:'', red:'', bg:'' };
+    THEME = { flame:'', gold:'', red:'', bg:'' };
+    applyTheme();
+    markTouched('theme'); renumbered(); autoSave();
+    return;
+  }
+  if(t.id === 'adRevert'){
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+    draft = null; renderedFrom = null;
+    dirty = false; pendingMedia = {}; touched = Object.create(null);
+    lastError = ''; storeMoved = false;
+    renderAdmin();          /* clears the form, then re-reads the store */
+    return;
+  }
+
+}
+
+/**
+ * Pressing Save. Always answers: a save that cannot proceed says why, on
+ * screen and on the record, instead of returning quietly.
+ */
+function pressSave(auto){
+  /* The button is re-rendered on every snapshot, so its disabled state is not
+     a reliable guard on its own. */
+  if(saving) return;
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+  autoRun = !!auto;
+  if(!autoRun) autoHeldUntil = 0;   /* the button overrides any backoff */
+  savePending = false;
+  saving = true;
+  lastError = '';
+  /* An automatic save must not move anything. Rebuilding the panel here tore
+     the DOM out between a mousedown and its mouseup, so the very click that
+     moved focus out of a field — a tab, a button — was destroyed before it
+     could fire. The bar is updated in place instead; only a save the user
+     asked for gets a full render. */
+  if(autoRun) markDirty(); else renderAdmin();
+
+  /* On the record before the first write, not only after the last one: a
+     save that never answers used to leave nothing behind at all. */
+  noteAttempt('start', autoRun ? 'auto' : 'button');
+
+  /* A save that never settles left the button disabled for good — the
+     dashboard looked dead and there was no way back short of a reload. It is
+     time-boxed now: whichever comes first wins, the work stays on screen,
+     and the button always comes back. */
+  var settled = false;
+  var once = function(fn, ok){
+    return function(v){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer);
+      saving = false;
+      try { fn(v); } finally { afterSave(ok); }
+    };
+  };
+  var timer = setTimeout(function(){
+    if(settled) return;
+    settled = true;
+    saving = false;
+    afterSave(false);
+    dirty = true;                    /* the work stays, and stays unsaved */
+    lastError = lang === 'ar'
+      ? 'لم ترد قاعدة البيانات خلال ٢٠ ثانية. تعديلاتك ما زالت هنا — اضغط حفظ مرة أخرى.'
+      : 'The database did not answer within 20 seconds. Your changes are still here — press Save again.';
+    noteAttempt('timeout', 'no answer within 20s');
+    renderAdmin();
+  }, 20000);
+
+  /* Resolve.then(save) so a synchronous throw inside save() becomes a
+     rejection this handler can report, instead of an exception that leaves
+     `saving` true and every save button dead. */
+  Promise.resolve().then(function(){
+    /* A read-only verdict can be the result of a probe that simply failed, and
+       that verdict used to outlive the blip that caused it for the whole life
+       of the page. Ask the store again before refusing to save. */
+    if(DB && !canEdit){
+      return DB.doc('meta/access-probe').set({ at: Date.now() })
+        .then(function(){ canEdit = true; })
+        .catch(function(){})
+        .then(save);
+    }
+    return save();
+  }).then(once(function(res){
+    if(res && res.nothing){
+      noteAttempt('nothing', 'no field differed from the loaded copy');
+      lastError = '';
+      /* State, not a DOM poke: a snapshot arriving a moment later used to
+         rub the message straight back out. */
+      nothingAt = Date.now();
+      if(autoRun) markDirty(); else renderAdmin();
+      return;
+    }
+    noteAttempt('ok', (res.names || []).join(','));
+    /* Only now, with the write read back and compared, is it honest to say
+       the change is saved. */
+    dirty = false;
+    lastSaved = Date.now();
+    /* The editor is NOT rebuilt from the store here. It used to be — the draft
+       was discarded and re-read — which opened a window in which anything
+       typed during or just after the save was thrown away and the field
+       visibly reverted. save() has already refreshed the baseline, so the
+       draft on screen is exactly what the database holds. */
+    if(autoRun) markDirty(); else renderAdmin();
+  }, true)).catch(once(function(e){
+    var info = classifyError(e);
+    lastError = info.message;
+    dirty = true;                    /* the work stays, and stays unsaved */
+    noteAttempt('error', (e && (e.code || e.kind) ? (e.code || e.kind) + ': ' : '') + (e && e.message));
+
+    if(info.readOnly === 'recheck' && DB){
+      /* Ask the store directly rather than guessing why it refused. */
+      DB.doc('meta/access-probe').set({ at: Date.now() }).then(function(){
+        canEdit = true;
+        lastError = lang === 'ar'
+          ? 'رفضت قاعدة البيانات الحفظ رغم أن صلاحيتك سليمة — غالباً لأن المحتوى تجاوز الحجم المسموح. جرّب صورة أصغر.'
+          : 'The database refused the write although your access is fine — most likely the content exceeded the size limit. Try a smaller image.';
+        renderAdmin();
+      }).catch(function(){
+        canEdit = false;
+        lastError = lang === 'ar'
+          ? 'حسابك لم يعد يملك صلاحية التعديل على هذه الصفحة.'
+          : 'Your account no longer has edit access to this page.';
+        renderAdmin();
+      });
+      return;
+    }
+    if(info.readOnly === true) canEdit = false;
+    renderAdmin();
+  }));
+
+}
+
+
+/* Closing the tab or the panel with unsaved work should not lose it silently. */
+window.addEventListener('beforeunload', function(e){
+  if(dirty && canEdit){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ---------------------------------------------------------- publishing */
+
+/**
+ * Publishing the public site.
+ *
+ * The public site is a separate page with no database, so it cannot read
+ * this one — and a page cannot publish another page. So the Publish button
+ * starts a background Claude task (a Routine) through the built-in Claude
+ * Code Remote connector. That task reads this page's database, rebuilds the
+ * public site's content file, publishes it, and records its progress in
+ * meta/publish, which this page shows live. The trigger id is not a secret:
+ * only the account that owns the task can fire it.
+ */
+var publishState = null;      /* the meta/publish document, live */
+var contentChangedAt = 0;     /* newest updatedAt of the saved content */
+/* Saved since the website was last published? */
+function hasUnpublished(){
+  var st = publishState || {};
+  if(!contentChangedAt) return false;
+  if(st.status !== 'live' || typeof st.at !== 'number') return true;
+  return contentChangedAt > st.at;
+}
+var publishBusy = false;      /* the button press itself is in flight */
+var publishAfterSave = false; /* pressed with unsaved work: save, then publish */
+var PUBLISH_STALE = 10 * 60 * 1000;
+
+function publishRunning(){
+  var st = publishState || {};
+  return (st.status === 'requested' || st.status === 'building')
+    && typeof st.at === 'number' && Date.now() - st.at < PUBLISH_STALE;
+}
+
+function publishLabel(){
+  var ar = lang === 'ar';
+  var st = publishState || {};
+  var when = '';
+  try {
+    if(typeof st.at === 'number') when = new Date(st.at).toLocaleString(ar ? 'ar' : 'en',
+      { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
+  } catch(e){}
+  if(publishBusy) return ar ? 'جارٍ بدء النشر…' : 'Starting…';
+  if(publishAfterSave) return ar ? 'يُحفظ أولاً ثم يُنشر…' : 'Saving first, then publishing…';
+  if(st.status === 'requested' && publishRunning()) return ar ? 'بدأ النشر — دقائق قليلة' : 'Publishing — a few minutes';
+  if(st.status === 'building' && publishRunning()) return ar ? 'جارٍ تحديث الموقع…' : 'Updating the website…';
+  if(st.status === 'requested' || st.status === 'building')
+    return ar ? 'النشر يتأخر أكثر من المعتاد — جرّب مرة أخرى' : 'Publishing is taking too long — try again';
+  if(st.status === 'live' && hasUnpublished())
+    return ar ? 'تعديلات محفوظة لم تُنشر بعد على موقع الزبائن' : 'Saved edits not on the website yet';
+  if(st.status === 'live') return (ar ? 'الموقع محدّث · ' : 'Website up to date · ') + when;
+  if(st.status === 'failed') return (ar ? 'تعذّر النشر: ' : 'Could not publish: ') + String(st.error || '').slice(0, 140);
+  return ar ? 'لم يُنشر بعد' : 'Not published yet';
+}
+
+/* One message per failure that has its own fix. A code this page does not
+   know is named in the message, so it can be reported rather than guessed. */
+function publishErrorText(e){
+  var ar = lang === 'ar';
+  var code = publishCode(e);
+  if(code === 'save_request')
+    return (ar ? 'تعذّر تسجيل طلب النشر في قاعدة البيانات: ' : 'Could not record the publish request in the database: ')
+      + String((e && e.message) || '').slice(0, 100);
+  if(code === 'unavailable' || code === 'not_granted' || code === 'capability_disabled' || code === 'capability_removed')
+    return ar ? 'النشر يعمل فقط عند فتح هذه الصفحة على claude.ai.'
+              : 'Publishing only works with this page open on claude.ai.';
+  if(code === 'server_not_connected' || code === 'server_not_found' || code === 'selection_required')
+    return ar ? 'أضف Claude Code Remote من إعدادات claude.ai ← Connectors، ثم اضغط نشر.'
+              : 'Add Claude Code Remote in claude.ai Settings → Connectors, then press Publish.';
+  if(code === 'needs_reauth')
+    return ar ? 'أعد ربط Claude Code Remote من إعدادات claude.ai ← Connectors.'
+              : 'Reconnect Claude Code Remote in claude.ai Settings → Connectors.';
+  /* Declined, or switched off for this page, when the first call asked. */
+  if(code === 'not_in_manifest' || code === 'consent_required' || code === 'denied')
+    return ar ? 'اسمح لهذه الصفحة باستخدام Claude Code Remote (زر الأذونات)، ثم اضغط نشر.'
+              : 'Allow this page to use Claude Code Remote (Permissions button), then press Publish.';
+  if(code === 'blocked_by_policy' || code === 'approval_required')
+    return ar ? 'إعدادات مؤسستك منعت النشر.' : 'Your organisation settings blocked publishing.';
+  if(code === 'tool_error')
+    return (ar ? 'لم تبدأ مهمة النشر: ' : 'The publishing task did not start: ') + String((e && e.message) || '').slice(0, 100);
+  if(code === 'cancelled')
+    return ar ? 'أُلغي النشر — اضغط نشر مرة أخرى.' : 'Publishing was cancelled — press Publish again.';
+  if(code === 'user_changed')
+    return ar ? 'تغيّر الحساب المسجّل — أعد تحميل الصفحة.' : 'The signed-in account changed — reload the page.';
+  if(code === 'upstream_error' || code === 'server_unavailable' || code === 'rate_limited')
+    return ar ? 'خدمة النشر لم تستجب — اضغط نشر مرة أخرى بعد دقيقة.'
+              : 'The publishing service did not answer — press Publish again in a minute.';
+  return (ar ? 'تعذّر بدء النشر — اضغط نشر مرة أخرى. (الرمز: ' : 'Could not start publishing — press Publish again. (code: ')
+    + code + ')';
+}
+
+/* The platform's error code, or the best name there is for anything else. */
+function publishCode(e){
+  if(e && typeof e.code === 'string' && e.code) return e.code.slice(0, 40);
+  if(e && typeof e.name === 'string' && e.name) return e.name.slice(0, 40);
+  return 'unknown';
+}
+
+/* Updated in place, never by redrawing the panel: a status change must not
+   take focus out of a field someone is typing in. */
+function renderPublishStatus(){
+  var label = document.getElementById('adPubStatus');
+  if(label){
+    label.textContent = publishLabel();
+    label.className = 'ad-pub' + ((publishState || {}).status === 'failed' ? ' bad'
+      : (hasUnpublished() && !publishRunning() ? ' due' : ''));
+  }
+  var btn = document.getElementById('adPublish');
+  if(btn) btn.disabled = publishBusy || publishAfterSave || publishRunning();
+  renderPermsButton();
+}
+
+var PUBLISH_SERVER = 'Claude Code Remote';
+
+/* The platform's own claude.use, or null outside a viewer. */
+function claudeUse(name){
+  return (window.claude && typeof window.claude.use === 'function')
+    ? Promise.resolve(window.claude.use(name)).catch(function(){ return null; })
+    : Promise.resolve(null);
+}
+
+/* Ask for the connector up front, from the click itself, instead of leaving
+   the first call to raise the prompt. A viewer's "no" stops here with its
+   own message; anything this view cannot answer falls through to the call,
+   which asks for itself. */
+function askPublishPermission(){
+  var name = 'mcp:' + PUBLISH_SERVER;
+  return claudeUse('permissions').then(function(perm){
+    if(!perm) return 'unavailable';
+    return Promise.resolve(perm.state(name)).catch(function(){ return 'unavailable'; })
+      .then(function(st){
+        if(st !== 'prompt') return st;
+        return Promise.resolve(perm.request([name]))
+          .then(function(r){ return (r && r[name]) || 'unavailable'; })
+          .catch(function(){ return 'unavailable'; });
+      });
+  }).then(function(st){
+    if(st === 'denied') throw { code:'denied' };
+  });
+}
+
+/* Start the task. A failure the platform marks as safe to repeat — a
+   connector that was briefly unreachable, or a consent prompt that could
+   not be shown just then — is retried once, after the wait it asks for.
+   Never more than once: a second failure is reported. */
+function firePublish(mcp, mayRetry){
+  return mcp.callTool(PUBLISH_SERVER, 'fire_trigger', { trigger_id: PUBLISH.trigger })
+    .catch(function(e){
+      if(!mayRetry || !e || e.retryable !== true) throw e;
+      var wait = Math.min(Math.max(Number(e.retryAfterMs) || 2000, 1000), 20000)
+        + Math.floor(Math.random() * 800);
+      return new Promise(function(done){ setTimeout(done, wait); })
+        .then(function(){ return firePublish(mcp, false); });
+    });
+}
+
+function requestPublish(){
+  if(!PUBLISH.trigger || !DB || !canEdit) return;
+  if(publishBusy || publishRunning()) return;
+
+  /* What gets published is what is saved. Unsaved work goes first. */
+  if(saving || hasChanges()){
+    publishAfterSave = true;
+    renderPublishStatus();
+    if(!saving) pressSave(false);
+    return;
+  }
+
+  publishBusy = true;
+  renderPublishStatus();
+  DB.doc('meta/publish').set({ status:'requested', at: Date.now() })
+    .catch(function(e){
+      throw { code:'save_request', message: (e && e.message) || publishCode(e) };
+    })
+    .then(function(){ return claudeUse('mcp'); })
+    .then(function(mcp){
+      if(!mcp) throw { code:'unavailable' };
+      return askPublishPermission().then(function(){ return firePublish(mcp, true); });
+    })
+    .then(function(){
+      publishBusy = false;
+      renderPublishStatus();
+    })
+    .catch(function(e){
+      publishBusy = false;
+      var code = publishCode(e);
+      /* Kept in the console as it came, never swallowed. */
+      try { console.error('[publish] could not start the publishing task:', code, e); } catch(_){}
+      /* Recorded where the task would record its own progress, with the
+         platform's own code, so a failure can be traced rather than
+         guessed at. If the task did start after all — an unanswered call is
+         ambiguous — it overwrites this the moment it begins. */
+      publishState = { status:'failed', at: Date.now(), error: publishErrorText(e), code: code };
+      if(e && e.message) publishState.detail = String(e.message).slice(0, 300);
+      if(code !== 'save_request') DB.doc('meta/publish').set(publishState).catch(function(){});
+      renderPublishStatus();
+      renderPermsButton();
+    });
+}
+
+/* The way out of a refused permission: the platform's own Permissions
+   panel, opened only from a click. */
+function renderPermsButton(){
+  var btn = document.getElementById('adPerms');
+  if(!btn) return;
+  var c = (publishState || {}).code;
+  btn.hidden = !((publishState || {}).status === 'failed'
+    && (c === 'denied' || c === 'not_in_manifest' || c === 'consent_required'));
+}
+
+function openPermissions(){
+  claudeUse('permissions').then(function(perm){
+    if(!perm) throw { code:'unavailable' };
+    return perm.manage();
+  }).catch(function(){
+    var label = document.getElementById('adPubStatus');
+    if(label) label.textContent = lang === 'ar'
+      ? 'افتح قائمة الأذونات (Permissions) لهذه الصفحة واسمح بـ Claude Code Remote.'
+      : 'Open this page’s Permissions menu and allow Claude Code Remote.';
+  });
+}
+
+/* ---------------------------------------------------------- login */
+
+/**
+ * A password in front of the dashboard.
+ *
+ * What it is: a lock screen. The page itself is shared with no one, and the
+ * database accepts writes only from the owner's claude.ai account — that is
+ * the access control, and it does not depend on anything here. The password
+ * guards the open dashboard against whoever else uses the owner's device.
+ *
+ * The password is never stored. A random salt and a PBKDF2-SHA-256 hash of it
+ * are kept in secure/lock, which the database rules let only the owner read.
+ * The dashboard asks for it on every load, offers a Lock button, locks itself
+ * after 30 idle minutes, and slows down guessing after five wrong tries.
+ * Forgotten, it can only be cleared from the owner's account (ask Claude to
+ * reset it), never from this screen.
+ */
+var LOCK_DOC = 'secure/lock';
+var LOCK_ITER = 310000;
+var LOCK_MIN = 6;
+var LOCK_IDLE = 30 * 60 * 1000;
+var lockDoc;                 /* undefined: not read yet; null: no password */
+var lockReadFailed = false;
+var unlocked = false;
+var justSetLock = false;
+var lockFails = 0, lockUntil = 0, lockBusy = false, lockMsg = '', lockMsgOk = false;
+var lastActive = Date.now();
+
+function lockActive(){
+  return !!(lockDoc && typeof lockDoc.salt === 'string' && lockDoc.salt
+    && typeof lockDoc.hash === 'string' && lockDoc.hash);
+}
+/* A document that is there but unreadable locks too: failing open would
+   turn a damaged record into no password at all. */
+function isLocked(){
+  if(!DB || lockDoc === undefined || lockDoc === null) return false;
+  return !unlocked;
+}
+
+function b64(buf){
+  var bytes = new Uint8Array(buf), out = '';
+  for(var i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+  return btoa(out);
+}
+function unb64(str){
+  var bin = atob(str), out = new Uint8Array(bin.length);
+  for(var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function deriveHash(password, saltBytes, iter){
+  if(!(window.crypto && crypto.subtle)) return Promise.reject(new Error('no-crypto'));
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+    .then(function(key){
+      return crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt:saltBytes, iterations:iter }, key, 256);
+    })
+    .then(b64);
+}
+function checkPassword(password){
+  if(!lockActive()) return Promise.resolve(false);
+  var iter = Number(lockDoc.iter);
+  if(!isFinite(iter) || iter < 100000 || iter > 5000000) return Promise.resolve(false);
+  var salt;
+  try { salt = unb64(lockDoc.salt); } catch(e){ return Promise.resolve(false); }
+  return deriveHash(password, salt, iter).then(function(h){
+    var a = String(h), b = String(lockDoc.hash), diff = a.length ^ b.length;
+    for(var i = 0; i < Math.min(a.length, b.length); i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+  });
+}
+function makeLock(password){
+  var salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  return deriveHash(password, salt, LOCK_ITER).then(function(h){
+    return { alg:'PBKDF2-SHA256', iter:LOCK_ITER, salt:b64(salt), hash:h, setAt:Date.now() };
+  });
+}
+
+function lockText(key){
+  var ar = lang === 'ar';
+  return ({
+    title:   ar ? 'تسجيل الدخول' : 'Sign in',
+    lede:    ar ? 'أدخل كلمة السر لفتح لوحة التحكم.' : 'Enter the password to open the dashboard.',
+    label:   ar ? 'كلمة السر' : 'Password',
+    go:      ar ? 'دخول' : 'Sign in',
+    busy:    ar ? 'جارٍ التحقق…' : 'Checking…',
+    wrong:   ar ? 'كلمة السر غير صحيحة.' : 'That password is not right.',
+    wait:    ar ? 'محاولات كثيرة. انتظر ثم حاول مجدداً.' : 'Too many tries. Wait a moment, then try again.',
+    broken:  ar ? 'سجل كلمة السر تالف. اطلب من Claude إعادة تعيينها.' : 'The password record is damaged. Ask Claude to reset it.',
+    nocrypto:ar ? 'هذا المتصفح لا يدعم التحقق الآمن من كلمة السر.' : 'This browser cannot check the password securely.',
+    forgot:  ar ? 'نسيت كلمة السر؟ اطلب من Claude إعادة تعيين كلمة سر لوحة التحكم — لا يستطيع ذلك إلا حسابك.'
+                : 'Forgot it? Ask Claude to reset the dashboard password — only your account can.'
+  })[key];
+}
+
+function renderLogin(root){
+  var waiting = Date.now() < lockUntil;
+  var msg = lockMsg || (lockDoc && !lockActive() ? lockText('broken') : '');
+  root.innerHTML = '<div class="ad-bar"><h1>'
+    + (lang === 'ar' ? 'لوحة تحكم بيتنا' : 'Baytna Admin') + '</h1>'
+    + '<div style="margin-inline-start:auto;display:flex;gap:8px;align-items:center">'
+    +   '<button class="ad-mini" id="adLang">' + (lang === 'en' ? 'ع' : 'EN') + '</button>'
+    +   (ADMIN_PAGE ? '' : '<button class="ad-mini" id="adClose">' + (lang === 'ar' ? 'إغلاق' : 'Close') + '</button>')
+    + '</div></div>'
+    + '<div class="ad-lock"><form class="ad-lock-card" id="adLogin" autocomplete="on">'
+    +   '<div class="ad-lock-ico" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg></div>'
+    +   '<h2>' + esc(lockText('title')) + '</h2>'
+    +   '<p>' + esc(lockText('lede')) + '</p>'
+    +   '<label>' + esc(lockText('label'))
+    +     '<input type="password" id="adPw" autocomplete="current-password" maxlength="200" required'
+    +     (waiting || lockBusy ? ' disabled' : '') + '></label>'
+    +   '<p class="ad-lock-msg' + (msg ? ' bad' : '') + '" role="alert">' + esc(msg) + '</p>'
+    +   '<button type="submit" class="btn ad-savebtn" id="adLoginBtn"' + (waiting || lockBusy ? ' disabled' : '') + '>'
+    +     esc(lockBusy ? lockText('busy') : lockText('go')) + '</button>'
+    +   '<p style="font-size:12px">' + esc(lockText('forgot')) + '</p>'
+    + '</form></div>';
+  var inp = document.getElementById('adPw');
+  if(inp && !inp.disabled){ try { inp.focus(); } catch(e){} }
+  if(waiting){
+    setTimeout(function(){ if(Date.now() >= lockUntil){ lockMsg = ''; renderAdmin(); } }, lockUntil - Date.now() + 50);
+  }
+}
+
+function tryLogin(){
+  if(lockBusy || Date.now() < lockUntil) return;
+  var inp = document.getElementById('adPw');
+  var pw = inp ? inp.value : '';
+  if(!pw) return;
+  lockBusy = true; lockMsg = ''; renderAdmin();
+  checkPassword(pw).then(function(ok){
+    lockBusy = false;
+    if(ok){
+      unlocked = true; lockFails = 0; lockMsg = ''; lastActive = Date.now();
+    } else {
+      lockFails++;
+      lockMsg = lockActive() ? lockText('wrong') : lockText('broken');
+      if(lockFails >= 5){
+        lockUntil = Date.now() + Math.min(30000 * Math.pow(2, lockFails - 5), 5 * 60 * 1000);
+        lockMsg = lockText('wait');
+      }
+    }
+    renderAdmin();
+  }, function(e){
+    lockBusy = false;
+    lockMsg = (e && e.message === 'no-crypto') ? lockText('nocrypto') : lockText('wrong');
+    renderAdmin();
+  });
+}
+
+/* Lock, keeping the work: anything not yet saved is written first. */
+function lockNow(){
+  if(!lockActive()) return;
+  try { if(hasChanges()) flushSave(); } catch(e){}
+  unlocked = false; lockMsg = '';
+  renderAdmin();
+}
+
+document.addEventListener('submit', function(e){
+  if(!e.target || e.target.id !== 'adLogin') return;
+  e.preventDefault();
+  tryLogin();
+});
+['pointerdown', 'keydown', 'input', 'wheel', 'touchstart'].forEach(function(ev){
+  document.addEventListener(ev, function(){ lastActive = Date.now(); }, { passive:true, capture:true });
+});
+setInterval(function(){
+  if(lockActive() && unlocked && Date.now() - lastActive > LOCK_IDLE) lockNow();
+}, 20000);
+
+/* The Security tab: set, change or remove the password. */
+function tabSecurity(){
+  var ar = lang === 'ar';
+  var has = lockActive();
+  var pw = function(id, label, ac){
+    return '<label>' + esc(label) + '<input type="password" id="' + id + '" autocomplete="' + ac + '" maxlength="200"'
+      + (canEdit ? '' : ' disabled') + '></label>';
+  };
+  return '<div class="ad-card"><div class="ad-head"><h2>'
+    + (ar ? 'كلمة سر لوحة التحكم' : 'Dashboard password') + '</h2></div>'
+    + '<p class="ad-note" style="margin-bottom:14px">'
+    + (has
+        ? (ar ? 'لوحة التحكم محمية بكلمة سر. تُطلب عند كل فتح، وتُقفل تلقائياً بعد ٣٠ دقيقة بلا استخدام.'
+              : 'The dashboard is protected by a password. It is asked for on every visit, and the dashboard locks itself after 30 idle minutes.')
+        : (ar ? 'لا توجد كلمة سر بعد. اختر واحدة (' + LOCK_MIN + ' أحرف على الأقل) ليُطلب تسجيل الدخول عند كل فتح.'
+              : 'No password yet. Choose one (at least ' + LOCK_MIN + ' characters) and the dashboard will ask for it on every visit.'))
+    + '<br>' + (ar ? 'القفل الأساسي يبقى حسابك على claude.ai: لا أحد غيرك يستطيع فتح هذه الصفحة أو الحفظ فيها.'
+                   : 'The main lock is still your claude.ai account: no one else can open this page or save to it.')
+    + '</p>'
+    + '<div class="ad-pw">'
+    + (has ? pw('adPwCur', ar ? 'كلمة السر الحالية' : 'Current password', 'current-password') : '')
+    + pw('adPwNew', ar ? 'كلمة السر الجديدة' : 'New password', 'new-password')
+    + pw('adPwNew2', ar ? 'أعد كتابتها' : 'Repeat it', 'new-password')
+    + '</div>'
+    + '<p class="ad-lock-msg' + (lockMsg ? (lockMsgOk ? ' ok' : ' bad') : '') + '" id="adPwMsg" role="alert" style="margin:0 0 12px;font-size:13px">' + esc(lockMsg) + '</p>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    + (has
+        ? '<button class="btn ad-savebtn" id="adPwChange">' + (ar ? 'تغيير كلمة السر' : 'Change password') + '</button>'
+          + '<button class="ad-mini danger" id="adPwRemove">' + (ar ? 'إزالة كلمة السر' : 'Remove password') + '</button>'
+        : '<button class="btn ad-savebtn" id="adPwSet">' + (ar ? 'حفظ كلمة السر' : 'Save password') + '</button>')
+    + '</div>'
+    + '<p class="ad-note" style="margin-top:14px">' + esc(lockText('forgot')) + '</p>'
+    + '</div>';
+}
+
+function passwordAction(which){
+  if(!DB || !canEdit || lockBusy) return;
+  var ar = lang === 'ar';
+  var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
+  var cur = val('adPwCur'), next = val('adPwNew'), again = val('adPwNew2');
+  var say = function(text, ok){ lockMsg = text; lockMsgOk = !!ok; renderAdmin(); };
+
+  if(which !== 'adPwRemove'){
+    if(next.length < LOCK_MIN) return say(ar ? 'كلمة السر قصيرة — ' + LOCK_MIN + ' أحرف على الأقل.' : 'Too short — at least ' + LOCK_MIN + ' characters.');
+    if(next !== again) return say(ar ? 'الكلمتان غير متطابقتين.' : 'The two entries do not match.');
+  }
+  lockBusy = true;
+  var verified = which === 'adPwSet' ? Promise.resolve(!lockActive()) : checkPassword(cur);
+  verified.then(function(ok){
+    if(!ok) throw { mine: true, text: ar ? 'كلمة السر الحالية غير صحيحة.' : 'The current password is not right.' };
+    if(which === 'adPwRemove') return DB.doc(LOCK_DOC).delete().then(function(){ return 'removed'; });
+    return makeLock(next).then(function(doc){
+      justSetLock = true; unlocked = true;
+      return DB.doc(LOCK_DOC).set(doc).then(function(){ return 'set'; });
+    });
+  }).then(function(done){
+    lockBusy = false;
+    unlocked = true; lastActive = Date.now();
+    if(done === 'removed'){ lockDoc = null; }
+    say(done === 'removed'
+      ? (ar ? 'أُزيلت كلمة السر.' : 'Password removed.')
+      : (ar ? 'حُفظت كلمة السر. ستُطلب عند فتح لوحة التحكم المرة القادمة.' : 'Password saved. It will be asked for the next time the dashboard opens.'), true);
+  }, function(e){
+    lockBusy = false; justSetLock = false;
+    try { if(!(e && e.mine)) console.error('[login] could not change the password:', e); } catch(_){}
+    say(e && e.mine ? e.text
+      : (e && e.message === 'no-crypto' ? lockText('nocrypto')
+      : (ar ? 'تعذّر الحفظ: ' : 'Could not save: ') + ((e && (e.message || e.code)) || 'error')));
+  });
+}
+
+/* ---------------------------------------------------------- routing */
+
+/**
+ * The dashboard's address.
+ *
+ * It is not linked from anywhere on the site, so a customer browsing the menu
+ * never meets it. That is a convenience, not a protection — anyone who reads the
+ * page source can find this string. What actually keeps customers out is the
+ * check below: the panel renders only for a viewer the database accepts
+ * writes from, and the database is the one enforcing that, not this file.
+ */
+var ADMIN_ROUTE = '#manage-e6d7e34b271462c0';
+
+/* Switched on by scripts/build.js for the admin page. In this source file —
+   the one the tests drive — both stay off and the page behaves as the
+   combined site it always was. */
+var ADMIN_PAGE = false;
+var PUBLISH = { trigger: '', publicUrl: '' };
+/* There is no button for the dashboard on the site — not for customers and
+   not for the owner. The dashboard is its own page (the admin page); in this
+   source file it opens only at the unlisted address above, for testing. */
+
+function syncRoute(){
+  var root = document.getElementById('admin-root');
+  if(!root) return;
+  /* On the admin page the dashboard IS the page, and the only thing shown. */
+  var open = ADMIN_PAGE || location.hash === ADMIN_ROUTE;
+  if(ADMIN_PAGE) document.body.classList.add('admin-only');
+  root.classList.toggle('open', open);
+  if(open){
+    root.removeAttribute('hidden');
+    document.body.style.overflow = 'hidden';
+    /* Ask again on each opening: access can be granted or withdrawn while the
+       page sits there, and a stale answer either locks the owner out or lets
+       someone in. */
+    ensureDb().then(function(db){ if(db && !canEdit) probeAccess(); });
+    if(!draft) loadDraft().then(renderAdmin); else renderAdmin();
+  } else {
+    root.setAttribute('hidden', '');
+    document.body.style.overflow = '';
+  }
+}
+
+window.addEventListener('hashchange', syncRoute);
+
 /* keep the open/closed indicator honest without a reload */
 setInterval(renderHours, 30000);
+
+/* Admin route + live content. Both are additive: with no database the page
+   renders exactly as before, from the defaults in this file. */
+syncRoute();
+connectDb();
+/* @admin-js:end */
 })();
 </script>
 </body>

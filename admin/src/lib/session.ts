@@ -97,7 +97,8 @@ let lastTouch = new Map<string, number>();
  * a valid JWT is never sufficient on its own.
  */
 export async function getSession(): Promise<SessionUser | null> {
-  const token = cookies().get(ACCESS_COOKIE)?.value;
+  // Next 15 made the request store async; cookies() returns a promise now.
+  const token = (await cookies()).get(ACCESS_COOKIE)?.value;
   if (!token) return null;
 
   const claims = await verifyAccessToken(token);

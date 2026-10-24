@@ -42,3 +42,19 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export const isProd = env.NODE_ENV === 'production';
+
+// The placeholders in .env.example pass the length checks above, so a
+// production deploy made from a copy of that file would run on secrets
+// everyone can read. Refuse them there.
+if (isProd) {
+  const placeholders: string[] = [];
+  if (env.JWT_ACCESS_SECRET.startsWith('replace-me')) placeholders.push('JWT_ACCESS_SECRET');
+  if (env.JWT_REFRESH_SECRET.startsWith('replace-me')) placeholders.push('JWT_REFRESH_SECRET');
+  if (env.CSRF_SECRET.startsWith('replace-me')) placeholders.push('CSRF_SECRET');
+  if (/^0+$/.test(env.ENCRYPTION_KEY)) placeholders.push('ENCRYPTION_KEY');
+  if (placeholders.length) {
+    throw new Error(
+      `Invalid environment configuration:\n${placeholders.map((k) => `  - ${k}: still the .env.example placeholder`).join('\n')}\n\nGenerate real values (see .env.example).`,
+    );
+  }
+}

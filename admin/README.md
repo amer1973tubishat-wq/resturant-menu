@@ -47,7 +47,6 @@ until that is done.
 | `npm run db:deploy` | Apply migrations (production) |
 | `npm run db:seed` | First Super Admin plus baseline content |
 | `npm run db:studio` | Prisma Studio |
-| `npm run db:backup` | `pg_dump` into `backups/` |
 | `npm run db:restore -- <file>` | Restore a dump (asks for confirmation) |
 
 ---
@@ -157,7 +156,7 @@ admin/
 5. Uploads are written to `UPLOAD_DIR` on local disk. On a platform with an
    ephemeral filesystem, mount a volume or switch `src/lib/upload.ts` to S3 or
    Cloudinary — the interface is one function.
-6. Schedule `npm run db:backup` daily (cron or a platform scheduler).
+6. Take a backup regularly from Settings → Backup.
 
 ## Connecting the public site
 

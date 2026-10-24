@@ -1,0 +1,205 @@
+# Save-flow tests
+
+These exercise the dashboard's save path the way a browser does: real DOM, real
+clicks, real cookies-free page loads. The artifact `db` capability is replaced
+by a mock in `mock.js` that stores documents in a JSON file on disk, so
+"refresh", "another browser" and "another device" are genuine tests of
+persistence rather than of in-memory state.
+
+The mock mirrors the parts of the contract the page depends on:
+
+- `claude.use()` resolves **asynchronously**, never during the first
+  synchronous run — this is what exposed the original bug.
+- `doc().set()` replaces a whole document; writes are serialised so two
+  documents saved together cannot clobber each other, as in the real store.
+- `onSnapshot` fires once shortly after registration, then on every change.
+- Writes can be made to fail (`__MOCK.failWrites`) or to be refused for lack of
+  edit access (`__MOCK.canEdit`).
+- `__MOCK.forceNotify()` re-delivers the current state without a change, which
+  is what the contract's ~30 s periodic refresh does. This is what exposed the
+  panel rebuilding itself under the user's hands.
+- A write notifies only the listeners of the document that changed, as the
+  live store does.
+- Reads return object keys **alphabetised**, because the live store does
+  (verified against it: `{o,c}` came back as `{c,o}`). Without this the mock
+  let an order-sensitive comparison pass here and fail in production.
+
+## Running
+
+Needs Playwright and a Chromium build:
+
+```bash
+npm i -D playwright
+node tests/save-flow/suite.js         # persistence
+node tests/save-flow/save-button.js   # the save control itself
+node tests/save-flow/live-editing.js  # edits survive database snapshots
+node tests/save-flow/operations.js    # every edit reports success honestly
+node tests/save-flow/resilience.js    # a save survives a lost change log
+node tests/save-flow/split.js         # public page has no dashboard; admin page publishes
+node tests/save-flow/login.js         # the dashboard password
+```
+
+The runner uses a preinstalled Chromium at `/opt/pw-browsers/...` when present;
+otherwise set `CHROMIUM_PATH` to the binary. The store file is written under
+`$TMPDIR`, never into the repository.
+
+Exit code is non-zero if any check fails.
+
+## What is covered
+
+| Scenario | Asserts |
+| --- | --- |
+| Land directly on `#admin` | the editor loads stored content, not built-in defaults |
+| Save one field | untouched items, headings and branding all survive |
+| Save then refresh | the value is still there |
+| Reopen in a separate browser context | another session reads the stored value |
+| Several fields in one save | every field lands |
+| Delete every item | an empty menu persists instead of reverting to defaults |
+| Hammer the save button | six clicks do not fan out into many writes |
+| A failing write | no false success, a clear error, the unsaved bar stays, input preserved, store untouched, and a retry succeeds |
+| Two sessions | one save does not overwrite the other's untouched fields |
+| An account without edit access | read-only, inputs disabled, store untouched |
+
+`save-button.js` covers the control itself, at desktop and phone width: both
+save buttons are on screen, fully opaque, unobstructed and clickable the moment
+the dashboard opens; an unsaved-changes dot appears on both when a field
+changes and clears once the write is confirmed; the top button saves; and
+clicking with nothing pending answers "Nothing to save" rather than sitting
+silent. The button is deliberately never disabled — a dimmed one reads as an
+absent one.
+
+`live-editing.js` guards the case that made saving feel broken in practice: a
+snapshot arriving mid-edit. It checks that a typed value, the focus and the
+caret position all survive one, and that a name typed while snapshots keep
+arriving is not truncated. Before the fix, typing "Shawarma Deluxe" through a
+stream of snapshots left "Sha" in the field.
+
+`operations.js` runs every editing action a person actually performs — add,
+delete, reorder, badge, category change, brand, headings, hours, image URL —
+and asserts each one reports success honestly, with no error and a
+confirmation. This is the suite that caught adding an item reporting "The
+database did not keep: items" while having saved perfectly well.
+
+`resilience.js` covers the failure the live database pointed to: saves that
+wrote nothing at all while reporting no error. What to write is now derived by
+comparing the draft against the copy that was loaded, so a save still works
+when the change log is empty; every attempt is recorded in `meta/last-save`,
+and pressing save with genuinely nothing changed leaves the store untouched.
+
+## form-truth.js
+
+Added after the live database recorded six consecutive save attempts as
+`outcome: "nothing"`, `detail: "no field differed from the loaded copy"`, with
+`dirty: false` and nothing touched. The dashboard was describing its own model
+accurately; the model simply never received the typing, because the only route
+from a keystroke to the draft was one delegated listener on `document`.
+
+Every test here begins from an edit that exists **only in the DOM** — the state
+the database caught — and requires that a save still write it. That is the
+guarantee: what is on screen is what gets saved.
+
+Run it after any change to the dashboard's rendering, event handling or save
+path:
+
+    node tests/save-flow/form-truth.js
+
+## button-answers.js
+
+Added after the dashboard reported a Save button that was present, labelled
+«حفظ ونشر», and did nothing at all when pressed. The database showed why the
+report was impossible to diagnose from the code alone: `meta/access-probe`
+written minutes earlier, `meta/last-save` untouched for an hour. The press fell
+through the read-only guard in the click handler and returned in silence — no
+message, no record, no clue.
+
+Each case puts the dashboard in a state where saving cannot or should not
+succeed — a viewer the database refuses, no database at all, a write that never
+answers, a control that cannot be read, a probe that failed once — presses the
+button, and requires an answer. A control that does nothing and says nothing is
+indistinguishable from a broken one.
+
+    node tests/save-flow/button-answers.js
+
+## autosave.js
+
+The fourth round of "it does not save" settled what the earlier records meant.
+The decisive pair was `dirty: false` together with `touched: "(none)"`: every
+route from a keystroke to the draft goes through `markTouched`, so that pair
+says nothing had been typed in the page load that pressed Save. The typing was
+in an earlier page load — the artifact had reloaded in between — and the new one
+had read the stored value back from the database. `content/site` had not changed
+since 12 September, and the user watched the restaurant name revert to بيتنا.
+
+No button can fix that: by the time it is pressed, the work is in a page that
+no longer exists. So the write stopped waiting for the button. It happens about
+a second after the typing stops, immediately when a field is left, and again
+when the page is hidden or unloaded.
+
+This suite runs with the mock in its most hostile mode — documents handed out
+by reference (`shareReads`) and refreshes arriving mid-edit — and its central
+test types a new name, reloads the page, and requires the name to still be
+there. With auto-save removed, ten of its checks fail, including that one, with
+`بيتنا` as the observed value.
+
+    node tests/save-flow/autosave.js
+
+## content-safety.js
+
+Stored content is untrusted: everything the page renders comes out of a
+database the dashboard writes to. This suite stores twelve XSS payloads in
+every content field — names, descriptions, category labels, headings, the
+brand wordmark, image references, the WhatsApp number — and requires that
+nothing executes, across both languages and all seven dashboard tabs.
+
+The test for "did it execute" counts effects, not strings: a dialog, a thrown
+error, a flag the payload would set on `window`, an element carrying a script
+URL or an event-handler attribute. It also asserts the payloads are visible as
+text, so a passing run cannot mean the content was quietly dropped. Two further
+cases cover a path that tries to reach `__proto__`, and a stored document of
+entirely the wrong shape, which must not blank the page.
+
+    node tests/save-flow/content-safety.js
+
+## editable.js
+
+Everything on the site is editable from the dashboard, and an edit reaches the
+page people see.
+
+41 of the site's 64 strings used to be literals in the file — the navigation,
+the hero buttons, the story, the whole footer, the opening status, the
+currency — along with the entire build-your-own menu and its prices, the
+ingredient chips, the badge wording and every social link.
+
+Its first check is the one that keeps this true: every `data-i18n` key in the
+markup must be reachable from the Text tab, and every field the Text tab
+offers must edit a string the page actually uses. Add a string to the page
+without exposing it, or leave a field behind that edits nothing, and this
+fails immediately — rather than being discovered months later by someone who
+cannot change their own menu.
+
+The rest drive the real path for one control of each kind: a nav label, a
+builder option's price (and the total the customer is then charged), the
+ingredient list, a social link appearing and disappearing, a badge's wording,
+the currency, and the phone number behind the tel: link.
+
+    node tests/save-flow/editable.js
+
+## private-route.js
+
+The dashboard is not part of the site a customer sees. Two separate things,
+and only the second is a control:
+
+1. **Unlisted.** Nothing on the page links to it. A customer browsing the menu
+   never arrives. This is a convenience — the address is in the page source.
+2. **Gated.** The panel renders only for a viewer the database accepts writes
+   from. Someone who finds the address anyway gets nothing: no controls, and
+   not even a read-only copy of the content.
+
+The second is what makes the first safe to rely on. This suite holds both: no
+link points at the route, `#admin` and other guesses open nothing, the real
+address works for an editor, and it yields nothing to anyone else.
+
+Every suite reads the route out of `index.html` rather than hardcoding it, so
+changing the address cannot leave the tests knocking on a door that moved.
+
+    node tests/save-flow/private-route.js
