@@ -154,7 +154,11 @@ function buildPublic() {
     .filter(t => html.includes(t));
   if (leaks.length) fail('dashboard code leaked into the public page: ' + leaks.join(', '));
 
-  html = toArtifact(html);
+  /* Served as a plain website (Cloudflare Workers Builds sets WORKERS_CI=1)
+     there is no viewer to supply the charset and viewport tags, so the page
+     keeps its own document shell; without it Arabic text renders as noise. */
+  const standalone = process.env.WORKERS_CI === '1' || process.env.BAYTNA_STANDALONE === '1';
+  if (!standalone) html = toArtifact(html);
   fs.mkdirSync(path.join(DIST, 'public'), { recursive: true });
   const out = path.join(DIST, 'public', 'index.html');
   fs.writeFileSync(out, html);
